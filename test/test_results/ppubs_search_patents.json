@@ -7,7 +7,7 @@
   "sort": null,
   "query": {
     "id": null,
-    "caseId": 85076586,
+    "caseId": 85076927,
     "userId": null,
     "numResults": 0,
     "ignorePersist": true,
@@ -48,12 +48,12 @@
     "pNumber": null,
     "hl_fl": null
   },
-  "duration": 22,
+  "duration": 29,
   "highlightingTime": 0,
   "cursorMarker": "*",
   "totalResults": 0,
   "numberOfFamilies": 0,
   "error": null,
   "patents": [],
-  "qtime": 5
+  "qtime": 23
 }

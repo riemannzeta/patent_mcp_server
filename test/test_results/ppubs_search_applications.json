@@ -7,7 +7,7 @@
   "sort": null,
   "query": {
     "id": null,
-    "caseId": 85076586,
+    "caseId": 85076927,
     "userId": null,
     "numResults": 10,
     "ignorePersist": true,
@@ -50,7 +50,7 @@
     "pNumber": null,
     "hl_fl": null
   },
-  "duration": 41,
+  "duration": 42,
   "highlightingTime": 0,
   "cursorMarker": "AoJwwLC22JUDPwAxMDAwMDA3MzU1NDY0IVBHLVVTLTIwMjUwMDk2Njk0",
   "totalResults": 10,
@@ -143,7 +143,7 @@
       "documentId": "US 20250095200 A1",
       "derwentAccessionNumber": null,
       "documentSize": 90868,
-      "score": 11.432743,
+      "score": 11.457939,
       "governmentInterest": null,
       "kindCode": [
         "A1"
@@ -242,7 +242,7 @@
       "documentId": "US 20250097410 A1",
       "derwentAccessionNumber": null,
       "documentSize": 127402,
-      "score": 10.964631,
+      "score": 11.006144,
       "governmentInterest": null,
       "kindCode": [
         "A1"
@@ -339,7 +339,7 @@
       "documentId": "US 20250095224 A1",
       "derwentAccessionNumber": null,
       "documentSize": 60064,
-      "score": 11.006636,
+      "score": 10.996775,
       "governmentInterest": null,
       "kindCode": [
         "A1"
@@ -533,7 +533,7 @@
       "documentId": "US 20250097668 A1",
       "derwentAccessionNumber": null,
       "documentSize": 190409,
-      "score": 5.550363,
+      "score": 5.5548744,
       "governmentInterest": null,
       "kindCode": [
         "A1"
@@ -923,7 +923,7 @@
       "documentId": "US 20250097804 A1",
       "derwentAccessionNumber": null,
       "documentSize": 209650,
-      "score": 7.757127,
+      "score": 7.7554507,
       "governmentInterest": null,
       "kindCode": [
         "A1"

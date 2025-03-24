@@ -56,7 +56,7 @@ If you don't already have uv installed, `curl -LsSf https://astral.sh/uv/install
     uv run patent-mcp-server
     ```
 
-   Should write to:
+   Should write:
 
     ```bash
     INFO     Starting USPTO Patent MCP server with stdio transport
@@ -66,7 +66,7 @@ If you don't already have uv installed, `curl -LsSf https://astral.sh/uv/install
 
 ## API Key Setup
 
-To use the USPTO APIs, you need to obtain an Open Data Portal (ODP) API key:
+To use the api.uspto.gov tools, you need to obtain an Open Data Portal (ODP) API key:
 
 1. Visit [USPTO's Getting Started page](https://data.uspto.gov/apis/getting-started) and follow the instructions to request an API key if you don't already have one.
 
