@@ -1,0 +1,16 @@
+{
+  "count": 1,
+  "patentFileWrapperDataBag": [
+    {
+      "applicationNumberText": "14412875",
+      "foreignPriorityBag": [
+        {
+          "filingDate": "2012-07-05",
+          "applicationNumberText": "10 2012 013 534.3",
+          "ipOfficeName": "GERMANY"
+        }
+      ]
+    }
+  ],
+  "requestIdentifier": "a0e35a93-cf1a-400f-ba79-b51ca483723c"
+}

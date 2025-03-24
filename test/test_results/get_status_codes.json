@@ -1,0 +1,46 @@
+{
+  "count": 241,
+  "statusCodeBag": [
+    {
+      "applicationStatusCode": 1,
+      "applicationStatusDescriptionText": "Missassigned Application Number"
+    },
+    {
+      "applicationStatusCode": 3,
+      "applicationStatusDescriptionText": "Proceedings Terminated"
+    },
+    {
+      "applicationStatusCode": 11,
+      "applicationStatusDescriptionText": "Hague Application under International Review"
+    },
+    {
+      "applicationStatusCode": 12,
+      "applicationStatusDescriptionText": "Pre-Exam Transmittal Review Complete (Hague)"
+    },
+    {
+      "applicationStatusCode": 16,
+      "applicationStatusDescriptionText": "Waiting for LR clearance"
+    },
+    {
+      "applicationStatusCode": 17,
+      "applicationStatusDescriptionText": "Sent to Classification contractor"
+    },
+    {
+      "applicationStatusCode": 18,
+      "applicationStatusDescriptionText": "Application Returned back to Preexam"
+    },
+    {
+      "applicationStatusCode": 19,
+      "applicationStatusDescriptionText": "Application Undergoing Preexam Processing"
+    },
+    {
+      "applicationStatusCode": 20,
+      "applicationStatusDescriptionText": "Application Dispatched from Preexam, Not Yet Docketed"
+    },
+    {
+      "applicationStatusCode": 21,
+      "applicationStatusDescriptionText": "Lost Image Document Mailed"
+    }
+  ],
+  "requestIdentifier": "ba72283c-2baf-452f-bad5-157420278b1e"
+}

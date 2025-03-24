@@ -1,0 +1,54 @@
+{
+  "count": 1,
+  "patentFileWrapperDataBag": [
+    {
+      "parentContinuityBag": [
+        {
+          "parentApplicationStatusCode": 150,
+          "claimParentageTypeCode": "NST",
+          "claimParentageTypeCodeDescriptionText": "is a National Stage Entry of",
+          "parentApplicationStatusDescriptionText": "Patented Case",
+          "parentApplicationNumberText": "PCTIB2013001896",
+          "parentApplicationFilingDate": "2013-07-02",
+          "childApplicationNumberText": "14412875"
+        }
+      ],
+      "childContinuityBag": [
+        {
+          "firstInventorToFileIndicator": false,
+          "childApplicationStatusDescriptionText": "Patent Expired Due to NonPayment of Maintenance Fees Under 37 CFR 1.362",
+          "claimParentageTypeCode": "CON",
+          "childApplicationStatusCode": 250,
+          "claimParentageTypeCodeDescriptionText": "is a Continuation of",
+          "childPatentNumber": "10806943",
+          "parentApplicationNumberText": "14412875",
+          "childApplicationFilingDate": "2019-05-17",
+          "childApplicationNumberText": "16415927"
+        },
+        {
+          "firstInventorToFileIndicator": false,
+          "childApplicationStatusDescriptionText": "Patented Case",
+          "claimParentageTypeCode": "CON",
+          "childApplicationStatusCode": 150,
+          "claimParentageTypeCodeDescriptionText": "is a Continuation of",
+          "childPatentNumber": "11612758",
+          "parentApplicationNumberText": "14412875",
+          "childApplicationFilingDate": "2020-09-04",
+          "childApplicationNumberText": "17013096"
+        },
+        {
+          "firstInventorToFileIndicator": false,
+          "childApplicationStatusDescriptionText": "Docketed New Case - Ready for Examination",
+          "claimParentageTypeCode": "CON",
+          "childApplicationStatusCode": 30,
+          "claimParentageTypeCodeDescriptionText": "is a Continuation of",
+          "parentApplicationNumberText": "14412875",
+          "childApplicationFilingDate": "2023-03-27",
+          "childApplicationNumberText": "18190466"
+        }
+      ],
+      "applicationNumberText": "14412875"
+    }
+  ],
+  "requestIdentifier": "411f59c7-b84e-4e09-bf76-331d9b78b1a6"
+}

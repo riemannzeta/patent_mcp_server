@@ -1,0 +1,2919 @@
+{
+  "count": 184,
+  "documentBag": [
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4LIZHZ4PXXIFW1",
+      "documentCode": "REM",
+      "documentCodeDescriptionText": "Applicant Arguments/Remarks Made in an Amendment",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LIZHZ4PXXIFW1.pdf",
+          "pageTotalQuantity": 1
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LIZHZ4PXXIFW1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-04-25T00:00:00.000-0400",
+      "documentIdentifier": "J1Y7RH6HRXEAPX0",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1Y7RH6HRXEAPX0.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2016-10-25T00:00:00.000-0400",
+      "documentIdentifier": "IUK02UKVRXEAPX2",
+      "documentCode": "CTNF",
+      "documentCodeDescriptionText": "Non-Final Rejection",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UKVRXEAPX2.pdf",
+          "pageTotalQuantity": 8
+        },
+        {
+          "mimeTypeIdentifier": "MS_WORD",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UKVRXEAPX2/files/Non-Final%20Rejection.DOCM"
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UKVRXEAPX2/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-12T08:58:17.000-0400",
+      "documentIdentifier": "JUB7YU6YRXEAPX5",
+      "documentCode": "BIB",
+      "documentCodeDescriptionText": "Bibliographic Data Sheet",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JUB7YU6YRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-27T07:06:18.000-0400",
+      "documentIdentifier": "K9CNUZONRXEAPX5",
+      "documentCode": "IMIS",
+      "documentCodeDescriptionText": "Miscellaneous Internal Document",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZONRXEAPX5.pdf",
+          "pageTotalQuantity": 6
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2022-11-15T20:37:33.000-0500",
+      "documentIdentifier": "LAIZ4F81GREENX5",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/LAIZ4F81GREENX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:54.000-0400",
+      "documentIdentifier": "K2GOOR5JRXEAPX1",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR5JRXEAPX1.pdf",
+          "pageTotalQuantity": 11
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHW7VCXARXEAPX3",
+      "documentCode": "XT/",
+      "documentCodeDescriptionText": "Extension of Time",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHW7VCXARXEAPX3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-23T14:07:29.000-0400",
+      "documentIdentifier": "JVZJI8GJRXEAPX2",
+      "documentCode": "N570",
+      "documentCodeDescriptionText": "Communication - Re:  Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVZJI8GJRXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:54.000-0400",
+      "documentIdentifier": "K2GOOR5LRXEAPX1",
+      "documentCode": "R46C.REQ",
+      "documentCodeDescriptionText": "Request under 37CFR1.46(c) to correct, update, change applicant",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR5LRXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-08-09T00:00:00.000-0400",
+      "documentIdentifier": "J63XKR93RXEAPX1",
+      "documentCode": "892",
+      "documentCodeDescriptionText": "List of references cited by examiner",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J63XKR93RXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68OCRXEAPX5",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68OCRXEAPX5.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-12T16:34:18.000-0500",
+      "documentIdentifier": "K2WDIFPIRXEAPX0",
+      "documentCode": "ADS",
+      "documentCodeDescriptionText": "Application Data Sheet",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2WDIFPIRXEAPX0.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHUI4XGLRXEAPX5",
+      "documentCode": "N570",
+      "documentCodeDescriptionText": "Communication - Re:  Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHUI4XGLRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2022-11-22T10:54:42.000-0500",
+      "documentIdentifier": "LAQYXZN3XBLUEX4",
+      "documentCode": "N570",
+      "documentCodeDescriptionText": "Communication - Re:  Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/LAQYXZN3XBLUEX4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DOHPXXIFW3",
+      "documentCode": "A.PE",
+      "documentCodeDescriptionText": "Preliminary Amendment",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DOHPXXIFW3.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4LIZHZVPXXIFW1",
+      "documentCode": "SPEC",
+      "documentCodeDescriptionText": "Specification",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LIZHZVPXXIFW1.pdf",
+          "pageTotalQuantity": 22
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LIZHZVPXXIFW1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-17T15:19:58.000-0400",
+      "documentIdentifier": "K97FQ435RXEAPX5",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K97FQ435RXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-06-11T00:00:00.000-0400",
+      "documentIdentifier": "IAS7WCWVPXXIFW4",
+      "documentCode": "NTC.PUB",
+      "documentCodeDescriptionText": "Notice of Publication",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IAS7WCWVPXXIFW4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-12T08:58:17.000-0400",
+      "documentIdentifier": "JUB7YU6ZRXEAPX5",
+      "documentCode": "SRNT",
+      "documentCodeDescriptionText": "Examiner's search strategy and results",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JUB7YU6ZRXEAPX5.pdf",
+          "pageTotalQuantity": 13
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:54.000-0400",
+      "documentIdentifier": "K2GOOR3WRXEAPX1",
+      "documentCode": "FOR",
+      "documentCodeDescriptionText": "Foreign Reference",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR3WRXEAPX1.pdf",
+          "pageTotalQuantity": 9
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHW7VCX8RXEAPX3",
+      "documentCode": "AMSB",
+      "documentCodeDescriptionText": "Amendment Submitted/Entered with Filing of Continued Prosecution Application (CPA)/Request for Continued Examination(RCE)",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHW7VCX8RXEAPX3.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:51.000-0400",
+      "documentIdentifier": "K2GONHOJRXEAPX5",
+      "documentCode": "ADS",
+      "documentCodeDescriptionText": "Application Data Sheet",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GONHOJRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-23T00:00:00.000-0400",
+      "documentIdentifier": "JHJ94EV9RXEAPX2",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHJ94EV9RXEAPX2.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-03-05T00:00:00.000-0500",
+      "documentIdentifier": "I6UR9MXTPXXIFW4",
+      "documentCode": "M903",
+      "documentCodeDescriptionText": "Notice of Designated Office (DO) / Elected Office (EO) Acceptance Mailed",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I6UR9MXTPXXIFW4.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-04-09T00:00:00.000-0400",
+      "documentIdentifier": "I8ACS7VHPXXIFW3",
+      "documentCode": "OATH",
+      "documentCodeDescriptionText": "Oath or Declaration filed",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I8ACS7VHPXXIFW3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-03-05T00:00:00.000-0500",
+      "documentIdentifier": "I6UQY828PXXIFW4",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I6UQY828PXXIFW4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-04-25T00:00:00.000-0400",
+      "documentIdentifier": "J1ZGACDDPXXIFW2",
+      "documentCode": "REM",
+      "documentCodeDescriptionText": "Applicant Arguments/Remarks Made in an Amendment",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1ZGACDDPXXIFW2.pdf",
+          "pageTotalQuantity": 5
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1ZGACDDPXXIFW2/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-12T08:58:17.000-0400",
+      "documentIdentifier": "JUB7YU6WRXEAPX5",
+      "documentCode": "FWCLM",
+      "documentCodeDescriptionText": "Index of Claims",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JUB7YU6WRXEAPX5.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DPJPXXIFW3",
+      "documentCode": "ADS",
+      "documentCodeDescriptionText": "Application Data Sheet",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DPJPXXIFW3.pdf",
+          "pageTotalQuantity": 6
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68O5RXEAPX5",
+      "documentCode": "FOR",
+      "documentCodeDescriptionText": "Foreign Reference",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68O5RXEAPX5.pdf",
+          "pageTotalQuantity": 18
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-08-09T00:00:00.000-0400",
+      "documentIdentifier": "J63XKR95RXEAPX1",
+      "documentCode": "SRNT",
+      "documentCodeDescriptionText": "Examiner's search strategy and results",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J63XKR95RXEAPX1.pdf",
+          "pageTotalQuantity": 8
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-17T08:33:20.000-0500",
+      "documentIdentifier": "K5FCIIKRRXEAPX5",
+      "documentCode": "1449",
+      "documentCodeDescriptionText": "List of References cited by applicant and considered by examiner",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5FCIIKRRXEAPX5.pdf",
+          "pageTotalQuantity": 15
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-23T00:00:00.000-0400",
+      "documentIdentifier": "JHJ94EV7RXEAPX2",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHJ94EV7RXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2016-10-25T00:00:00.000-0400",
+      "documentIdentifier": "IUK02UKWRXEAPX2",
+      "documentCode": "892",
+      "documentCodeDescriptionText": "List of references cited by examiner",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UKWRXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-21T16:52:37.000-0400",
+      "documentIdentifier": "JVY9YR95RXEAPX1",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVY9YR95RXEAPX1.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-04T06:40:59.000-0400",
+      "documentIdentifier": "JU2IF54DRXEAPX1",
+      "documentCode": "RFN.REQ",
+      "documentCodeDescriptionText": "Refund Request",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JU2IF54DRXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-27T07:06:18.000-0400",
+      "documentIdentifier": "K9CNUZOGRXEAPX5",
+      "documentCode": "EXIN",
+      "documentCodeDescriptionText": "Examiner Interview Summary Record (PTOL - 413)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOGRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-12T16:34:18.000-0500",
+      "documentIdentifier": "K2WDIFPERXEAPX0",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2WDIFPERXEAPX0.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2022-11-15T20:37:33.000-0500",
+      "documentIdentifier": "LAIZ4F82GREENX5",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/LAIZ4F82GREENX5.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-04-25T00:00:00.000-0400",
+      "documentIdentifier": "J1Y7RH6GRXEAPX0",
+      "documentCode": "A...",
+      "documentCodeDescriptionText": "Amendment/Request for Reconsideration-After Non-Final Rejection",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1Y7RH6GRXEAPX0.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JI1LA6JFPXXIFW2",
+      "documentCode": "REM",
+      "documentCodeDescriptionText": "Applicant Arguments/Remarks Made in an Amendment",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JI1LA6JFPXXIFW2.pdf",
+          "pageTotalQuantity": 5
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JI1LA6JFPXXIFW2/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-08-19T20:22:21.000-0400",
+      "documentIdentifier": "KE228WM9RXEAPX1",
+      "documentCode": "ISSUE.NTF",
+      "documentCodeDescriptionText": "Issue Notification",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KE228WM9RXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DPSPXXIFW3",
+      "documentCode": "SPEC",
+      "documentCodeDescriptionText": "Specification",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DPSPXXIFW3.pdf",
+          "pageTotalQuantity": 22
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DPSPXXIFW3/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-12T16:34:18.000-0500",
+      "documentIdentifier": "K2WDIFPJRXEAPX0",
+      "documentCode": "R3.73",
+      "documentCodeDescriptionText": "Assignee showing of ownership per 37 CFR 3.73",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2WDIFPJRXEAPX0.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:01:39.000-0400",
+      "documentIdentifier": "KD4XT2TRRXEAPX2",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD4XT2TRRXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-10-14T14:47:09.000-0400",
+      "documentIdentifier": "K1QRRRPBRXEAPX1",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPBRXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHW7VCX7RXEAPX3",
+      "documentCode": "PET.PCT",
+      "documentCodeDescriptionText": "Petition for review by the PCT legal office",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHW7VCX7RXEAPX3.pdf",
+          "pageTotalQuantity": 4
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHW7VCX7RXEAPX3/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JI1L9UVKPXXIFW2",
+      "documentCode": "CLM",
+      "documentCodeDescriptionText": "Claims",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JI1L9UVKPXXIFW2.pdf",
+          "pageTotalQuantity": 5
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JI1L9UVKPXXIFW2/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-23T00:00:00.000-0400",
+      "documentIdentifier": "JHJ94EV8RXEAPX2",
+      "documentCode": "R3.73",
+      "documentCodeDescriptionText": "Assignee showing of ownership per 37 CFR 3.73",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHJ94EV8RXEAPX2.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-12T08:58:17.000-0400",
+      "documentIdentifier": "JUB7YU6TRXEAPX5",
+      "documentCode": "CTNF",
+      "documentCodeDescriptionText": "Non-Final Rejection",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JUB7YU6TRXEAPX5.pdf",
+          "pageTotalQuantity": 10
+        },
+        {
+          "mimeTypeIdentifier": "MS_WORD",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JUB7YU6TRXEAPX5/files/Non-Final%20Rejection.docx"
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JUB7YU6TRXEAPX5/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5EBRPXXIFW3",
+      "documentCode": "IDS",
+      "documentCodeDescriptionText": "Information Disclosure Statement (IDS) Form (SB08)",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5EBRPXXIFW3.pdf",
+          "pageTotalQuantity": 2
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5EBRPXXIFW3/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68O6RXEAPX5",
+      "documentCode": "FOR",
+      "documentCodeDescriptionText": "Foreign Reference",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68O6RXEAPX5.pdf",
+          "pageTotalQuantity": 11
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DOSPXXIFW3",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DOSPXXIFW3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T15:48:41.000-0400",
+      "documentIdentifier": "JU1MJMI5RXEAPX0",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JU1MJMI5RXEAPX0.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-10-14T14:47:09.000-0400",
+      "documentIdentifier": "K1QRRRPGRXEAPX1",
+      "documentCode": "CLM",
+      "documentCodeDescriptionText": "Claims",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPGRXEAPX1.pdf",
+          "pageTotalQuantity": 7
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPGRXEAPX1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:01:39.000-0400",
+      "documentIdentifier": "KD4XT222RXEAPX0",
+      "documentCode": "DRW.NONBW",
+      "documentCodeDescriptionText": "Drawings-other than black and white line drawings",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD4XT222RXEAPX0.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68O7RXEAPX5",
+      "documentCode": "FOR",
+      "documentCodeDescriptionText": "Foreign Reference",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68O7RXEAPX5.pdf",
+          "pageTotalQuantity": 9
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-18T08:46:49.000-0500",
+      "documentIdentifier": "K3074SG8RXEAPX1",
+      "documentCode": "APP.FILE.REC",
+      "documentCodeDescriptionText": "Filing Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K3074SG8RXEAPX1.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-17T08:33:20.000-0500",
+      "documentIdentifier": "K5FCIIKQRXEAPX5",
+      "documentCode": "SRFW",
+      "documentCodeDescriptionText": "Search information including classification, databases and other search related notes",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5FCIIKQRXEAPX5.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:01:39.000-0400",
+      "documentIdentifier": "KD4XT2TPRXEAPX2",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD4XT2TPRXEAPX2.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:54.000-0400",
+      "documentIdentifier": "K2GOOR3VRXEAPX1",
+      "documentCode": "IDS",
+      "documentCodeDescriptionText": "Information Disclosure Statement (IDS) Form (SB08)",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR3VRXEAPX1.pdf",
+          "pageTotalQuantity": 15
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR3VRXEAPX1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-21T16:52:37.000-0400",
+      "documentIdentifier": "JVY9YR92RXEAPX1",
+      "documentCode": "R3.73",
+      "documentCodeDescriptionText": "Assignee showing of ownership per 37 CFR 3.73",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVY9YR92RXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHW7VDNVRXEAPX1",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHW7VDNVRXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-17T11:52:01.000-0400",
+      "documentIdentifier": "K94DF01YRXEAPX3",
+      "documentCode": "REM",
+      "documentCodeDescriptionText": "Applicant Arguments/Remarks Made in an Amendment",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF01YRXEAPX3.pdf",
+          "pageTotalQuantity": 4
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF01YRXEAPX3/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JI1L9UXHPXXIFW2",
+      "documentCode": "ABST",
+      "documentCodeDescriptionText": "Abstract",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JI1L9UXHPXXIFW2.pdf",
+          "pageTotalQuantity": 1
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JI1L9UXHPXXIFW2/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-03-05T00:00:00.000-0500",
+      "documentIdentifier": "I6UQYG8OPXXIFW4",
+      "documentCode": "WCLM",
+      "documentCodeDescriptionText": "Claims Worksheet (PTO-2022)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I6UQYG8OPXXIFW4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-27T07:06:18.000-0400",
+      "documentIdentifier": "K9CNUZOFRXEAPX5",
+      "documentCode": "NOA",
+      "documentCodeDescriptionText": "Notice of Allowance and Fees Due (PTOL-85)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOFRXEAPX5.pdf",
+          "pageTotalQuantity": 11
+        },
+        {
+          "mimeTypeIdentifier": "MS_WORD",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOFRXEAPX5/files/Allowability%20Notice.docx"
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOFRXEAPX5/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:54.000-0400",
+      "documentIdentifier": "K2GOOR5KRXEAPX1",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR5KRXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-04-25T00:00:00.000-0400",
+      "documentIdentifier": "J2J6CID3RXEAPX3",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J2J6CID3RXEAPX3.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-10-09T00:00:00.000-0400",
+      "documentIdentifier": "JN1X2XF5RXEAPX1",
+      "documentCode": "PET.PCT",
+      "documentCodeDescriptionText": "Petition for review by the PCT legal office",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JN1X2XF5RXEAPX1.pdf",
+          "pageTotalQuantity": 3
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JN1X2XF5RXEAPX1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:51.000-0400",
+      "documentIdentifier": "K2GONHOIRXEAPX5",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GONHOIRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-10-02T00:00:00.000-0400",
+      "documentIdentifier": "JMLXZMV2RXEAPX5",
+      "documentCode": "IMIS",
+      "documentCodeDescriptionText": "Miscellaneous Internal Document",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JMLXZMV2RXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DQ7PXXIFW3",
+      "documentCode": "DRW",
+      "documentCodeDescriptionText": "Drawings-only black and white line drawings",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DQ7PXXIFW3.pdf",
+          "pageTotalQuantity": 8
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2016-10-25T00:00:00.000-0400",
+      "documentIdentifier": "IUK02UKZRXEAPX2",
+      "documentCode": "SRFW",
+      "documentCodeDescriptionText": "Search information including classification, databases and other search related notes",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UKZRXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:01:39.000-0400",
+      "documentIdentifier": "KD6200J4LXEAPX2",
+      "documentCode": "REM",
+      "documentCodeDescriptionText": "Applicant Arguments/Remarks Made in an Amendment",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD6200J4LXEAPX2.pdf",
+          "pageTotalQuantity": 2
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD6200J4LXEAPX2/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-27T07:06:18.000-0400",
+      "documentIdentifier": "K9CNUZOLRXEAPX5",
+      "documentCode": "1449",
+      "documentCodeDescriptionText": "List of References cited by applicant and considered by examiner",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOLRXEAPX5.pdf",
+          "pageTotalQuantity": 4
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DPCPXXIFW3",
+      "documentCode": "TRNA",
+      "documentCodeDescriptionText": "Transmittal of New Application",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DPCPXXIFW3.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-21T16:52:37.000-0400",
+      "documentIdentifier": "JVY9YR91RXEAPX1",
+      "documentCode": "ADS",
+      "documentCodeDescriptionText": "Application Data Sheet",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVY9YR91RXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-09T00:00:00.000-0400",
+      "documentIdentifier": "JGZ300WORXEAPX1",
+      "documentCode": "R3.73",
+      "documentCodeDescriptionText": "Assignee showing of ownership per 37 CFR 3.73",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JGZ300WORXEAPX1.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-03-21T11:05:26.000-0400",
+      "documentIdentifier": "JTIRPATCRXEAPX5",
+      "documentCode": "PET.DEC.TC",
+      "documentCodeDescriptionText": "Petition decision routed to the Technology Center to act on the decision or continue prosecution",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JTIRPATCRXEAPX5.pdf",
+          "pageTotalQuantity": 3
+        },
+        {
+          "mimeTypeIdentifier": "MS_WORD",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JTIRPATCRXEAPX5/files/Pet%20Dec%20Routed%20to%20Tech%20Center.docx"
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JTIRPATCRXEAPX5/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-21T16:52:37.000-0400",
+      "documentIdentifier": "JVY9YR93RXEAPX1",
+      "documentCode": "136A",
+      "documentCodeDescriptionText": "Authorization for Extension of Time all replies",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVY9YR93RXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-09T00:00:00.000-0400",
+      "documentIdentifier": "JGZ300WNRXEAPX1",
+      "documentCode": "ADS",
+      "documentCodeDescriptionText": "Application Data Sheet",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JGZ300WNRXEAPX1.pdf",
+          "pageTotalQuantity": 6
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-23T00:00:00.000-0400",
+      "documentIdentifier": "JHHPPFCDRXEAPX1",
+      "documentCode": "PEFN",
+      "documentCodeDescriptionText": "Pre-Exam Formalities Notice",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHHPPFCDRXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHUI67UURXEAPX2",
+      "documentCode": "APP.FILE.REC",
+      "documentCodeDescriptionText": "Filing Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHUI67UURXEAPX2.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-10-14T14:47:09.000-0400",
+      "documentIdentifier": "K1QRRRPCRXEAPX1",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPCRXEAPX1.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DP2PXXIFW3",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DP2PXXIFW3.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-10-14T14:47:09.000-0400",
+      "documentIdentifier": "K1QRRRPFRXEAPX1",
+      "documentCode": "REM",
+      "documentCodeDescriptionText": "Applicant Arguments/Remarks Made in an Amendment",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPFRXEAPX1.pdf",
+          "pageTotalQuantity": 6
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPFRXEAPX1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-09T00:00:00.000-0400",
+      "documentIdentifier": "JGZ300WLRXEAPX1",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JGZ300WLRXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-10-14T14:47:09.000-0400",
+      "documentIdentifier": "K1QRRRPDRXEAPX1",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPDRXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:27:15.000-0400",
+      "documentIdentifier": "KD4YPZETRXEAPX2",
+      "documentCode": "SCORE",
+      "documentCodeDescriptionText": "Placeholder sheet indicating presence of supplemental content in Supplemental Complex Repository for Examiners(SCORE)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD4YPZETRXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-08-03T19:05:50.000-0400",
+      "documentIdentifier": "KDF4GVODRXEAPX5",
+      "documentCode": "SPEC",
+      "documentCodeDescriptionText": "Specification",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KDF4GVODRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KDF4GVODRXEAPX5/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68OBRXEAPX5",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68OBRXEAPX5.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-12T16:34:18.000-0500",
+      "documentIdentifier": "K2WDIFPGRXEAPX0",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2WDIFPGRXEAPX0.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-04-25T00:00:00.000-0400",
+      "documentIdentifier": "J1ZGACBJPXXIFW2",
+      "documentCode": "CLM",
+      "documentCodeDescriptionText": "Claims",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1ZGACBJPXXIFW2.pdf",
+          "pageTotalQuantity": 3
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1ZGACBJPXXIFW2/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:01:39.000-0400",
+      "documentIdentifier": "KD4XT2TSRXEAPX2",
+      "documentCode": "IFEE",
+      "documentCodeDescriptionText": "Issue Fee Payment (PTO-85B)",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD4XT2TSRXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:54.000-0400",
+      "documentIdentifier": "K2GOOR5IRXEAPX1",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR5IRXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-10-02T00:00:00.000-0400",
+      "documentIdentifier": "JMLXZMV1RXEAPX5",
+      "documentCode": "PETDEC",
+      "documentCodeDescriptionText": "Petition Decision",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JMLXZMV1RXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-08-09T00:00:00.000-0400",
+      "documentIdentifier": "J63XKR92RXEAPX1",
+      "documentCode": "CTFR",
+      "documentCodeDescriptionText": "Final Rejection",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J63XKR92RXEAPX1.pdf",
+          "pageTotalQuantity": 14
+        },
+        {
+          "mimeTypeIdentifier": "MS_WORD",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J63XKR92RXEAPX1/files/Final%20Rejection.DOCM"
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J63XKR92RXEAPX1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHUI4Y1KRXEAPX4",
+      "documentCode": "N570",
+      "documentCodeDescriptionText": "Communication - Re:  Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHUI4Y1KRXEAPX4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-12T16:34:18.000-0500",
+      "documentIdentifier": "K2WDIFPHRXEAPX0",
+      "documentCode": "R46C.REQ",
+      "documentCodeDescriptionText": "Request under 37CFR1.46(c) to correct, update, change applicant",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2WDIFPHRXEAPX0.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4LC0G9NPXXIFW4",
+      "documentCode": "P.PAMPHLET",
+      "documentCodeDescriptionText": "WIPO Publication - Non-English version",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LC0G9NPXXIFW4.pdf",
+          "pageTotalQuantity": 48
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-27T07:06:18.000-0400",
+      "documentIdentifier": "K9CNUZOIRXEAPX5",
+      "documentCode": "SRFW",
+      "documentCodeDescriptionText": "Search information including classification, databases and other search related notes",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOIRXEAPX5.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2022-11-15T20:37:33.000-0500",
+      "documentIdentifier": "LAIZ4F3LGREENX2",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/LAIZ4F3LGREENX2.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T15:34:35.000-0400",
+      "documentIdentifier": "JU8R8R6LRXEAPX3",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JU8R8R6LRXEAPX3.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4LIZHXCPXXIFW1",
+      "documentCode": "SPEC",
+      "documentCodeDescriptionText": "Specification",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LIZHXCPXXIFW1.pdf",
+          "pageTotalQuantity": 1
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LIZHXCPXXIFW1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-17T08:33:20.000-0500",
+      "documentIdentifier": "K5FCIIKSRXEAPX5",
+      "documentCode": "SRNT",
+      "documentCodeDescriptionText": "Examiner's search strategy and results",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5FCIIKSRXEAPX5.pdf",
+          "pageTotalQuantity": 17
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-27T07:06:18.000-0400",
+      "documentIdentifier": "K9CNUZOMRXEAPX5",
+      "documentCode": "SRNT",
+      "documentCodeDescriptionText": "Examiner's search strategy and results",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOMRXEAPX5.pdf",
+          "pageTotalQuantity": 20
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4LIZHZHPXXIFW1",
+      "documentCode": "SPEC",
+      "documentCodeDescriptionText": "Specification",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LIZHZHPXXIFW1.pdf",
+          "pageTotalQuantity": 22
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4LIZHZHPXXIFW1/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-01T00:00:00.000-0400",
+      "documentIdentifier": "JGMJA3MWRXEAPX1",
+      "documentCode": "PEFN",
+      "documentCodeDescriptionText": "Pre-Exam Formalities Notice",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JGMJA3MWRXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-04-25T00:00:00.000-0400",
+      "documentIdentifier": "J1ZGAC9QPXXIFW2",
+      "documentCode": "SPEC",
+      "documentCodeDescriptionText": "Specification",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1ZGAC9QPXXIFW2.pdf",
+          "pageTotalQuantity": 1
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1ZGAC9QPXXIFW2/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHW7VDNWRXEAPX1",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHW7VDNWRXEAPX1.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-17T08:33:20.000-0500",
+      "documentIdentifier": "K5FCIIKPRXEAPX5",
+      "documentCode": "FWCLM",
+      "documentCodeDescriptionText": "Index of Claims",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5FCIIKPRXEAPX5.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-17T11:52:01.000-0400",
+      "documentIdentifier": "K94DF021RXEAPX3",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF021RXEAPX3.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-18T08:46:24.000-0500",
+      "documentIdentifier": "K307493JRXEAPX3",
+      "documentCode": "N570",
+      "documentCodeDescriptionText": "Communication - Re:  Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K307493JRXEAPX3.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-08T15:34:38.000-0400",
+      "documentIdentifier": "JU8R8TNURXEAPX1",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JU8R8TNURXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-04T06:40:59.000-0400",
+      "documentIdentifier": "JU2IF54FRXEAPX1",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JU2IF54FRXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-17T08:33:20.000-0500",
+      "documentIdentifier": "K5FCIIKORXEAPX5",
+      "documentCode": "892",
+      "documentCodeDescriptionText": "List of references cited by examiner",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5FCIIKORXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-06-01T00:00:00.000-0400",
+      "documentIdentifier": "JHW7VDNURXEAPX1",
+      "documentCode": "RCEX",
+      "documentCodeDescriptionText": "Request for Continued Examination (RCE)",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHW7VDNURXEAPX1.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4L9SSQHPXXIFW4",
+      "documentCode": "FRPR",
+      "documentCodeDescriptionText": "Certified Copy of Foreign Priority Application",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4L9SSQHPXXIFW4.pdf",
+          "pageTotalQuantity": 129
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-04-20T00:00:00.000-0400",
+      "documentIdentifier": "JG86PRNYRXEAPX4",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JG86PRNYRXEAPX4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-17T11:52:01.000-0400",
+      "documentIdentifier": "K94DF01ZRXEAPX3",
+      "documentCode": "A.NE.AFCP",
+      "documentCodeDescriptionText": "After Final Consideration Program Request",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF01ZRXEAPX3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-08-09T00:00:00.000-0400",
+      "documentIdentifier": "J63XKR94RXEAPX1",
+      "documentCode": "SRFW",
+      "documentCodeDescriptionText": "Search information including classification, databases and other search related notes",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J63XKR94RXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-04-20T00:00:00.000-0400",
+      "documentIdentifier": "JG86PRNZRXEAPX4",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JG86PRNZRXEAPX4.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-10-14T14:47:09.000-0400",
+      "documentIdentifier": "K1QRRRPARXEAPX1",
+      "documentCode": "A...",
+      "documentCodeDescriptionText": "Amendment/Request for Reconsideration-After Non-Final Rejection",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPARXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-17T08:33:20.000-0500",
+      "documentIdentifier": "K5FCIIKNRXEAPX5",
+      "documentCode": "CTFR",
+      "documentCodeDescriptionText": "Final Rejection",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5FCIIKNRXEAPX5.pdf",
+          "pageTotalQuantity": 12
+        },
+        {
+          "mimeTypeIdentifier": "MS_WORD",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5FCIIKNRXEAPX5/files/Final%20Rejection.docx"
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5FCIIKNRXEAPX5/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-17T11:52:01.000-0400",
+      "documentIdentifier": "K94DF01WRXEAPX3",
+      "documentCode": "SPEC",
+      "documentCodeDescriptionText": "Specification",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF01WRXEAPX3.pdf",
+          "pageTotalQuantity": 1
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF01WRXEAPX3/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2016-10-25T00:00:00.000-0400",
+      "documentIdentifier": "IUK02UKXRXEAPX2",
+      "documentCode": "BIB",
+      "documentCodeDescriptionText": "Bibliographic Data Sheet",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UKXRXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2022-11-15T20:37:33.000-0500",
+      "documentIdentifier": "LAIZ4F3NGREENX2",
+      "documentCode": "R3.73",
+      "documentCodeDescriptionText": "Assignee showing of ownership per 37 CFR 3.73",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/LAIZ4F3NGREENX2.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-12T16:34:18.000-0500",
+      "documentIdentifier": "K2WDIFFHRXEAPX3",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2WDIFFHRXEAPX3.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-04-14T00:00:00.000-0400",
+      "documentIdentifier": "I8FTAQIEPXXIFW4",
+      "documentCode": "N570",
+      "documentCodeDescriptionText": "Communication - Re:  Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I8FTAQIEPXXIFW4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:01:39.000-0400",
+      "documentIdentifier": "KD4XT2TORXEAPX2",
+      "documentCode": "SES.LOSS",
+      "documentCodeDescriptionText": "Notification of loss of entitlement to small entity status",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD4XT2TORXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-02-23T00:00:00.000-0500",
+      "documentIdentifier": "JDX97OOJRXEAPX3",
+      "documentCode": "ABN",
+      "documentCodeDescriptionText": "Abandonment",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JDX97OOJRXEAPX3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-12T16:34:18.000-0500",
+      "documentIdentifier": "K2WDIFPFRXEAPX0",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2WDIFPFRXEAPX0.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-12T08:58:17.000-0400",
+      "documentIdentifier": "JUB7YU6VRXEAPX5",
+      "documentCode": "892",
+      "documentCodeDescriptionText": "List of references cited by examiner",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JUB7YU6VRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-21T16:52:37.000-0400",
+      "documentIdentifier": "JVY9YR90RXEAPX1",
+      "documentCode": "R46C.REQ",
+      "documentCodeDescriptionText": "Request under 37CFR1.46(c) to correct, update, change applicant",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVY9YR90RXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I6TBNUAVPXXIFW2",
+      "documentCode": "371P",
+      "documentCodeDescriptionText": "Documents submitted with 371 (National Stage) Applications",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I6TBNUAVPXXIFW2.pdf",
+          "pageTotalQuantity": 6
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DQFPXXIFW3",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DQFPXXIFW3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-27T07:06:18.000-0400",
+      "documentIdentifier": "K9CNUZOKRXEAPX5",
+      "documentCode": "A.NE.AFCP.D",
+      "documentCodeDescriptionText": "After Final Consideration Program Decision",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOKRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I7XP61FNPXXIFW4",
+      "documentCode": "WFEE",
+      "documentCodeDescriptionText": "Fee Worksheet (SB06)",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I7XP61FNPXXIFW4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-21T16:52:37.000-0400",
+      "documentIdentifier": "JVY9YR8ZRXEAPX1",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVY9YR8ZRXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-17T11:52:01.000-0400",
+      "documentIdentifier": "K94DF01XRXEAPX3",
+      "documentCode": "CLM",
+      "documentCodeDescriptionText": "Claims",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF01XRXEAPX3.pdf",
+          "pageTotalQuantity": 6
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF01XRXEAPX3/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-06-15T10:46:34.000-0400",
+      "documentIdentifier": "KBAWAOALRXEAPX0",
+      "documentCode": "NOA",
+      "documentCodeDescriptionText": "Notice of Allowance and Fees Due (PTOL-85)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KBAWAOALRXEAPX0.pdf",
+          "pageTotalQuantity": 8
+        },
+        {
+          "mimeTypeIdentifier": "MS_WORD",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KBAWAOALRXEAPX0/files/Corrected%20Notice%20of%20Allowability.docx"
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KBAWAOALRXEAPX0/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68ODRXEAPX5",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68ODRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-06T09:36:59.000-0500",
+      "documentIdentifier": "K2LYISSRRXEAPX4",
+      "documentCode": "N572",
+      "documentCodeDescriptionText": "Response - Re:  Informal Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2LYISSRRXEAPX4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2016-10-25T00:00:00.000-0400",
+      "documentIdentifier": "IUK02UL2RXEAPX2",
+      "documentCode": "SRNT",
+      "documentCodeDescriptionText": "Examiner's search strategy and results",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UL2RXEAPX2.pdf",
+          "pageTotalQuantity": 6
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-27T07:06:18.000-0400",
+      "documentIdentifier": "K9CNUZOJRXEAPX5",
+      "documentCode": "IIFW",
+      "documentCodeDescriptionText": "Issue Information including classification, examiner, name, claim, renumbering, etc.",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K9CNUZOJRXEAPX5.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-04-12T08:58:17.000-0400",
+      "documentIdentifier": "JUB7YU6XRXEAPX5",
+      "documentCode": "SRFW",
+      "documentCodeDescriptionText": "Search information including classification, databases and other search related notes",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JUB7YU6XRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-04-09T00:00:00.000-0400",
+      "documentIdentifier": "I8ACS7V9PXXIFW3",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I8ACS7V9PXXIFW3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-10-02T00:00:00.000-0400",
+      "documentIdentifier": "JMLXZMV0RXEAPX5",
+      "documentCode": "PET.OP.DEC",
+      "documentCodeDescriptionText": "Office of Petitions Decision (PTO-90)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JMLXZMV0RXEAPX5.pdf",
+          "pageTotalQuantity": 4
+        },
+        {
+          "mimeTypeIdentifier": "MS_WORD",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JMLXZMV0RXEAPX5/files/O.P.%20Petition%20Decision.DOCM"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-23T14:08:04.000-0400",
+      "documentIdentifier": "JVZJIZKBRXEAPX4",
+      "documentCode": "APP.FILE.REC",
+      "documentCodeDescriptionText": "Filing Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVZJIZKBRXEAPX4.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2022-11-15T20:37:33.000-0500",
+      "documentIdentifier": "LAIZ4F3MGREENX2",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/LAIZ4F3MGREENX2.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-03-05T00:00:00.000-0500",
+      "documentIdentifier": "I6URAYQEPXXIFW4",
+      "documentCode": "APP.FILE.REC",
+      "documentCodeDescriptionText": "Filing Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I6URAYQEPXXIFW4.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-10-14T14:47:09.000-0400",
+      "documentIdentifier": "K1QRRRPERXEAPX1",
+      "documentCode": "XT/",
+      "documentCodeDescriptionText": "Extension of Time",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K1QRRRPERXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:01:39.000-0400",
+      "documentIdentifier": "KD4XT2TQRXEAPX2",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD4XT2TQRXEAPX2.pdf",
+          "pageTotalQuantity": 3
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2022-11-22T10:54:39.000-0500",
+      "documentIdentifier": "LAQYXX62XBLUEX4",
+      "documentCode": "N570",
+      "documentCodeDescriptionText": "Communication - Re:  Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/LAQYXX62XBLUEX4.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-23T00:00:00.000-0400",
+      "documentIdentifier": "JHJGM750RXEAPX1",
+      "documentCode": "N572",
+      "documentCodeDescriptionText": "Response - Re:  Informal Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHJGM750RXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:54.000-0400",
+      "documentIdentifier": "K2GOOR3ZRXEAPX1",
+      "documentCode": "FOR",
+      "documentCodeDescriptionText": "Foreign Reference",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR3ZRXEAPX1.pdf",
+          "pageTotalQuantity": 150
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4KC5DPZPXXIFW3",
+      "documentCode": "CLM",
+      "documentCodeDescriptionText": "Claims",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DPZPXXIFW3.pdf",
+          "pageTotalQuantity": 3
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4KC5DPZPXXIFW3/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-21T16:52:37.000-0400",
+      "documentIdentifier": "JVY9YR94RXEAPX1",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVY9YR94RXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-17T11:52:01.000-0400",
+      "documentIdentifier": "K94DF01VRXEAPX3",
+      "documentCode": "A.NE",
+      "documentCodeDescriptionText": "Response After Final Action",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF01VRXEAPX3.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2016-10-25T00:00:00.000-0400",
+      "documentIdentifier": "IUK02UKYRXEAPX2",
+      "documentCode": "FWCLM",
+      "documentCodeDescriptionText": "Index of Claims",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UKYRXEAPX2.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-08-09T00:00:00.000-0400",
+      "documentIdentifier": "J63XKR97RXEAPX1",
+      "documentCode": "FWCLM",
+      "documentCodeDescriptionText": "Index of Claims",
+      "directionCategory": "INTERNAL",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J63XKR97RXEAPX1.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-06-14T12:36:10.000-0400",
+      "documentIdentifier": "JWUVXJ9YRXEAPX5",
+      "documentCode": "M327",
+      "documentCodeDescriptionText": "Miscellaneous Communication to Applicant - No Action Count",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JWUVXJ9YRXEAPX5.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:51.000-0400",
+      "documentIdentifier": "K2GONHOKRXEAPX5",
+      "documentCode": "TRAN.LET",
+      "documentCodeDescriptionText": "Transmittal Letter",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GONHOKRXEAPX5.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:31.000-0400",
+      "documentIdentifier": "K2GONC93RXEAPX3",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GONC93RXEAPX3.pdf",
+          "pageTotalQuantity": 5
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T16:01:39.000-0400",
+      "documentIdentifier": "KD4XT21ZRXEAPX0",
+      "documentCode": "A.NA",
+      "documentCodeDescriptionText": "Amendment after Notice of Allowance (Rule 312)",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/KD4XT21ZRXEAPX0.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-05-23T14:07:38.000-0400",
+      "documentIdentifier": "JVZJIFMKRXEAPX5",
+      "documentCode": "N570",
+      "documentCodeDescriptionText": "Communication - Re:  Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JVZJIFMKRXEAPX5.pdf",
+          "pageTotalQuantity": 1
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2016-10-25T00:00:00.000-0400",
+      "documentIdentifier": "IUK02UL0RXEAPX2",
+      "documentCode": "1449",
+      "documentCodeDescriptionText": "List of References cited by applicant and considered by examiner",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/IUK02UL0RXEAPX2.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68O8RXEAPX5",
+      "documentCode": "FOR",
+      "documentCodeDescriptionText": "Foreign Reference",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68O8RXEAPX5.pdf",
+          "pageTotalQuantity": 22
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-10-09T00:00:00.000-0400",
+      "documentIdentifier": "JN1X2XF6RXEAPX1",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JN1X2XF6RXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-04-09T00:00:00.000-0400",
+      "documentIdentifier": "I8ACS7RZPXXIFW3",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I8ACS7RZPXXIFW3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:54.000-0400",
+      "documentIdentifier": "K2GOOR3YRXEAPX1",
+      "documentCode": "FOR",
+      "documentCodeDescriptionText": "Foreign Reference",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GOOR3YRXEAPX1.pdf",
+          "pageTotalQuantity": 90
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2019-11-01T18:01:51.000-0400",
+      "documentIdentifier": "K2GONHNQRXEAPX3",
+      "documentCode": "PA..",
+      "documentCodeDescriptionText": "Power of Attorney",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K2GONHNQRXEAPX3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-09T00:00:00.000-0400",
+      "documentIdentifier": "JGZ300WMRXEAPX1",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JGZ300WMRXEAPX1.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-23T00:00:00.000-0400",
+      "documentIdentifier": "JHJ94EVARXEAPX2",
+      "documentCode": "ADS",
+      "documentCodeDescriptionText": "Application Data Sheet",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JHJ94EVARXEAPX2.pdf",
+          "pageTotalQuantity": 6
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68O4RXEAPX5",
+      "documentCode": "FOR",
+      "documentCodeDescriptionText": "Foreign Reference",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68O4RXEAPX5.pdf",
+          "pageTotalQuantity": 7
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-04-17T11:52:01.000-0400",
+      "documentIdentifier": "K94DF020RXEAPX3",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K94DF020RXEAPX3.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-01-27T16:39:44.000-0500",
+      "documentIdentifier": "K5WZ68O2RXEAPX5",
+      "documentCode": "IDS",
+      "documentCodeDescriptionText": "Information Disclosure Statement (IDS) Form (SB08)",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68O2RXEAPX5.pdf",
+          "pageTotalQuantity": 4
+        },
+        {
+          "mimeTypeIdentifier": "XML",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/K5WZ68O2RXEAPX5/xmlarchive"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2015-01-05T00:00:00.000-0500",
+      "documentIdentifier": "I4L9SSC0PXXIFW4",
+      "documentCode": "P.N.101.CONV",
+      "documentCodeDescriptionText": "PCT/RO/101 - Request form for new International Application - Conventional",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/I4L9SSC0PXXIFW4.pdf",
+          "pageTotalQuantity": 5
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2017-04-25T00:00:00.000-0400",
+      "documentIdentifier": "J1Y7RH6IRXEAPX0",
+      "documentCode": "N417",
+      "documentCodeDescriptionText": "Electronic Filing System Acknowledgment Receipt",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/J1Y7RH6IRXEAPX0.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2018-05-01T00:00:00.000-0400",
+      "documentIdentifier": "JGQM5JIPRXEAPX0",
+      "documentCode": "N572",
+      "documentCodeDescriptionText": "Response - Re:  Informal Power of Attorney (PTOL-308)",
+      "directionCategory": "OUTGOING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/JGQM5JIPRXEAPX0.pdf",
+          "pageTotalQuantity": 2
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T00:00:00.000-0400",
+      "documentIdentifier": "09323b678396e284",
+      "documentCode": "DRW.SUPP",
+      "documentCodeDescriptionText": "Drawings-black and white line and/or other drawings",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/09323b678396e284/files/2_2.pdf"
+        }
+      ]
+    },
+    {
+      "applicationNumberText": "14412875",
+      "officialDate": "2020-07-27T00:00:00.000-0400",
+      "documentIdentifier": "09323b678396e285",
+      "documentCode": "DRW.SUPP",
+      "documentCodeDescriptionText": "Drawings-black and white line and/or other drawings",
+      "directionCategory": "INCOMING",
+      "downloadOptionBag": [
+        {
+          "mimeTypeIdentifier": "PDF",
+          "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/14412875/09323b678396e285/files/2020-07-27-Drawings-Replacement-4387-0210001.PDF"
+        }
+      ]
+    }
+  ]
+}

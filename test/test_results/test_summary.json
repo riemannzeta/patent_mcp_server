@@ -1,0 +1,28 @@
+{
+  "run_date": "2025-03-24T15:48:33.529637",
+  "tests": {
+    "ppubs_search_patents": false,
+    "ppubs_search_applications": true,
+    "ppubs_get_full_document": false,
+    "ppubs_get_patent_by_number": true,
+    "ppubs_download_patent_pdf": true,
+    "get_app": true,
+    "search_applications": false,
+    "search_applications_post": false,
+    "download_applications": true,
+    "download_applications_post": true,
+    "get_app_metadata": true,
+    "get_app_adjustment": true,
+    "get_app_assignment": true,
+    "get_app_attorney": true,
+    "get_app_continuity": true,
+    "get_app_foreign_priority": true,
+    "get_app_transactions": true,
+    "get_app_documents": true,
+    "get_app_associated_documents": true,
+    "get_status_codes": false,
+    "get_status_codes_post": false,
+    "search_datasets": false,
+    "get_dataset_product": false
+  }
+}

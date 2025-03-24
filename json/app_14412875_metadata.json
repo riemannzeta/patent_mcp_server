@@ -1,0 +1,92 @@
+{
+  "count": 1,
+  "patentFileWrapperDataBag": [
+    {
+      "applicationMetaData": {
+        "firstInventorToFileIndicator": "N",
+        "applicationStatusCode": 150,
+        "applicationTypeCode": "UTL",
+        "entityStatusData": {
+          "smallEntityStatusIndicator": false,
+          "businessEntityStatusCategory": "Regular Undiscounted"
+        },
+        "filingDate": "2015-01-05",
+        "uspcSymbolText": "600/14",
+        "nationalStageIndicator": true,
+        "firstInventorName": "Tobias Sokolowski",
+        "cpcClassificationBag": [
+          "A61N   2/02",
+          "A61N   1/40",
+          "A61N   2/006"
+        ],
+        "effectiveFilingDate": "2015-01-05",
+        "publicationDateBag": [
+          "2015-06-11"
+        ],
+        "publicationSequenceNumberBag": [
+          "0157873"
+        ],
+        "earliestPublicationDate": "2015-06-11",
+        "applicationTypeLabelName": "Utility",
+        "applicationStatusDate": "2020-08-19",
+        "class": "600",
+        "applicationTypeCategory": "REGULAR",
+        "inventorBag": [
+          {
+            "firstName": "Tobias",
+            "lastName": "Sokolowski",
+            "inventorNameText": "Tobias Sokolowski",
+            "correspondenceAddressBag": [
+              {
+                "cityName": "Pullach im Isartal",
+                "countryCode": "DE",
+                "nameLineOneText": "Tobias  Sokolowski",
+                "countryName": "GERMANY",
+                "postalAddressCategory": "residence"
+              },
+              {
+                "cityName": "Pullach im Isartal",
+                "countryCode": "DE",
+                "nameLineOneText": "Tobias  Sokolowski",
+                "countryName": "GERMANY",
+                "postalAddressCategory": "postal"
+              }
+            ]
+          }
+        ],
+        "applicationStatusDescriptionText": "Patented Case",
+        "patentNumber": "10765880",
+        "grantDate": "2020-09-08",
+        "applicantBag": [
+          {
+            "applicantNameText": "BTL Medical Technologies S.R.O.",
+            "correspondenceAddressBag": [
+              {
+                "cityName": "Prague 6",
+                "countryCode": "CZ",
+                "nameLineOneText": "BTL Medical Technologies S.R.O.",
+                "countryName": "CZECHIA",
+                "postalAddressCategory": "postal"
+              }
+            ]
+          }
+        ],
+        "firstApplicantName": "BTL Medical Technologies S.R.O.",
+        "customerNumber": 26111,
+        "groupArtUnitNumber": "3791",
+        "earliestPublicationNumber": "US20150157873A1",
+        "inventionTitle": "Device For Repetitive Nerve Stimulation In Order To Break Down Fat Tissue Means Of Inductive Magnetic Fields",
+        "applicationConfirmationNumber": 6393,
+        "examinerNameText": "MATTHEWS, CHRISTINE HOPKINS",
+        "subclass": "14",
+        "publicationCategoryBag": [
+          "Granted/Issued",
+          "Pre-Grant Publications - PGPub"
+        ],
+        "docketNumber": "4387.0210001"
+      },
+      "applicationNumberText": "14412875"
+    }
+  ],
+  "requestIdentifier": "f681e4e0-2ce1-423d-b548-5f56118ac7af"
+}
