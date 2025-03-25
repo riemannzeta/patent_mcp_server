@@ -35,9 +35,12 @@ class ApiUsptoClient:
     """
 
     def __init__(self):
+        # Check if API key is available
+        api_key = os.getenv("USPTO_API_KEY")
+        
         self.headers = {
             "User-Agent": USER_AGENT,
-            "X-API-KEY": os.getenv("USPTO_API_KEY")
+            "X-API-KEY": api_key if api_key else ""  # Ensure we don't pass None
         }
         
         # Create a custom transport that logs all requests and responses
@@ -69,9 +72,12 @@ class ApiUsptoClient:
     
     async def make_request(self, url: str, method: str = "GET", data: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
         """Make a request to the USPTO API with proper error handling."""
+        # Check if API key is available
+        api_key = os.getenv("USPTO_API_KEY")
+        
         headers = {
             "User-Agent": USER_AGENT,
-            "X-API-KEY": os.getenv("USPTO_API_KEY")
+            "X-API-KEY": api_key if api_key else ""  # Ensure we don't pass None
         }
         
         logger.info(f"Making {method} request to {url}")
