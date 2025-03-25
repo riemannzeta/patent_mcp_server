@@ -92,6 +92,7 @@ To integrate this MCP server with Claude Desktop:
             "run",
             "patent-mcp-server"
           ]
+        }
       }
     }
    ```
