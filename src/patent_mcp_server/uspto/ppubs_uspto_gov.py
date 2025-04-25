@@ -74,7 +74,7 @@ class PpubsClient:
         response = await self.client.get(f"{BASE_URL}/pubwebapp/")
         
         # Create session
-        url = f"{BASE_URL}/dirsearch-public/users/me/session"
+        url = f"{BASE_URL}/api/users/me/session"
         response = await self.client.post(
             url,
             json=-1,
@@ -165,7 +165,7 @@ class PpubsClient:
         
         # Get counts first
         logger.info("Getting search counts")
-        counts_url = f"{BASE_URL}/dirsearch-public/searches/counts"
+        counts_url = f"{BASE_URL}/api/searches/counts"
         counts_response = await self.make_request("POST", counts_url, json=data["query"])
         
         if isinstance(counts_response, dict) and counts_response.get("error", False):
@@ -173,7 +173,7 @@ class PpubsClient:
             
         # Execute search
         logger.info("Executing search query")
-        search_url = f"{BASE_URL}/dirsearch-public/searches/searchWithBeFamily"
+        search_url = f"{BASE_URL}/api/searches/searchWithBeFamily"
         search_response = await self.make_request("POST", search_url, json=data)
         
         if isinstance(search_response, dict) and search_response.get("error", False):
@@ -210,7 +210,7 @@ class PpubsClient:
             
         logger.info(f"Getting document: {guid}")
         
-        url = f"{BASE_URL}/dirsearch-public/internal/patents/{guid}/highlight"
+        url = f"{BASE_URL}/api/patents/highlight/{guid}"
         params = {
             "queryId": 1,
             "source": source_type,
@@ -250,7 +250,7 @@ class PpubsClient:
         ]
         
         response = await self.client.post(
-            f"{BASE_URL}/dirsearch-public/internal/print/imageviewer",
+            f"{BASE_URL}/api/print/imageviewer",
             json={
                 "caseId": self.case_id,
                 "pageKeys": page_keys,
@@ -288,7 +288,7 @@ class PpubsClient:
             while True:
                 logger.info(f"Checking print job status: {print_job_id}")
                 response = await self.client.post(
-                    f"{BASE_URL}/dirsearch-public/internal/print/print-process",
+                    f"{BASE_URL}/api/print/print-process",
                     json=[print_job_id],
                 )
                 
@@ -313,7 +313,7 @@ class PpubsClient:
             logger.info(f"Downloading PDF: {pdf_name}")
             request = self.client.build_request(
                 "GET",
-                f"{BASE_URL}/dirsearch-public/internal/print/save/{pdf_name}",
+                f"{BASE_URL}/api/internal/print/save/{pdf_name}",
             )
             
             response = await self.client.send(request, stream=True)
