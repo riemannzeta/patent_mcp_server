@@ -72,7 +72,7 @@ To use the api.uspto.gov tools, you need to obtain an Open Data Portal (ODP) API
 
 2. Create a `.env` file in the patent_mcp_server directory with the following content:
    ```
-   PATENTS_MCP_SERVER_ODP_API_KEY=<your_key_here>
+   USPTO_API_KEY=<your_key_here>
    ```
 You don't need quotes or the < > brackets around your key. The ppubs tools will run without this API key, but the API key is required for the api tools.
 
