@@ -6,6 +6,9 @@ dist/
 wheels/
 *.egg-info
 
+# Test results
+.pytest_cache
+
 # Jupyter-generated files
 .ipynb_checkpoints/
 
@@ -17,3 +20,6 @@ wheels/
 
 # Configuration files
 .env
+
+# Claude Code
+.claude

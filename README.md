@@ -26,6 +26,7 @@ This server interacts with two USPTO sources:
 
 ## Prerequisites
 
+- **Python 3.10 or higher**
 - Claude Desktop (for integration). Other models and MCP clients have not been tested.
 - For Patent Public Search requests, no API Key is required, but [there are rate limits](https://github.com/parkerhancock/patent_client/issues/143#issuecomment-2078051755). This API is not meant for bulk downloads.
 - For ODP API requests, a USPTO ODP API Key (see below).
@@ -70,11 +71,37 @@ To use the api.uspto.gov tools, you need to obtain an Open Data Portal (ODP) API
 
 1. Visit [USPTO's Getting Started page](https://data.uspto.gov/apis/getting-started) and follow the instructions to request an API key if you don't already have one.
 
-2. Create a `.env` file in the patent_mcp_server directory with the following content:
+2. Create a `.env` file in the patent_mcp_server directory with your API key:
+   ```bash
+   USPTO_API_KEY=your_actual_key_here
    ```
-   USPTO_API_KEY=<your_key_here>
-   ```
-You don't need quotes or the < > brackets around your key. The ppubs tools will run without this API key, but the API key is required for the api tools.
+   You don't need quotes around your key. The ppubs tools will run without this API key, but the API key is required for the api.uspto.gov tools.
+
+## Configuration
+
+The server can be configured using environment variables in your `.env` file. All settings are optional with sensible defaults:
+
+```bash
+# API Keys
+USPTO_API_KEY=your_key_here
+
+# Logging
+LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# HTTP Settings
+REQUEST_TIMEOUT=30.0  # Request timeout in seconds
+MAX_RETRIES=3         # Maximum number of retry attempts for failed requests
+RETRY_MIN_WAIT=2      # Minimum wait time between retries (seconds)
+RETRY_MAX_WAIT=10     # Maximum wait time between retries (seconds)
+
+# Session Management
+SESSION_EXPIRY_MINUTES=30  # How long to cache ppubs sessions
+ENABLE_CACHING=true        # Enable/disable session caching
+
+# API Endpoints (usually don't need to change)
+PPUBS_BASE_URL=https://ppubs.uspto.gov
+API_BASE_URL=https://api.uspto.gov
+```
 
 ## Claude Desktop Configuration
 
@@ -132,11 +159,62 @@ The server provides the following functions to interact with USPTO data. Note th
 
 Refer to the function docstrings in the code for detailed parameter information.
 
+## Recent Improvements (v0.2.2)
+
+This release includes significant improvements to code quality, reliability, and maintainability:
+
+### Architecture & Code Quality
+- **Centralized Configuration** - All settings now managed through environment variables with sensible defaults
+- **Constants Module** - Magic strings extracted to a dedicated constants module for consistency
+- **Error Handling** - Standardized error responses across all endpoints using `ApiError` utility class
+- **Code Deduplication** - Extracted common patent search logic to eliminate ~80 lines of duplicate code
+- **Input Validation** - Automatic validation and sanitization of patent/application numbers using Pydantic
+
+### Reliability & Performance
+- **Retry Logic** - Exponential backoff retry mechanism for network errors using tenacity
+- **Session Caching** - ppubs.uspto.gov sessions cached for 30 minutes (configurable) to reduce overhead
+- **Resource Management** - Proper cleanup of HTTP clients with context managers and shutdown handlers
+- **Type Hints** - Comprehensive type annotations throughout the codebase
+
+### Developer Experience
+- **pytest Framework** - Modern test framework with async support replacing custom test runner
+- **Python 3.10+ Support** - Lowered requirement from 3.13 to 3.10 for broader compatibility
+- **Better Logging** - Configurable log levels via environment variables
+- **Development Tools** - Added pytest, pytest-asyncio, and pytest-cov to dev dependencies
+
 ## Testing
 
-The `/test/` directory contains a couple of scripts for testing. `test_patents.py` includes a few tests of direct HTTP requests to the ppubs.uspto.gov and api.uspto.gov endpoints. `test_tools.py` includes a complete set of tests for each tool available to the MCP server. Test results in JSON and PDF format are stored in the `/test/test_results` subdirectory.
+The `/test/` directory contains test suites for validating the MCP server functionality:
 
-To execute a test, run `uv run test/test_tools.py` from the project root directory.
+- **`test_tools_pytest.py`** - Modern pytest-based test suite for all MCP tools (recommended)
+- **`test_tools.py`** - Legacy test runner (still functional)
+- **`test_patents.py`** - Direct HTTP request tests for debugging
+
+Test results in JSON and PDF format are stored in the `/test/test_results` subdirectory.
+
+### Running Tests
+
+```bash
+# Run all tests with pytest (recommended)
+uv run pytest test/test_tools_pytest.py -v
+
+# Run excluding slow tests (like PDF downloads)
+uv run pytest test/test_tools_pytest.py -v -m "not slow"
+
+# Run with coverage report
+uv run pytest test/test_tools_pytest.py --cov=patent_mcp_server
+
+# Run legacy test suite
+uv run test/test_tools.py
+```
+
+### Development
+
+To install development dependencies:
+
+```bash
+uv sync --dev
+```
 
 ## License
 
