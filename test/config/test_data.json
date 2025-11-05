@@ -1,0 +1,44 @@
+{
+  "patents": {
+    "valid": ["9876543", "7123456", "8234567"],
+    "invalid": ["", "abc", "123", "99999999999"],
+    "not_found": ["1111111"]
+  },
+  "applications": {
+    "valid": ["14412875", "15123456", "16234567"],
+    "invalid": ["", "abc", "123/456"],
+    "not_found": ["99999999"]
+  },
+  "search_queries": {
+    "basic": "artificial intelligence",
+    "advanced": "artificial intelligence AND (machine learning OR neural network)",
+    "patent_number": "patentNumber:\"9876543\"",
+    "date_range": "date_publ:[20200101 TO 20231231]"
+  },
+  "timeouts": {
+    "fast": 5,
+    "normal": 30,
+    "slow": 120
+  },
+  "mock_data": {
+    "session": {
+      "case_id": "test-case-123456",
+      "access_token": "test-token-abc123",
+      "user_id": "test-user"
+    },
+    "patent": {
+      "guid": "US-9876543-B2",
+      "patent_number": "9876543",
+      "type": "USPAT",
+      "title": "Test Patent Title",
+      "abstract": "Test patent abstract describing the invention...",
+      "image_location": "US/09/876/543",
+      "page_count": 10
+    },
+    "application": {
+      "app_num": "14412875",
+      "app_type": "utility",
+      "status": "patented"
+    }
+  }
+}
