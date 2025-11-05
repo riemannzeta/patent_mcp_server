@@ -33,6 +33,9 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "pydantic>=2.0.0",
     "tenacity>=8.0.0",
+    "google-cloud-bigquery>=3.13.0",
+    "google-auth>=2.23.0",
+    "db-dtypes>=1.1.1",
 ]
 
 [project.urls]
@@ -49,7 +52,7 @@ dev = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["patent_mcp_server", "patent_mcp_server.uspto", "patent_mcp_server.util"]
+packages = ["patent_mcp_server", "patent_mcp_server.uspto", "patent_mcp_server.util", "patent_mcp_server.google"]
 
 [tool.setuptools.package-data]
 patent_mcp_server = ["json/*.json"]

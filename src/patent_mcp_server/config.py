@@ -24,6 +24,14 @@ class Config:
     PPUBS_BASE_URL: str = os.getenv("PPUBS_BASE_URL", "https://ppubs.uspto.gov")
     API_BASE_URL: str = os.getenv("API_BASE_URL", "https://api.uspto.gov")
 
+    # Google Cloud / BigQuery
+    GOOGLE_CLOUD_PROJECT: Optional[str] = os.getenv("GOOGLE_CLOUD_PROJECT")
+    GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    BIGQUERY_DATASET: str = os.getenv("BIGQUERY_DATASET", "patents-public-data:patents")
+    BIGQUERY_LOCATION: str = os.getenv("BIGQUERY_LOCATION", "US")
+    BIGQUERY_QUERY_TIMEOUT: int = int(os.getenv("BIGQUERY_QUERY_TIMEOUT", "60"))
+    BIGQUERY_MAX_RESULTS: int = int(os.getenv("BIGQUERY_MAX_RESULTS", "1000"))
+
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
@@ -64,6 +72,13 @@ class Config:
             logger.warning(
                 "USPTO_API_KEY not set. API tools (api.uspto.gov) may not work. "
                 "See README.md for instructions on obtaining an API key."
+            )
+
+        if not cls.GOOGLE_APPLICATION_CREDENTIALS and not cls.GOOGLE_CLOUD_PROJECT:
+            logger.warning(
+                "Google Cloud credentials not configured. Google Patents tools will not work. "
+                "Set GOOGLE_APPLICATION_CREDENTIALS or configure Application Default Credentials. "
+                "See README.md for setup instructions."
             )
 
         logger.info(f"Configuration loaded: LOG_LEVEL={cls.LOG_LEVEL}, "

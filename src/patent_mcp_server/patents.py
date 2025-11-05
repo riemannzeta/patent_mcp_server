@@ -17,11 +17,12 @@ from mcp.server.fastmcp import FastMCP
 from pydantic import ValidationError
 
 from patent_mcp_server.config import config
-from patent_mcp_server.constants import Sources, Fields, Defaults
+from patent_mcp_server.constants import Sources, Fields, Defaults, GooglePatentsCountries
 from patent_mcp_server.util.errors import ApiError, is_error
 from patent_mcp_server.util.validation import validate_patent_number, validate_app_number
 from patent_mcp_server.uspto.ppubs_uspto_gov import PpubsClient
 from patent_mcp_server.uspto.api_uspto_gov import ApiUsptoClient
+from patent_mcp_server.google.bigquery_client import GoogleBigQueryClient
 
 # Initialize FastMCP server
 mcp = FastMCP("uspto_patent_tools")
@@ -41,6 +42,9 @@ config.validate()
 ppubs_client = PpubsClient()
 api_client = ApiUsptoClient()
 
+# Create Google Patents BigQuery client
+google_bq_client = GoogleBigQueryClient()
+
 
 # Register cleanup handler
 async def cleanup():
@@ -49,6 +53,7 @@ async def cleanup():
     try:
         await ppubs_client.close()
         await api_client.close()
+        await google_bq_client.close()
         logger.info("Cleanup completed successfully")
     except Exception as e:
         logger.error(f"Error during cleanup: {str(e)}")
@@ -771,6 +776,268 @@ async def get_dataset_product(product_id: str,
         url = f"{url}?{query_string}"
 
     return await api_client.make_request(url)
+
+
+# =====================================================================
+# Tools for Google Patents (BigQuery Public Datasets)
+# =====================================================================
+
+
+@mcp.tool()
+async def google_search_patents(
+    query: str,
+    country: str = GooglePatentsCountries.US,
+    limit: int = Defaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """Search Google Patents Public Datasets using BigQuery
+
+    Searches patent titles and abstracts for the specified query string.
+    Returns patent publication number, title, abstract, dates, inventors, assignees, and classification codes.
+
+    This tool provides access to 90M+ patent publications from 17+ countries via Google's BigQuery.
+
+    Args:
+        query: Search query string (searches titles and abstracts)
+        country: Country code (US, EP, WO, JP, CN, KR, GB, DE, FR, CA, AU) - Default: US
+        limit: Maximum number of results to return (max 500) - Default: 100
+
+    Returns:
+        Dictionary containing search results with patent metadata including:
+        - publication_number: Patent publication number
+        - title_localized: Patent title
+        - abstract_localized: Patent abstract
+        - publication_date: Publication date
+        - filing_date: Filing date
+        - grant_date: Grant date (if granted)
+        - inventor_harmonized: List of inventors
+        - assignee_harmonized: List of assignees/companies
+        - cpc: CPC classification codes
+        - ipc: IPC classification codes
+        - family_id: Patent family ID
+    """
+    if limit > Defaults.SEARCH_LIMIT_MAX:
+        return ApiError.validation_error(
+            f"Limit cannot exceed {Defaults.SEARCH_LIMIT_MAX}", "limit"
+        )
+
+    if country not in GooglePatentsCountries.ALL:
+        return ApiError.validation_error(
+            f"Invalid country code. Must be one of: {', '.join(GooglePatentsCountries.ALL)}",
+            "country",
+        )
+
+    try:
+        result = await google_bq_client.search_patents(query, country, limit)
+        return result
+    except Exception as e:
+        logger.error(f"Error searching Google Patents: {str(e)}")
+        return ApiError.create(
+            message=f"Failed to search Google Patents: {str(e)}", status_code=500
+        )
+
+
+@mcp.tool()
+async def google_get_patent(publication_number: str) -> Dict[str, Any]:
+    """Get full patent details from Google Patents by publication number
+
+    Retrieves complete patent information including title, abstract, inventors,
+    assignees, dates, classifications, and more from Google Patents Public Datasets.
+
+    Args:
+        publication_number: Patent publication number (e.g., US-9876543-B2, US-2020123456-A1)
+
+    Returns:
+        Dictionary containing complete patent details including all metadata fields
+    """
+    try:
+        result = await google_bq_client.get_patent_by_number(publication_number)
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching patent {publication_number}: {str(e)}")
+        return ApiError.create(
+            message=f"Failed to fetch patent: {str(e)}", status_code=500
+        )
+
+
+@mcp.tool()
+async def google_get_patent_claims(publication_number: str) -> Dict[str, Any]:
+    """Get patent claims from Google Patents by publication number
+
+    Retrieves all claims for a patent, including independent and dependent claims.
+    Claims define the legal scope of protection for a patent.
+
+    Args:
+        publication_number: Patent publication number (e.g., US-9876543-B2)
+
+    Returns:
+        Dictionary containing:
+        - publication_number: The patent number
+        - claims_count: Total number of claims
+        - claims: List of claim objects with claim_num and claim_text
+    """
+    try:
+        result = await google_bq_client.get_patent_claims(publication_number)
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching claims for {publication_number}: {str(e)}")
+        return ApiError.create(
+            message=f"Failed to fetch claims: {str(e)}", status_code=500
+        )
+
+
+@mcp.tool()
+async def google_get_patent_description(publication_number: str) -> Dict[str, Any]:
+    """Get patent description from Google Patents by publication number
+
+    Retrieves the full description/specification text of a patent, which contains
+    the detailed technical disclosure of the invention.
+
+    Args:
+        publication_number: Patent publication number (e.g., US-9876543-B2)
+
+    Returns:
+        Dictionary containing:
+        - publication_number: The patent number
+        - description_text: Full description text
+        - description_length: Length of description in characters
+    """
+    try:
+        result = await google_bq_client.get_patent_description(publication_number)
+        return result
+    except Exception as e:
+        logger.error(
+            f"Error fetching description for {publication_number}: {str(e)}"
+        )
+        return ApiError.create(
+            message=f"Failed to fetch description: {str(e)}", status_code=500
+        )
+
+
+@mcp.tool()
+async def google_search_by_inventor(
+    inventor_name: str,
+    country: str = GooglePatentsCountries.US,
+    limit: int = Defaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """Search Google Patents by inventor name
+
+    Finds patents where the specified inventor is listed as one of the inventors.
+
+    Args:
+        inventor_name: Inventor name to search for (partial match supported)
+        country: Country code (US, EP, WO, JP, CN, etc.) - Default: US
+        limit: Maximum number of results to return (max 500) - Default: 100
+
+    Returns:
+        Dictionary containing search results with patent metadata
+    """
+    if limit > Defaults.SEARCH_LIMIT_MAX:
+        return ApiError.validation_error(
+            f"Limit cannot exceed {Defaults.SEARCH_LIMIT_MAX}", "limit"
+        )
+
+    if country not in GooglePatentsCountries.ALL:
+        return ApiError.validation_error(
+            f"Invalid country code. Must be one of: {', '.join(GooglePatentsCountries.ALL)}",
+            "country",
+        )
+
+    try:
+        result = await google_bq_client.search_by_inventor(
+            inventor_name, country, limit
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error searching by inventor: {str(e)}")
+        return ApiError.create(
+            message=f"Failed to search by inventor: {str(e)}", status_code=500
+        )
+
+
+@mcp.tool()
+async def google_search_by_assignee(
+    assignee_name: str,
+    country: str = GooglePatentsCountries.US,
+    limit: int = Defaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """Search Google Patents by assignee/company name
+
+    Finds patents assigned to a specific company or organization.
+
+    Args:
+        assignee_name: Assignee/company name to search for (partial match supported)
+        country: Country code (US, EP, WO, JP, CN, etc.) - Default: US
+        limit: Maximum number of results to return (max 500) - Default: 100
+
+    Returns:
+        Dictionary containing search results with patent metadata
+    """
+    if limit > Defaults.SEARCH_LIMIT_MAX:
+        return ApiError.validation_error(
+            f"Limit cannot exceed {Defaults.SEARCH_LIMIT_MAX}", "limit"
+        )
+
+    if country not in GooglePatentsCountries.ALL:
+        return ApiError.validation_error(
+            f"Invalid country code. Must be one of: {', '.join(GooglePatentsCountries.ALL)}",
+            "country",
+        )
+
+    try:
+        result = await google_bq_client.search_by_assignee(
+            assignee_name, country, limit
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error searching by assignee: {str(e)}")
+        return ApiError.create(
+            message=f"Failed to search by assignee: {str(e)}", status_code=500
+        )
+
+
+@mcp.tool()
+async def google_search_by_cpc(
+    cpc_code: str,
+    country: str = GooglePatentsCountries.US,
+    limit: int = Defaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """Search Google Patents by CPC classification code
+
+    Finds patents classified under a specific Cooperative Patent Classification (CPC) code.
+    CPC is an international patent classification system.
+
+    Args:
+        cpc_code: CPC code to search for (e.g., G06N3/08 for neural networks)
+        country: Country code (US, EP, WO, JP, CN, etc.) - Default: US
+        limit: Maximum number of results to return (max 500) - Default: 100
+
+    Returns:
+        Dictionary containing search results with patent metadata
+
+    Examples:
+        - G06N: Computing arrangements based on specific computational models
+        - G06N3/08: Learning methods (neural networks)
+        - H04L: Transmission of digital information
+    """
+    if limit > Defaults.SEARCH_LIMIT_MAX:
+        return ApiError.validation_error(
+            f"Limit cannot exceed {Defaults.SEARCH_LIMIT_MAX}", "limit"
+        )
+
+    if country not in GooglePatentsCountries.ALL:
+        return ApiError.validation_error(
+            f"Invalid country code. Must be one of: {', '.join(GooglePatentsCountries.ALL)}",
+            "country",
+        )
+
+    try:
+        result = await google_bq_client.search_by_cpc(cpc_code, country, limit)
+        return result
+    except Exception as e:
+        logger.error(f"Error searching by CPC code: {str(e)}")
+        return ApiError.create(
+            message=f"Failed to search by CPC code: {str(e)}", status_code=500
+        )
 
 
 def main():
