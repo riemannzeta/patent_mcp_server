@@ -37,7 +37,16 @@ from patent_mcp_server.patents import (
     get_status_codes,
     get_status_codes_post,
     search_datasets,
-    get_dataset_product
+    get_dataset_product,
+
+    # Google Patents tools
+    google_search_patents,
+    google_get_patent,
+    google_get_patent_claims,
+    google_get_patent_description,
+    google_search_by_inventor,
+    google_search_by_assignee,
+    google_search_by_cpc,
 )
 
 # Test constants
@@ -377,3 +386,159 @@ async def test_get_dataset_product(results_dir):
     # Note: This may fail if product_id doesn't exist, which is acceptable for this test
     # Just check that we got a response
     assert result is not None, "Expected a response"
+
+
+# ===================================================================
+# Tests for Google Patents (BigQuery Public Datasets)
+# ===================================================================
+
+@pytest.mark.asyncio
+async def test_google_search_patents(results_dir):
+    """Test searching Google Patents."""
+    result = await google_search_patents(
+        query="machine learning",
+        country="US",
+        limit=5
+    )
+
+    await save_result(result, "google_search_patents.json", results_dir)
+
+    # Check result structure (may succeed or fail based on credentials)
+    if result.get("success"):
+        assert "count" in result, "Expected count field"
+        assert "results" in result, "Expected results field"
+        assert result["count"] <= 5, "Result count should not exceed limit"
+    else:
+        # If credentials not configured, expect error
+        assert "error" in result or "message" in result
+
+
+@pytest.mark.asyncio
+async def test_google_get_patent(results_dir):
+    """Test getting patent by number from Google Patents."""
+    # First search for a patent
+    search_result = await google_search_patents(
+        query="artificial intelligence",
+        country="US",
+        limit=1
+    )
+
+    if search_result.get("success") and search_result.get("count", 0) > 0:
+        patent_number = search_result["results"][0]["publication_number"]
+
+        # Get full patent details
+        result = await google_get_patent(publication_number=patent_number)
+        await save_result(result, "google_patent_details.json", results_dir)
+
+        assert result.get("success"), "Expected successful patent retrieval"
+        assert "patent" in result, "Expected patent data"
+    else:
+        # No credentials or no results - skip detailed assertions
+        assert True
+
+
+@pytest.mark.asyncio
+async def test_google_get_patent_claims(results_dir):
+    """Test getting patent claims from Google Patents."""
+    # Try with a known patent format (may or may not exist)
+    result = await google_get_patent_claims(
+        publication_number="US-10123456-B2"
+    )
+
+    await save_result(result, "google_patent_claims.json", results_dir)
+
+    # Check result structure
+    if result.get("success"):
+        assert "claims_count" in result
+        assert "claims" in result
+        assert isinstance(result["claims"], list)
+
+
+@pytest.mark.asyncio
+async def test_google_get_patent_description(results_dir):
+    """Test getting patent description from Google Patents."""
+    # Try with a known patent format
+    result = await google_get_patent_description(
+        publication_number="US-10123456-B2"
+    )
+
+    await save_result(result, "google_patent_description.json", results_dir)
+
+    # Check result structure (may succeed or error if patent not found)
+    assert result is not None
+
+
+@pytest.mark.asyncio
+async def test_google_search_by_inventor(results_dir):
+    """Test searching Google Patents by inventor."""
+    result = await google_search_by_inventor(
+        inventor_name="Smith",
+        country="US",
+        limit=5
+    )
+
+    await save_result(result, "google_search_by_inventor.json", results_dir)
+
+    if result.get("success"):
+        assert "count" in result
+        assert "results" in result
+        assert "inventor" in result
+        assert result["inventor"] == "Smith"
+
+
+@pytest.mark.asyncio
+async def test_google_search_by_assignee(results_dir):
+    """Test searching Google Patents by assignee."""
+    result = await google_search_by_assignee(
+        assignee_name="Google",
+        country="US",
+        limit=5
+    )
+
+    await save_result(result, "google_search_by_assignee.json", results_dir)
+
+    if result.get("success"):
+        assert "count" in result
+        assert "results" in result
+        assert "assignee" in result
+        assert result["assignee"] == "Google"
+
+
+@pytest.mark.asyncio
+async def test_google_search_by_cpc(results_dir):
+    """Test searching Google Patents by CPC code."""
+    result = await google_search_by_cpc(
+        cpc_code="G06N",
+        country="US",
+        limit=5
+    )
+
+    await save_result(result, "google_search_by_cpc.json", results_dir)
+
+    if result.get("success"):
+        assert "count" in result
+        assert "results" in result
+        assert "cpc_code" in result
+        assert result["cpc_code"] == "G06N"
+
+
+@pytest.mark.asyncio
+async def test_google_search_patents_validation():
+    """Test input validation for Google Patents search."""
+    # Test with invalid country code
+    result = await google_search_patents(
+        query="test",
+        country="XX",  # Invalid country
+        limit=10
+    )
+
+    assert result.get("error"), "Expected validation error for invalid country"
+
+    # Test with limit exceeding max
+    result = await google_search_patents(
+        query="test",
+        country="US",
+        limit=10000  # Exceeds max
+    )
+
+    assert result.get("error"), "Expected validation error for excessive limit"

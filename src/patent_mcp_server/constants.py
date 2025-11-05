@@ -69,3 +69,29 @@ class Defaults:
     MAX_RETRIES = 3
     SESSION_EXPIRY_MINUTES = 30
     RATE_LIMIT_RETRY_DELAY = 5
+
+
+class GooglePatentsTables:
+    """Google Patents Public Datasets BigQuery table names."""
+    PUBLICATIONS = "publications"
+    PUBLICATIONS_CLAIMS = "publications_claims"
+    PUBLICATIONS_DESCRIPTION = "publications_description"
+    CLASSIFICATIONS = "classifications"
+    CITATIONS = "citations"
+
+
+class GooglePatentsCountries:
+    """Country codes for Google Patents searches."""
+    US = "US"  # United States
+    EP = "EP"  # European Patent Office
+    WO = "WO"  # World Intellectual Property Organization (PCT)
+    JP = "JP"  # Japan
+    CN = "CN"  # China
+    KR = "KR"  # South Korea
+    GB = "GB"  # Great Britain
+    DE = "DE"  # Germany
+    FR = "FR"  # France
+    CA = "CA"  # Canada
+    AU = "AU"  # Australia
+
+    ALL = [US, EP, WO, JP, CN, KR, GB, DE, FR, CA, AU]
