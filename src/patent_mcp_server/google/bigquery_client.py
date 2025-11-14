@@ -7,6 +7,7 @@ containing 90M+ patent publications from 17+ countries.
 
 import asyncio
 import logging
+import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 
@@ -33,6 +34,11 @@ class GoogleBigQueryClient:
 
         # BigQuery client (sync API, we'll wrap in executor)
         try:
+            # Set timeout for GCE metadata server queries to prevent hanging
+            # when Google Cloud credentials are not available
+            if "GCE_METADATA_TIMEOUT" not in os.environ:
+                os.environ["GCE_METADATA_TIMEOUT"] = "5"
+
             credentials, project = default()
             self.client = bigquery.Client(
                 credentials=credentials,
@@ -42,7 +48,12 @@ class GoogleBigQueryClient:
                 f"Initialized Google BigQuery client for project: {self.project_id or project}"
             )
         except Exception as e:
-            logger.error(f"Failed to initialize BigQuery client: {str(e)}")
+            logger.warning(
+                f"Google BigQuery client not available: {str(e)}. "
+                "Google Patents features will be disabled. "
+                "To enable, configure GOOGLE_CLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS "
+                "environment variables. See README for setup instructions."
+            )
             self.client = None
 
         # Thread pool for async execution
