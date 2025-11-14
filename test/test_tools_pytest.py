@@ -50,8 +50,8 @@ from patent_mcp_server.patents import (
 )
 
 # Test constants
-PATENT_NUMBER = "9876543"
-APP_NUMBER = "14412875"
+PATENT_NUMBER = "6000000"
+APP_NUMBER = "16123456"
 RESULTS_DIR = Path("test/test_results")
 
 # Ensure results directory exists

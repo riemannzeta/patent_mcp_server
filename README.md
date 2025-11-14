@@ -29,7 +29,7 @@ This server interacts with three patent data sources:
 
 ## Prerequisites
 
-- **Python 3.10 or higher**
+- **Python 3.10-3.13 (3.12 recommended)**
 - Claude Desktop (for integration). Other models and MCP clients have not been tested.
 - For Patent Public Search requests, no API Key is required, but [there are rate limits](https://github.com/parkerhancock/patent_client/issues/143#issuecomment-2078051755). This API is not meant for bulk downloads.
 - For ODP API requests, a USPTO ODP API Key (see below).
