@@ -152,6 +152,16 @@ To integrate this MCP server with Claude Desktop:
 
 When integrated with Claude Desktop, the server will be automatically started when needed and doesn't need to be run separately.
 
+## Claude Code Configuration
+
+To integrate this mCP server with Claude Code for a particular project, from the project root:
+
+```shell
+claude mcp add-json patents '{"command": "uv", "args": ["--directory", "/Users/michael.frank.martin/patent_mcp_server", "run", "patent-mcp-server"]}'
+```
+
+If you're already running Claude Code, you'll have to /exit and restart. Then /mcp to verify that it's configured.
+
 ## Available Tools
 
 ### Patent Public Search (ppubs.uspto.gov)
