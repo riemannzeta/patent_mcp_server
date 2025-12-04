@@ -4,249 +4,40 @@
     {
       "assignmentBag": [
         {
-          "assignmentReceivedDate": "2022-10-20",
+          "assignmentReceivedDate": "2018-09-07",
           "assignorBag": [
             {
-              "executionDate": "2022-07-26",
-              "assignorName": "BTL HEALTHCARE TECHNOLOGIES A.S."
+              "executionDate": "2018-07-11",
+              "assignorName": "KANADA, SHOJI"
             }
           ],
-          "reelAndFrameNumber": "061479/0154",
-          "frameNumber": 154,
-          "assignmentRecordedDate": "2022-10-20",
+          "reelAndFrameNumber": "046816/0108",
+          "frameNumber": 108,
+          "assignmentRecordedDate": "2018-09-07",
           "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
+          "pageTotalQuantity": 3,
           "assigneeBag": [
             {
               "assigneeAddress": {
-                "cityName": "PRAGUE 1",
-                "geographicRegionCode": "CZX",
-                "postalCode": "110 00",
-                "addressLineOneText": "CELETNA 600/7, STARE MESTO"
+                "cityName": "TOKYO",
+                "geographicRegionCode": "JPX",
+                "postalCode": "106-8620",
+                "addressLineOneText": "26-30, NISHIAZABU 2-CHOME, MINATO-KU"
               },
-              "assigneeNameText": "BTL MEDICAL SOLUTIONS A.S."
+              "assigneeNameText": "FUJIFILM CORPORATION"
             }
           ],
-          "assignmentMailedDate": "2022-10-21",
-          "reelNumber": 61479,
-          "correspondenceAddressBag": [
-            {
-              "addressLineOneText": "1100 NEW YORK AVE NW",
-              "correspondentNameText": "STERNE, KESSLER, GOLDSTEIN & FOX P.L.L.C.",
-              "addressLineTwoText": "WASHINGTON, DC 20005"
-            }
-          ],
-          "assignmentDocumentLocationURI": "https://legacy-assignments.uspto.gov/assignments/assignment-pat-061479-0154.pdf"
-        },
-        {
-          "assignmentReceivedDate": "2022-08-05",
-          "assignorBag": [
-            {
-              "executionDate": "2022-07-26",
-              "assignorName": "BTL HEALTHCARE TECHNOLOGIES A.S."
-            }
-          ],
-          "reelAndFrameNumber": "063272/050",
-          "frameNumber": 50,
-          "assignmentRecordedDate": "2022-08-05",
-          "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
-          "assigneeBag": [
-            {
-              "assigneeAddress": {
-                "cityName": "PRAGUE 1",
-                "geographicRegionCode": "CZX",
-                "postalCode": "110 00",
-                "addressLineOneText": "CELETNA 600/7, STARE MESTO"
-              },
-              "assigneeNameText": "BTL MEDICAL SOLUTIONS A.S."
-            }
-          ],
-          "assignmentMailedDate": "2023-04-11",
-          "reelNumber": 63272,
-          "correspondenceAddressBag": [
-            {
-              "addressLineOneText": "1100 NEW YORK AVE NW",
-              "correspondentNameText": "STERNE, KESSLER, GOLDSTEIN & FOX P.L.L.C.",
-              "addressLineTwoText": "WASHINGTON, DC 20005"
-            }
-          ],
-          "assignmentDocumentLocationURI": "https://legacy-assignments.uspto.gov/assignments/assignment-pat-063272-0050.pdf"
-        },
-        {
-          "assignmentReceivedDate": "2021-06-09",
-          "assignorBag": [
-            {
-              "executionDate": "2021-06-01",
-              "assignorName": "BTL MEDICAL TECHNOLOGIES S.R.O."
-            }
-          ],
-          "reelAndFrameNumber": "056526/0492",
-          "frameNumber": 492,
-          "assignmentRecordedDate": "2021-06-09",
-          "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
-          "assigneeBag": [
-            {
-              "assigneeAddress": {
-                "cityName": "PRAGUE 2",
-                "geographicRegionCode": "CZX",
-                "postalCode": "120 00",
-                "addressLineOneText": "STEPANSKA 535/6",
-                "addressLineTwoText": "NOVE MESTO"
-              },
-              "assigneeNameText": "BTL HEALTHCARE TECHNOLOGIES A.S."
-            }
-          ],
-          "assignmentMailedDate": "2021-06-15",
-          "reelNumber": 56526,
-          "correspondenceAddressBag": [
-            {
-              "addressLineOneText": "1100 NEW YORK AVENUE, N.W.",
-              "correspondentNameText": "STERNE, KESSLER, GOLDSTEIN & FOX P.L.L.C.",
-              "addressLineTwoText": "WASHINGTON, DC 20005"
-            }
-          ],
-          "assignmentDocumentLocationURI": "https://legacy-assignments.uspto.gov/assignments/assignment-pat-056526-0492.pdf"
-        },
-        {
-          "assignmentReceivedDate": "2019-08-13",
-          "assignorBag": [
-            {
-              "executionDate": "2019-07-31",
-              "assignorName": "MEDICAL TECHNOLOGIES CZ A.S."
-            }
-          ],
-          "reelAndFrameNumber": "050034/0451",
-          "frameNumber": 451,
-          "assignmentRecordedDate": "2019-08-13",
-          "conveyanceText": "MERGER (SEE DOCUMENT FOR DETAILS).",
-          "assigneeBag": [
-            {
-              "assigneeAddress": {
-                "cityName": "PRAGUE 6",
-                "geographicRegionCode": "CZX",
-                "addressLineOneText": "EVROPSK\u00c1 423/178",
-                "addressLineTwoText": "VOKOVICE, 160 00"
-              },
-              "assigneeNameText": "BTL MEDICAL TECHNOLOGIES S.R.O."
-            }
-          ],
-          "assignmentMailedDate": "2019-08-14",
-          "reelNumber": 50034,
-          "correspondenceAddressBag": [
-            {
-              "addressLineOneText": "1100 NEW YORK AVENUE, N.W.",
-              "correspondentNameText": "STERNE, KESSLER, GOLDSTEIN & FOX P.L.L.C.",
-              "addressLineTwoText": "WASHINGTON, DC 20005"
-            }
-          ],
-          "assignmentDocumentLocationURI": "https://legacy-assignments.uspto.gov/assignments/assignment-pat-050034-0451.pdf"
-        },
-        {
-          "assignmentReceivedDate": "2019-05-07",
-          "assignorBag": [
-            {
-              "executionDate": "2019-05-06",
-              "assignorName": "NOVAK, FILIP"
-            }
-          ],
-          "reelAndFrameNumber": "049102/0599",
-          "frameNumber": 599,
-          "assignmentRecordedDate": "2019-05-07",
-          "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
-          "assigneeBag": [
-            {
-              "assigneeAddress": {
-                "cityName": "PRAGUE 6",
-                "geographicRegionCode": "CZX",
-                "postalCode": "160 00",
-                "addressLineOneText": "EVROPSKA 423/178"
-              },
-              "assigneeNameText": "MEDICAL TECHNOLOGIES CZ A.S."
-            }
-          ],
-          "assignmentMailedDate": "2019-05-08",
-          "reelNumber": 49102,
-          "correspondenceAddressBag": [
-            {
-              "addressLineOneText": "1100 NEW YORK AVE NW",
-              "correspondentNameText": "STERNE KESSLER GOLDSTEIN & FOX P.L.L.C.",
-              "addressLineTwoText": "WASHINGTON, DC 20005"
-            }
-          ],
-          "assignmentDocumentLocationURI": "https://legacy-assignments.uspto.gov/assignments/assignment-pat-049102-0599.pdf"
-        },
-        {
-          "assignmentReceivedDate": "2018-04-19",
-          "assignorBag": [
-            {
-              "executionDate": "2018-03-23",
-              "assignorName": "MAGLETICS GMBH"
-            }
-          ],
-          "reelAndFrameNumber": "045582/0497",
-          "frameNumber": 497,
-          "assignmentRecordedDate": "2018-04-19",
-          "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
-          "assigneeBag": [
-            {
-              "assigneeAddress": {
-                "cityName": "PRAHA 4 BRANIK",
-                "geographicRegionCode": "CZX",
-                "postalCode": "14700",
-                "addressLineOneText": "STARA CESTA 12/15"
-              },
-              "assigneeNameText": "NOVAK, FILIP"
-            }
-          ],
-          "assignmentMailedDate": "2018-04-20",
-          "reelNumber": 45582,
-          "correspondenceAddressBag": [
-            {
-              "addressLineThreeText": "WAYNE, PA 19087",
-              "addressLineOneText": "1285 DRUMMERS LANE, SUITE 202",
-              "correspondentNameText": "LISA STANTON/RIVERSIDE LAW LLP",
-              "addressLineTwoText": "GLENHARDIE CORPORATE CENTER"
-            }
-          ],
-          "assignmentDocumentLocationURI": "https://legacy-assignments.uspto.gov/assignments/assignment-pat-045582-0497.pdf"
-        },
-        {
-          "assignmentReceivedDate": "2015-05-28",
-          "assignorBag": [
-            {
-              "executionDate": "2015-03-24",
-              "assignorName": "SOKOLOWSKI, TOBIAS"
-            }
-          ],
-          "reelAndFrameNumber": "035731/0345",
-          "frameNumber": 345,
-          "assignmentRecordedDate": "2015-05-28",
-          "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
-          "assigneeBag": [
-            {
-              "assigneeAddress": {
-                "cityName": "PULLACH IM ISARTAL",
-                "geographicRegionCode": "DEX",
-                "postalCode": "82049",
-                "addressLineOneText": "GISTLSTRABE 35"
-              },
-              "assigneeNameText": "MAGLETICS GMBH"
-            }
-          ],
-          "assignmentMailedDate": "2015-05-29",
-          "reelNumber": 35731,
-          "correspondenceAddressBag": [
-            {
-              "addressLineThreeText": "COSTA MESA, CA 92626",
-              "addressLineOneText": "611 ANTON BLVD.",
-              "correspondentNameText": "RUTAN & TUCKER, LLP",
-              "addressLineTwoText": "SUITE 1400"
-            }
-          ],
-          "assignmentDocumentLocationURI": "https://legacy-assignments.uspto.gov/assignments/assignment-pat-035731-0345.pdf"
+          "assignmentMailedDate": "2018-09-10",
+          "reelNumber": 46816,
+          "correspondenceAddress": {
+            "addressLineOneText": "8110 GATEHOUSE ROAD, SUITE 100E",
+            "correspondentNameText": "BIRCH, STEWART, KOLASCH & BIRCH, LLP",
+            "addressLineTwoText": "FALLS CHURCH, VA 22042"
+          }
         }
       ],
-      "applicationNumberText": "14412875"
+      "applicationNumberText": "16123456"
     }
   ],
-  "requestIdentifier": "ad8d8df5-9e6c-4960-a9aa-cebfe681a0b1"
+  "requestIdentifier": "4f937410-11c9-4b8e-b5be-42ce4fb532e0"
 }

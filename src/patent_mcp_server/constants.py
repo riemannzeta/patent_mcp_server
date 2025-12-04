@@ -71,27 +71,44 @@ class Defaults:
     RATE_LIMIT_RETRY_DELAY = 5
 
 
-class GooglePatentsTables:
-    """Google Patents Public Datasets BigQuery table names."""
-    PUBLICATIONS = "publications"
-    PUBLICATIONS_CLAIMS = "publications_claims"
-    PUBLICATIONS_DESCRIPTION = "publications_description"
-    CLASSIFICATIONS = "classifications"
-    CITATIONS = "citations"
+class PTABTrialTypes:
+    """PTAB trial type codes."""
+    IPR = "IPR"  # Inter Partes Review
+    PGR = "PGR"  # Post Grant Review
+    CBM = "CBM"  # Covered Business Method
+    DER = "DER"  # Derivation proceeding
+
+    ALL = [IPR, PGR, CBM, DER]
 
 
-class GooglePatentsCountries:
-    """Country codes for Google Patents searches."""
-    US = "US"  # United States
-    EP = "EP"  # European Patent Office
-    WO = "WO"  # World Intellectual Property Organization (PCT)
-    JP = "JP"  # Japan
-    CN = "CN"  # China
-    KR = "KR"  # South Korea
-    GB = "GB"  # Great Britain
-    DE = "DE"  # Germany
-    FR = "FR"  # France
-    CA = "CA"  # Canada
-    AU = "AU"  # Australia
+class PTABProceedingStatus:
+    """PTAB proceeding status values."""
+    PENDING = "Pending"
+    INSTITUTED = "Instituted"
+    TERMINATED = "Terminated"
+    FWD_ENTERED = "FWD Entered"  # Final Written Decision
 
-    ALL = [US, EP, WO, JP, CN, KR, GB, DE, FR, CA, AU]
+
+class PatentsViewEndpoints:
+    """PatentsView API endpoint paths."""
+    PATENT = "/api/v1/patent/"
+    ASSIGNEE = "/api/v1/assignee/"
+    INVENTOR = "/api/v1/inventor/"
+    CPC_CLASS = "/api/v1/cpc_class/"
+    CPC_SUBCLASS = "/api/v1/cpc_subclass/"
+    CPC_GROUP = "/api/v1/cpc_group/"
+    CLAIMS = "/api/v1/g_claim/"
+    BRIEF_SUMMARY = "/api/v1/g_brf_sum_text/"
+    DESCRIPTION = "/api/v1/g_detail_desc_text/"
+    DRAWING_DESC = "/api/v1/g_draw_desc_text/"
+    PUBLICATION = "/api/v1/publication/"
+    FOREIGN_CITATION = "/api/v1/patent/foreign_citation/"
+
+
+class OfficeActionTypes:
+    """Office Action types."""
+    NON_FINAL = "Non-Final Rejection"
+    FINAL = "Final Rejection"
+    ALLOWANCE = "Notice of Allowance"
+    RESTRICTION = "Restriction Requirement"
+    ADVISORY = "Advisory Action"

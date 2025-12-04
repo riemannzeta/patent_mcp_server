@@ -1,119 +1,100 @@
 # USPTO Patent MCP Server
 
-A [FastMCP server](https://github.com/modelcontextprotocol/python-sdk/tree/main/src/mcp/server/fastmcp) for accessing United States Patent and Trademark Office (USPTO) patent and patent application data through the [Patent Public Search](https://www.uspto.gov/patents/search/patent-public-search) API, the [Open Data Portal (ODP) API](https://data.uspto.gov/home), and [Google Patents Public Datasets](https://cloud.google.com/blog/topics/public-datasets/google-patents-public-datasets-connecting-public-paid-and-private-patent-data) via BigQuery. Using this server, Claude Desktop can pull data from the USPTO APIs or search through 90M+ patent publications from 17+ countries via Google's BigQuery:
+A [FastMCP server](https://github.com/modelcontextprotocol/python-sdk/tree/main/src/mcp/server/fastmcp) for accessing United States Patent and Trademark Office (USPTO) patent and patent application data through multiple APIs including the [Patent Public Search](https://www.uspto.gov/patents/search/patent-public-search) API, the [Open Data Portal (ODP) API](https://data.uspto.gov/home), [PTAB API v3](https://developer.uspto.gov/api-catalog), [PatentsView API](https://patentsview.org/apis/purpose), Office Action APIs, and Patent Litigation APIs. Using this server, Claude Desktop can pull data from USPTO APIs, search through PTAB proceedings and decisions, analyze patent litigation, research prosecution history, and more:
 
-![Screen Capture of Cladue Desktop using Patents MCP Server](screencap.gif)
+![Screen Capture of Claude Desktop using Patents MCP Server](screencap.gif)
 
-For an introduction to MCP servers see [Introducing the Model Context Protcol](https://www.anthropic.com/news/model-context-protocol).
+For an introduction to MCP servers see [Introducing the Model Context Protocol](https://www.anthropic.com/news/model-context-protocol).
 
 Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of the amazing [Patent Client project](https://github.com/parkerhancock/patent_client), for [blazing the trail](https://github.com/parkerhancock/patent_client/issues/63) to understanding of the string of requests and responses needed to pull data through the Public Search API.
 
 ## Features
 
-This server provides tools for:
+This server provides **50+ tools** across 6 USPTO data sources for:
 
-1. **Patent Search** - Search for patents and patent applications across USPTO and Google Patents databases
-2. **Full Text Documents** - Get complete text of patents including claims, description, etc.
+1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS and PatentsView
+2. **Full Text Documents** - Get complete text of patents including claims, description, and specification
 3. **PDF Downloads** - Download patents as PDF files (Claude Desktop doesn't support this as a client currently)
-4. **Metadata** - Access patent bibliographic information, assignments, and litigation data
-5. **Google Patents Integration** - Access 90M+ patent publications from 17+ countries via BigQuery
-6. **Advanced Search** - Search by inventor, assignee, CPC classification, and more
+4. **Prosecution History** - Access office actions, transactions, and file wrapper data
+5. **PTAB Proceedings** - Search and retrieve Patent Trial and Appeal Board proceedings (IPR, PGR, CBM), decisions, and appeals
+6. **Office Actions** - Access full-text office actions, citations, and rejection data
+7. **Patent Litigation** - Search 74,000+ district court patent cases
+8. **Citation Analysis** - Get enriched citation data and metrics
+9. **Patent Family Data** - Continuity information, foreign priority, and related applications
+10. **Inventor/Assignee Search** - Disambiguated inventor and assignee data via PatentsView
 
 ## API Sources
 
-This server interacts with three patent data sources:
+This server interacts with six USPTO patent data sources:
 
-- **ppubs.uspto.gov** - For full text document access, PDF downloads, and advanced search
-- **api.uspto.gov** - For metadata, continuity information, transactions, and assignments
-- **Google Patents Public Datasets (BigQuery)** - For comprehensive patent search across 90M+ publications from 17+ countries
+| Source | Description | Auth Required |
+|--------|-------------|---------------|
+| **ppubs.uspto.gov** | Full text documents, PDF downloads, advanced search (daily updates) | No |
+| **api.uspto.gov (ODP)** | Metadata, continuity, transactions, assignments, prosecution history | Yes (USPTO API Key) |
+| **PTAB API v3** | IPR/PGR/CBM proceedings, decisions, appeals, interferences | Yes (USPTO API Key) |
+| **PatentsView API** | Disambiguated inventor/assignee data, advanced search | Yes (PatentsView Key) |
+| **Office Action APIs** | Full-text office actions, citations, rejections (12-series apps, June 2018+) | Yes (USPTO API Key) |
+| **Patent Litigation API** | 74,000+ district court patent cases | Yes (USPTO API Key) |
 
 ## Prerequisites
 
-- **Python 3.10-3.13 (3.12 recommended)**
-- Claude Desktop (for integration). Other models and MCP clients have not been tested.
-- For Patent Public Search requests, no API Key is required, but [there are rate limits](https://github.com/parkerhancock/patent_client/issues/143#issuecomment-2078051755). This API is not meant for bulk downloads.
-- For ODP API requests, a USPTO ODP API Key (see below).
-- **For Google Patents**: A Google Cloud account with BigQuery API enabled (see Google Cloud Setup below).
-- [UV](https://docs.astral.sh/uv/) for python version and dependency management.
+- **Python 3.10-3.13** (3.12 recommended)
+- **Claude Desktop** (for integration). Other models and MCP clients have not been tested.
+- **[UV](https://docs.astral.sh/uv/)** for Python version and dependency management
 
-If you're a python developer, but still unfamiliar with uv, you're in for a treat. It's faster and easier than having a separate python version manager (like pyenv) and setting up, activating, and maintaining virtual environments with venv and pip.
+If you're a Python developer but still unfamiliar with uv, you're in for a treat. It's faster and easier than having a separate Python version manager (like pyenv) and setting up, activating, and maintaining virtual environments with venv and pip.
 
-If you don't already have uv installed, `curl -LsSf https://astral.sh/uv/install.sh | sh` should do the trick.
+If you don't already have uv installed:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 ## Installation
 
 1. Clone this repository:
-
    ```bash
    git clone https://github.com/riemannzeta/patent_mcp_server
    cd patent_mcp_server
    ```
 
 2. Install dependencies with uv:
-
    ```bash
    uv sync
    ```
 
-   If installed correctly, then:
-
-    ```bash
-    uv run patent-mcp-server
-    ```
-
-   Should write:
-
-    ```bash
-    INFO     Starting USPTO Patent MCP server with stdio transport
-    ```
-    
-   to the console. With an API key installed in the environment and Claude Desktop configured, the patents MCP server is ready.
+3. Verify installation:
+   ```bash
+   uv run patent-mcp-server
+   ```
+   Should output:
+   ```
+   INFO     Starting USPTO Patent MCP server with stdio transport
+   ```
 
 ## API Key Setup
 
-### USPTO API Key
+### USPTO API Key (Required for most tools)
 
-To use the api.uspto.gov tools, you need to obtain an Open Data Portal (ODP) API key:
+To use the api.uspto.gov tools (ODP, PTAB, Office Actions, Litigation), you need an Open Data Portal API key:
 
-1. Visit [USPTO's Getting Started page](https://data.uspto.gov/apis/getting-started) and follow the instructions to request an API key if you don't already have one.
+1. Visit [USPTO's Getting Started page](https://data.uspto.gov/apis/getting-started) and follow the instructions to request an API key.
 
-2. Create a `.env` file in the patent_mcp_server directory with your API key:
+2. Create a `.env` file in the patent_mcp_server directory:
    ```bash
    USPTO_API_KEY=your_actual_key_here
    ```
-   You don't need quotes around your key. The ppubs tools will run without this API key, but the API key is required for the api.uspto.gov tools.
+   Note: The PPUBS tools will work without this API key.
 
-### Google Cloud Setup (for Google Patents)
+### PatentsView API Key (Optional)
 
-To use Google Patents Public Datasets, you need to set up Google Cloud credentials:
+For advanced search with disambiguated inventor/assignee data:
 
-1. **Create a Google Cloud Project**:
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select an existing one
-   - Note your Project ID
+1. Request an API key at [PatentsView Support](https://patentsview-support.atlassian.net)
 
-2. **Enable BigQuery API**:
-   - In your project, go to "APIs & Services" > "Library"
-   - Search for "BigQuery API" and enable it
-
-3. **Create Service Account Credentials**:
-   - Go to "APIs & Services" > "Credentials"
-   - Click "Create Credentials" > "Service Account"
-   - Give it a name (e.g., "patent-mcp-bigquery")
-   - Grant it the "BigQuery User" role
-   - Click "Done"
-   - Click on the created service account
-   - Go to "Keys" tab > "Add Key" > "Create new key"
-   - Choose JSON format and download the key file
-
-4. **Configure Environment Variables**:
-   Add to your `.env` file:
+2. Add to your `.env` file:
    ```bash
-   GOOGLE_CLOUD_PROJECT=your-project-id
-   GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/service-account-key.json
+   PATENTSVIEW_API_KEY=your_patentsview_key
    ```
-
-**Cost Information**: Google BigQuery provides 1TB of free queries per month. After that, queries cost $5 per TB. Patent queries are typically small and efficient. See [BigQuery pricing](https://cloud.google.com/bigquery/pricing) for details.
 
 ## Configuration
 
@@ -122,21 +103,14 @@ The server can be configured using environment variables in your `.env` file. Al
 ```bash
 # API Keys
 USPTO_API_KEY=your_key_here
-
-# Google Cloud / BigQuery
-GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
-BIGQUERY_DATASET=patents-public-data:patents
-BIGQUERY_LOCATION=US
-BIGQUERY_QUERY_TIMEOUT=60
-BIGQUERY_MAX_RESULTS=1000
+PATENTSVIEW_API_KEY=your_patentsview_key  # Optional
 
 # Logging
 LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # HTTP Settings
 REQUEST_TIMEOUT=30.0  # Request timeout in seconds
-MAX_RETRIES=3         # Maximum number of retry attempts for failed requests
+MAX_RETRIES=3         # Maximum number of retry attempts
 RETRY_MIN_WAIT=2      # Minimum wait time between retries (seconds)
 RETRY_MAX_WAIT=10     # Maximum wait time between retries (seconds)
 
@@ -147,6 +121,8 @@ ENABLE_CACHING=true        # Enable/disable session caching
 # API Endpoints (usually don't need to change)
 PPUBS_BASE_URL=https://ppubs.uspto.gov
 API_BASE_URL=https://api.uspto.gov
+PATENTSVIEW_BASE_URL=https://search.patentsview.org
+OFFICE_ACTION_BASE_URL=https://developer.uspto.gov
 ```
 
 ## Claude Desktop Configuration
@@ -155,125 +131,166 @@ To integrate this MCP server with Claude Desktop:
 
 1. Update your Claude Desktop configuration file (`claude_desktop_config.json`):
    ```json
-    {
-      "mcpServers": {
-        "patents": {
-          "command": "uv",
-          "args": [
-            "--directory",
-            "/Users/username/patent_mcp_server",
-            "run",
-            "patent-mcp-server"
-          ]
-        }
-      }
-    }
+   {
+     "mcpServers": {
+       "patents": {
+         "command": "uv",
+         "args": [
+           "--directory",
+           "/Users/username/patent_mcp_server",
+           "run",
+           "patent-mcp-server"
+         ]
+       }
+     }
+   }
    ```
-   You can find `claude_desktop_config.json` on a mac by opening the Claude Desktop app, opening Settings (from the Claude menu or by Command + ' on the keyboard), clicking "Developer" in in the sidebar, and "Edit Config."
 
-2. Replace `/Users/username/patent_mcp_server` with the actual path to your patent_mcp_server directory if that's not where it was cloned. (If you're on a mac, this may mean simply replacing `username` with your username.)
+   You can find `claude_desktop_config.json` on a Mac by opening the Claude Desktop app, opening Settings (from the Claude menu or by Command + ' on the keyboard), clicking "Developer" in the sidebar, and "Edit Config."
 
-When integrated with Claude Desktop, the server will be automatically started when needed and doesn't need to be run separately. The server uses stdio transport for communication with Claude Desktop or other MCP clients running on the same host.
+2. Replace `/Users/username/patent_mcp_server` with the actual path to your patent_mcp_server directory.
 
-## Available Functions
+When integrated with Claude Desktop, the server will be automatically started when needed and doesn't need to be run separately.
 
-The server provides the following functions to interact with USPTO data. Note that the Claude Desktop client does not fully support all of these tools. For example, Claude Desktop does not at present allow for download of PDFs.
+## Available Tools
 
-### Public Patent Search (ppubs.uspto.gov)
-- `ppubs_search_patents` - Search for granted patents in USPTO Public Search
-- `ppubs_search_applications` - Search for published patent applications in USPTO Public Search
-- `ppubs_get_full_document` - Get full patent document details by GUID from ppubs.uspto.gov 
-- `ppubs_get_patent_by_number` - Get a granted patent's full text by number from ppubs.uspto.gov
-- `ppubs_download_patent_pdf` - Download a granted patent as PDF from ppubs.uspto.gov (not currently supported by Claude Desktop)
+### Patent Public Search (ppubs.uspto.gov)
+| Tool | Description |
+|------|-------------|
+| `ppubs_search_patents` | Search granted patents (full-text, daily updates) |
+| `ppubs_search_applications` | Search published patent applications |
+| `ppubs_get_full_document` | Get full patent document by GUID |
+| `ppubs_get_patent_by_number` | Get patent's full text by number |
+| `ppubs_download_patent_pdf` | Download patent as PDF |
 
-### Open Data Portal API (api.uspto.gov)
-- `get_app(app_num)` - Get basic patent application data
-- `search_applications(...)` - Search for patent applications using query parameters
-- `download_applications(...)` - Download patent applications using query parameters
-- `get_app_metadata(app_num)` - Get application metadata
-- `get_app_adjustment(app_num)` - Get patent term adjustment data
-- `get_app_assignment(app_num)` - Get assignment data
-- `get_app_attorney(app_num)` - Get attorney/agent information
-- `get_app_continuity(app_num)` - Get continuity data
-- `get_app_foreign_priority(app_num)` - Get foreign priority claims
-- `get_app_transactions(app_num)` - Get transaction history
-- `get_app_documents(app_num)` - Get document details
-- `get_app_associated_documents(app_num)` - Get associated documents
-- `get_status_codes(...)` - Search for status codes
-- `search_datasets(...)` - Search bulk dataset products
-- `get_dataset_product(...)` - Get a specific product by its identifier
+### Open Data Portal (api.uspto.gov)
+| Tool | Description |
+|------|-------------|
+| `odp_get_application` | Get basic application data |
+| `odp_search_applications` | Search applications with filters |
+| `odp_get_application_metadata` | Get comprehensive metadata |
+| `odp_get_continuity` | Get patent family/continuity data |
+| `odp_get_assignment` | Get ownership/assignment records |
+| `odp_get_adjustment` | Get patent term adjustment data |
+| `odp_get_attorney` | Get attorney/agent of record |
+| `odp_get_foreign_priority` | Get foreign priority claims |
+| `odp_get_transactions` | Get prosecution transaction history |
+| `odp_get_documents` | Get file wrapper documents |
+| `odp_search_datasets` | Search bulk data products |
+| `odp_get_dataset` | Get dataset product details |
+| `get_status_code` | Look up status code meaning |
 
-### Google Patents Public Datasets (BigQuery)
-- `google_search_patents(query, country, limit)` - Search patents by text in title/abstract across 90M+ publications
-- `google_get_patent(publication_number)` - Get complete patent details by publication number
-- `google_get_patent_claims(publication_number)` - Get all claims for a patent
-- `google_get_patent_description(publication_number)` - Get full patent description/specification
-- `google_search_by_inventor(inventor_name, country, limit)` - Find patents by inventor name
-- `google_search_by_assignee(assignee_name, country, limit)` - Find patents by company/assignee
-- `google_search_by_cpc(cpc_code, country, limit)` - Search patents by CPC classification code
+### PTAB API v3 (Patent Trial and Appeal Board)
+| Tool | Description |
+|------|-------------|
+| `ptab_search_proceedings` | Search IPR/PGR/CBM proceedings |
+| `ptab_get_proceeding` | Get proceeding details |
+| `ptab_get_documents` | Get documents filed in proceeding |
+| `ptab_search_decisions` | Search trial decisions |
+| `ptab_get_decision` | Get decision details |
+| `ptab_search_appeals` | Search ex parte appeals |
+| `ptab_get_appeal` | Get appeal decision details |
+| `ptab_search_interferences` | Search historical interferences |
 
-**Supported Countries**: US, EP (European Patent Office), WO (WIPO/PCT), JP (Japan), CN (China), KR (South Korea), GB (Great Britain), DE (Germany), FR (France), CA (Canada), AU (Australia)
+### PatentsView API
+| Tool | Description |
+|------|-------------|
+| `patentsview_search_patents` | Full-text search with disambiguation |
+| `patentsview_get_patent` | Get detailed patent info |
+| `patentsview_search_assignees` | Search disambiguated assignees |
+| `patentsview_get_assignee` | Get assignee details |
+| `patentsview_search_inventors` | Search disambiguated inventors |
+| `patentsview_get_inventor` | Get inventor details |
+| `patentsview_get_claims` | Get patent claims text |
+| `patentsview_get_description` | Get patent description |
+| `patentsview_search_by_cpc` | Search by CPC classification |
+| `patentsview_lookup_cpc` | Look up CPC code info |
 
-**Note**: Google Patents tools require Google Cloud credentials (see Google Cloud Setup above).
+### Office Action APIs
+| Tool | Description |
+|------|-------------|
+| `get_office_action_text` | Get full-text office actions |
+| `search_office_actions` | Search office actions |
+| `get_office_action_citations` | Get citations from office actions |
+| `get_office_action_rejections` | Get rejection data |
 
-Refer to the function docstrings in the code for detailed parameter information.
+### Citation & Litigation APIs
+| Tool | Description |
+|------|-------------|
+| `get_enriched_citations` | Get forward/backward citations |
+| `search_citations` | Search citation records |
+| `get_citation_metrics` | Get citation metrics |
+| `search_litigation` | Search 74,000+ patent cases |
+| `get_litigation_case` | Get case details |
+| `get_patent_litigation` | Get litigation for a patent |
+| `get_party_litigation` | Get party litigation history |
 
-## Recent Improvements (v0.2.2)
+### Resources and Prompts
 
-This release includes significant improvements to code quality, reliability, and maintainability:
+The server also provides **MCP Resources** (accessible via @ mentions):
+- `patents://cpc/{code}` - CPC classification information
+- `patents://status-codes` - USPTO status code definitions
+- `patents://sources` - Data source information
+- `patents://search-syntax` - Query syntax guide
 
-### Architecture & Code Quality
-- **Centralized Configuration** - All settings now managed through environment variables with sensible defaults
-- **Constants Module** - Magic strings extracted to a dedicated constants module for consistency
-- **Error Handling** - Standardized error responses across all endpoints using `ApiError` utility class
-- **Code Deduplication** - Extracted common patent search logic to eliminate ~80 lines of duplicate code
-- **Input Validation** - Automatic validation and sanitization of patent/application numbers using Pydantic
-
-### Reliability & Performance
-- **Retry Logic** - Exponential backoff retry mechanism for network errors using tenacity
-- **Session Caching** - ppubs.uspto.gov sessions cached for 30 minutes (configurable) to reduce overhead
-- **Resource Management** - Proper cleanup of HTTP clients with context managers and shutdown handlers
-- **Type Hints** - Comprehensive type annotations throughout the codebase
-
-### Developer Experience
-- **pytest Framework** - Modern test framework with async support replacing custom test runner
-- **Python 3.10+ Support** - Lowered requirement from 3.13 to 3.10 for broader compatibility
-- **Better Logging** - Configurable log levels via environment variables
-- **Development Tools** - Added pytest, pytest-asyncio, and pytest-cov to dev dependencies
+And **MCP Prompts** (workflow templates):
+- `prior_art_search` - Comprehensive prior art search guide
+- `patent_validity` - Patent validity analysis workflow
+- `competitor_portfolio` - Competitor portfolio analysis
+- `ptab_research` - PTAB proceeding research guide
+- `freedom_to_operate` - FTO analysis workflow
+- `patent_landscape` - Technology landscape mapping
 
 ## Testing
 
-The `/test/` directory contains test suites for validating the MCP server functionality:
-
-- **`test_tools_pytest.py`** - Modern pytest-based test suite for all MCP tools (recommended)
-- **`test_tools.py`** - Legacy test runner (still functional)
-- **`test_patents.py`** - Direct HTTP request tests for debugging
-
-Test results in JSON and PDF format are stored in the `/test/test_results` subdirectory.
-
-### Running Tests
+The project includes comprehensive test suites:
 
 ```bash
-# Run all tests with pytest (recommended)
-uv run pytest test/test_tools_pytest.py -v
+# Run unit tests (default - skips integration tests)
+uv run pytest
 
-# Run excluding slow tests (like PDF downloads)
-uv run pytest test/test_tools_pytest.py -v -m "not slow"
+# Run with verbose output
+uv run pytest -v
+
+# Run integration tests (requires network access)
+uv run pytest -m integration
+
+# Run all tests including integration
+uv run pytest -m ""
 
 # Run with coverage report
-uv run pytest test/test_tools_pytest.py --cov=patent_mcp_server
-
-# Run legacy test suite
-uv run test/test_tools.py
+uv run pytest --cov=patent_mcp_server
 ```
+
+Test results are stored in `/test/test_results/`.
 
 ### Development
 
 To install development dependencies:
-
 ```bash
 uv sync --dev
 ```
+
+## Version History
+
+### v0.5.0 (Current)
+- Focused on USPTO-only data sources
+- Renamed ODP tools with `odp_` prefix for clarity
+- Improved function signatures (using `query` instead of `q`)
+- Enhanced test organization with proper integration test markers
+- Updated validation with Pydantic models
+
+### v0.3.0
+- Added 33 new tools (PTAB, PatentsView, Office Actions, Citations, Litigation)
+- Rate limiting support for PatentsView API
+- Comprehensive async client architecture
+
+### v0.2.2
+- Centralized configuration with environment variables
+- Standardized error handling
+- Input validation with Pydantic
+- Retry logic with exponential backoff
+- Session caching for PPUBS
 
 ## License
 

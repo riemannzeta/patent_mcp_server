@@ -1,16 +1,5 @@
 {
-  "count": 1,
-  "patentFileWrapperDataBag": [
-    {
-      "applicationNumberText": "14412875",
-      "foreignPriorityBag": [
-        {
-          "filingDate": "2012-07-05",
-          "applicationNumberText": "10 2012 013 534.3",
-          "ipOfficeName": "GERMANY"
-        }
-      ]
-    }
-  ],
-  "requestIdentifier": "0927963a-543f-4ae9-9343-0d53c5e9fd7e"
+  "error": true,
+  "message": "Request to https://api.uspto.gov/api/v1/patent/applications/16123456/foreign-priority failed: Event loop is closed",
+  "error_code": "RuntimeError"
 }

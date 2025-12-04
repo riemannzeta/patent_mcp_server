@@ -1,54 +1,27 @@
 {
+  "success": true,
+  "source": "odp",
   "count": 1,
-  "patentFileWrapperDataBag": [
+  "total": 1,
+  "offset": 0,
+  "limit": 25,
+  "has_more": false,
+  "results": [
     {
-      "parentContinuityBag": [
-        {
-          "parentApplicationStatusCode": 150,
-          "claimParentageTypeCode": "NST",
-          "claimParentageTypeCodeDescriptionText": "is a National Stage Entry of",
-          "parentApplicationStatusDescriptionText": "Patented Case",
-          "parentApplicationNumberText": "PCTIB2013001896",
-          "parentApplicationFilingDate": "2013-07-02",
-          "childApplicationNumberText": "14412875"
-        }
-      ],
       "childContinuityBag": [
         {
-          "firstInventorToFileIndicator": false,
-          "childApplicationStatusDescriptionText": "Patent Expired Due to NonPayment of Maintenance Fees Under 37 CFR 1.362",
-          "claimParentageTypeCode": "CON",
-          "childApplicationStatusCode": 250,
-          "claimParentageTypeCodeDescriptionText": "is a Continuation of",
-          "childPatentNumber": "10806943",
-          "parentApplicationNumberText": "14412875",
-          "childApplicationFilingDate": "2019-05-17",
-          "childApplicationNumberText": "16415927"
-        },
-        {
-          "firstInventorToFileIndicator": false,
+          "firstInventorToFileIndicator": true,
           "childApplicationStatusDescriptionText": "Patented Case",
-          "claimParentageTypeCode": "CON",
+          "claimParentageTypeCode": "DIV",
           "childApplicationStatusCode": 150,
-          "claimParentageTypeCodeDescriptionText": "is a Continuation of",
-          "childPatentNumber": "11612758",
-          "parentApplicationNumberText": "14412875",
-          "childApplicationFilingDate": "2020-09-04",
-          "childApplicationNumberText": "17013096"
-        },
-        {
-          "firstInventorToFileIndicator": false,
-          "childApplicationStatusDescriptionText": "Docketed New Case - Ready for Examination",
-          "claimParentageTypeCode": "CON",
-          "childApplicationStatusCode": 30,
-          "claimParentageTypeCodeDescriptionText": "is a Continuation of",
-          "parentApplicationNumberText": "14412875",
-          "childApplicationFilingDate": "2023-03-27",
-          "childApplicationNumberText": "18190466"
+          "claimParentageTypeCodeDescriptionText": "is a Division of",
+          "childPatentNumber": "11797846",
+          "parentApplicationNumberText": "16123456",
+          "childApplicationFilingDate": "2020-12-22",
+          "childApplicationNumberText": "17130468"
         }
       ],
-      "applicationNumberText": "14412875"
+      "applicationNumberText": "16123456"
     }
-  ],
-  "requestIdentifier": "6e042337-5fbb-4531-9558-fa7fd8aea314"
+  ]
 }

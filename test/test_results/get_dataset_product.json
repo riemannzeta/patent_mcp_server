@@ -1,6 +1,5 @@
 {
   "error": true,
-  "status_code": 404,
-  "message": "{\"code\":404,\"message\":\"Not Found\",\"requestIdentifier\":\"6402b47f-ec2e-438e-9892-620e7c5f9395\"}",
-  "details": null
+  "message": "Not Found",
+  "status_code": 404
 }

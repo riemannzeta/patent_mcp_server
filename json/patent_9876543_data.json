@@ -125,7 +125,10 @@
   ],
   "curIntlPatentClassificationPrimaryDateKwicHits": null,
   "designatedStates": null,
-  "examinerGroup": "2631",
+  "examinerGroupHtml": [
+    "2631"
+  ],
+  "examinerGroup": 2631,
   "issuedUsCrossRefClassification": null,
   "jpoFtermCurrent": null,
   "languageOfSpecification": null,
@@ -140,7 +143,7 @@
   "cpcInventiveDateKwicHits": null,
   "cpcOrigAdditionalClassification": null,
   "cpcAdditionalDateKwicHits": null,
-  "curIntlPatentClssficationSecHighlights": null,
+  "curIntlPatentClassificationSecHighlights": null,
   "fieldOfSearchClassSubclassHighlights": [
     "375/267",
     "370/280",
@@ -198,7 +201,6 @@
   "europeanClassification": null,
   "europeanClassificationMain": null,
   "europeanClassificationSecondary": null,
-  "lanuageIndicator": null,
   "intlPubClassificationPrimary": [
     "H04L1/16 20060101 H04L001/16"
   ],
@@ -658,15 +660,9 @@
   "currentUsPatentClass": [
     "1"
   ],
-  "internationalClassificationInfom": null,
-  "cpcOrigInventvClssifHlghts": [
-    "H04B7/0417 20130101",
-    "H04B7/0626 20130101",
-    "H04L1/1664 20130101"
-  ],
   "idWithoutSolrPartition": "US-US-09876543",
   "curIntlPatentClassifictionPrimaryDateKwicHits": null,
-  "curIntlPatentClssifSecHlights": null,
+  "internationalClassificationInfom": null,
   "descriptionStart": 16,
   "descriptionEnd": 24,
   "publicationReferenceDocumentNumberOne": "09876543"

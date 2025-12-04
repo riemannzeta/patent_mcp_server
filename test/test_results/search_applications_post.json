@@ -677,23 +677,21 @@
         }
       ],
       "patentTermAdjustmentData": {
-        "applicantDayDelayQuantity": 703.0,
-        "overlappingDayQuantity": 0.0,
-        "filingDate": "2015-01-05",
-        "ipOfficeAdjustmentDelayQuantity": 0.0,
-        "cDelayQuantity": 0.0,
-        "adjustmentTotalQuantity": 4.0,
-        "bDelayQuantity": 280.0,
-        "grantDate": "2020-09-08",
-        "aDelayQuantity": 427.0,
-        "ipOfficeDayDelayQuantity": 707.0,
+        "applicantDayDelayQuantity": 703,
+        "overlappingDayQuantity": 0,
+        "ipOfficeAdjustmentDelayQuantity": 0,
+        "cDelayQuantity": 0,
+        "adjustmentTotalQuantity": 4,
+        "bDelayQuantity": 280,
+        "nonOverlappingDayDelayQuantity": 707,
+        "aDelayQuantity": 427,
         "patentTermAdjustmentHistoryDataBag": [
           {
             "eventDescriptionText": "PTA 36 Months",
             "eventSequenceNumber": 163.5,
             "originatingEventSequenceNumber": 163.4,
             "ptaPTECode": "PTA",
-            "ipOfficeDayDelayQuantity": 280.0,
+            "ipOfficeDayDelayQuantity": 280,
             "eventDate": "2020-09-08"
           },
           {
@@ -746,7 +744,7 @@
             "eventDate": "2020-07-27"
           },
           {
-            "applicantDayDelayQuantity": 44.0,
+            "applicantDayDelayQuantity": 44,
             "eventDescriptionText": "Workflow - Drawings Finished",
             "eventSequenceNumber": 157.0,
             "originatingEventSequenceNumber": 163.0,
@@ -978,7 +976,7 @@
             "eventDate": "2020-01-27"
           },
           {
-            "applicantDayDelayQuantity": 18.0,
+            "applicantDayDelayQuantity": 18,
             "eventDescriptionText": "Information Disclosure Statement (IDS) Filed",
             "eventSequenceNumber": 124.0,
             "originatingEventSequenceNumber": 109.0,
@@ -1084,7 +1082,7 @@
             "eventDate": "2019-10-18"
           },
           {
-            "applicantDayDelayQuantity": 94.0,
+            "applicantDayDelayQuantity": 94,
             "eventDescriptionText": "Response after Non-Final Action",
             "eventSequenceNumber": 109.0,
             "originatingEventSequenceNumber": 96.0,
@@ -1180,7 +1178,7 @@
             "eventSequenceNumber": 96.0,
             "originatingEventSequenceNumber": 87.0,
             "ptaPTECode": "PTA",
-            "ipOfficeDayDelayQuantity": 193.0,
+            "ipOfficeDayDelayQuantity": 193,
             "eventDate": "2019-04-12"
           },
           {
@@ -1212,7 +1210,7 @@
             "eventDate": "2018-06-01"
           },
           {
-            "applicantDayDelayQuantity": 204.0,
+            "applicantDayDelayQuantity": 204,
             "eventDescriptionText": "Request for Continued Examination (RCE)",
             "eventSequenceNumber": 87.0,
             "originatingEventSequenceNumber": 45.0,
@@ -1353,7 +1351,7 @@
             "eventDate": "2018-09-27"
           },
           {
-            "applicantDayDelayQuantity": 253.0,
+            "applicantDayDelayQuantity": 253,
             "eventDescriptionText": "Petition Entered",
             "eventSequenceNumber": 66.0,
             "originatingEventSequenceNumber": 48.0,
@@ -1550,7 +1548,7 @@
             "eventDate": "2017-05-08"
           },
           {
-            "applicantDayDelayQuantity": 90.0,
+            "applicantDayDelayQuantity": 90,
             "eventDescriptionText": "Response after Non-Final Action",
             "eventSequenceNumber": 38.0,
             "originatingEventSequenceNumber": 34.0,
@@ -1583,7 +1581,7 @@
             "eventSequenceNumber": 34.0,
             "originatingEventSequenceNumber": 163.4,
             "ptaPTECode": "PTA",
-            "ipOfficeDayDelayQuantity": 234.0,
+            "ipOfficeDayDelayQuantity": 234,
             "eventDate": "2016-10-25"
           },
           {
@@ -1811,6 +1809,7 @@
           "frameNumber": 154,
           "assignmentRecordedDate": "2022-10-20",
           "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
+          "pageTotalQuantity": 19,
           "assigneeBag": [
             {
               "assigneeAddress": {
@@ -1841,10 +1840,11 @@
               "assignorName": "BTL HEALTHCARE TECHNOLOGIES A.S."
             }
           ],
-          "reelAndFrameNumber": "063272/050",
+          "reelAndFrameNumber": "063272/0050",
           "frameNumber": 50,
           "assignmentRecordedDate": "2022-08-05",
           "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
+          "pageTotalQuantity": 20,
           "assigneeBag": [
             {
               "assigneeAddress": {
@@ -1879,6 +1879,7 @@
           "frameNumber": 492,
           "assignmentRecordedDate": "2021-06-09",
           "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
+          "pageTotalQuantity": 17,
           "assigneeBag": [
             {
               "assigneeAddress": {
@@ -1914,6 +1915,7 @@
           "frameNumber": 451,
           "assignmentRecordedDate": "2019-08-13",
           "conveyanceText": "MERGER (SEE DOCUMENT FOR DETAILS).",
+          "pageTotalQuantity": 9,
           "assigneeBag": [
             {
               "assigneeAddress": {
@@ -1948,6 +1950,7 @@
           "frameNumber": 599,
           "assignmentRecordedDate": "2019-05-07",
           "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
+          "pageTotalQuantity": 2,
           "assigneeBag": [
             {
               "assigneeAddress": {
@@ -1982,6 +1985,7 @@
           "frameNumber": 497,
           "assignmentRecordedDate": "2018-04-19",
           "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
+          "pageTotalQuantity": 2,
           "assigneeBag": [
             {
               "assigneeAddress": {
@@ -2017,6 +2021,7 @@
           "frameNumber": 345,
           "assignmentRecordedDate": "2015-05-28",
           "conveyanceText": "ASSIGNMENT OF ASSIGNORS INTEREST (SEE DOCUMENT FOR DETAILS).",
+          "pageTotalQuantity": 2,
           "assigneeBag": [
             {
               "assigneeAddress": {
@@ -2048,7 +2053,7 @@
         "xmlFileName": "14412875_20150157873.xml",
         "fileLocationURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML-SPLT/2015/ipa150611/14412875_20150157873.xml"
       },
-      "lastIngestionDateTime": "2025-03-13T23:58:19",
+      "lastIngestionDateTime": "2025-06-12T16:11:13",
       "recordAttorney": {
         "customerNumberCorrespondenceData": {
           "powerOfAttorneyAddressBag": [
@@ -2067,6 +2072,31 @@
           "patronIdentifier": 26111
         },
         "powerOfAttorneyBag": [
+          {
+            "activeIndicator": "ACTIVE",
+            "firstName": "CALVIN",
+            "lastName": "MENDEL",
+            "registrationNumber": "80152",
+            "attorneyAddressBag": [
+              {
+                "cityName": "WASHINGTON",
+                "geographicRegionName": "DISTRICT OF COLUMBIA",
+                "geographicRegionCode": "DC",
+                "countryCode": "US",
+                "postalCode": "20005",
+                "countryName": "UNITED STATES",
+                "addressLineOneText": "1101 K ST",
+                "addressLineTwoText": "10TH FLOOR"
+              }
+            ],
+            "telecommunicationAddressBag": [
+              {
+                "telecommunicationNumber": "202-772-8511",
+                "telecomTypeCode": "TEL"
+              }
+            ],
+            "registeredPractitionerCategory": "AGENT"
+          },
           {
             "activeIndicator": "ACTIVE",
             "firstName": "MICHAEL",
@@ -3143,31 +3173,6 @@
           },
           {
             "activeIndicator": "ACTIVE",
-            "firstName": "MASAYUKI",
-            "lastName": "IINO",
-            "registrationNumber": "80729",
-            "attorneyAddressBag": [
-              {
-                "cityName": "WASHINGTON",
-                "geographicRegionName": "DISTRICT OF COLUMBIA",
-                "geographicRegionCode": "DC",
-                "countryCode": "US",
-                "postalCode": "20005",
-                "nameLineOneText": "STERNE, KESSLER, GOLDSTEIN & FOX P.L.L.C.",
-                "countryName": "UNITED STATES",
-                "addressLineOneText": "1101 K STREET, NW, 10TH FLOOR"
-              }
-            ],
-            "telecommunicationAddressBag": [
-              {
-                "telecommunicationNumber": "202-772-8605",
-                "telecomTypeCode": "TEL"
-              }
-            ],
-            "registeredPractitionerCategory": "ATTNY"
-          },
-          {
-            "activeIndicator": "ACTIVE",
             "firstName": "JESSICA",
             "lastName": "HARRISON",
             "registrationNumber": "72780",
@@ -4165,7 +4170,7 @@
               }
             ],
             "middleName": "M",
-            "registeredPractitionerCategory": "AGENT"
+            "registeredPractitionerCategory": "ATTNY"
           },
           {
             "activeIndicator": "ACTIVE",
@@ -4770,7 +4775,7 @@
               }
             ],
             "middleName": "F",
-            "registeredPractitionerCategory": "AGENT"
+            "registeredPractitionerCategory": "ATTNY"
           },
           {
             "activeIndicator": "ACTIVE",
@@ -4876,7 +4881,7 @@
               }
             ],
             "middleName": "A.",
-            "registeredPractitionerCategory": "AGENT"
+            "registeredPractitionerCategory": "ATTNY"
           },
           {
             "activeIndicator": "ACTIVE",
@@ -5623,6 +5628,32 @@
             ],
             "middleName": "B.",
             "registeredPractitionerCategory": "AGENT"
+          },
+          {
+            "activeIndicator": "ACTIVE",
+            "firstName": "LEI",
+            "lastName": "ZHOU",
+            "registrationNumber": "48291",
+            "attorneyAddressBag": [
+              {
+                "cityName": "WASHINGTON",
+                "geographicRegionName": "DISTRICT OF COLUMBIA",
+                "geographicRegionCode": "DC",
+                "countryCode": "US",
+                "postalCode": "20005",
+                "nameLineOneText": "STERNE, KESSLER, GOLDSTEIN & FOX PLLC",
+                "countryName": "UNITED STATES",
+                "addressLineOneText": "1101 K STREET NW",
+                "addressLineTwoText": "10TH FLOOR"
+              }
+            ],
+            "telecommunicationAddressBag": [
+              {
+                "telecommunicationNumber": "202-772-8661",
+                "telecomTypeCode": "TEL"
+              }
+            ],
+            "registeredPractitionerCategory": "ATTNY"
           },
           {
             "activeIndicator": "ACTIVE",
@@ -9852,5 +9883,5 @@
       ]
     }
   ],
-  "requestIdentifier": "36cb31bf-6158-4728-b549-fcf5ff967e38"
+  "requestIdentifier": "d1b7915a-2080-4b02-b834-9bbf7d8bd441"
 }

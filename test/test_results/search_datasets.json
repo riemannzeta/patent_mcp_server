@@ -1,843 +1,6 @@
 {
-  "count": 10,
+  "count": 40,
   "bulkDataProductBag": [
-    {
-      "productIdentifier": "APPDT",
-      "productDescriptionText": "Contains the full text, images/drawings, and complex work units (tables, mathematical expressions, chemical structures, and genetic sequence data) of each patent application (non-provisional utility and plant) published weekly (Thursdays) from March 15, 2001 to present.",
-      "productTitleText": "Patent Application Full Text Data with Embedded TIFF Images (Application Red Book based on WIPO ST.36)",
-      "productFrequencyText": "WEEKLY",
-      "daysOfWeekText": "THURSDAY",
-      "productLabelArrayText": [
-        "Patent"
-      ],
-      "productDatasetArrayText": [
-        "Authoritative"
-      ],
-      "productDatasetCategoryArrayText": [
-        "Patent Application"
-      ],
-      "productFromDate": "2001-03-15",
-      "productToDate": "2025-03-20",
-      "productTotalFileSize": 3816055602991,
-      "productFileTotalQuantity": 1874,
-      "lastModifiedDateTime": "2025-03-20 00:02:00",
-      "mimeTypeIdentifierArrayText": [
-        "XML"
-      ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "I20250320.tar",
-            "fileSize": 6234382848,
-            "fileDataFromDate": "2025-03-20",
-            "fileDataToDate": "2025-03-20",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250320.tar",
-            "fileReleaseDate": "2025-03-20 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250313.tar",
-            "fileSize": 4941112832,
-            "fileDataFromDate": "2025-03-13",
-            "fileDataToDate": "2025-03-13",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250313.tar",
-            "fileReleaseDate": "2025-03-13 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250306.tar",
-            "fileSize": 5503337984,
-            "fileDataFromDate": "2025-03-06",
-            "fileDataToDate": "2025-03-06",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250306.tar",
-            "fileReleaseDate": "2025-03-06 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250227.tar",
-            "fileSize": 5699506176,
-            "fileDataFromDate": "2025-02-27",
-            "fileDataToDate": "2025-02-27",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250227.tar",
-            "fileReleaseDate": "2025-02-27 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250220.tar",
-            "fileSize": 4750707712,
-            "fileDataFromDate": "2025-02-20",
-            "fileDataToDate": "2025-02-20",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250220.tar",
-            "fileReleaseDate": "2025-02-20 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250213.tar",
-            "fileSize": 5473483264,
-            "fileDataFromDate": "2025-02-13",
-            "fileDataToDate": "2025-02-13",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250213.tar",
-            "fileReleaseDate": "2025-02-13 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250206.tar",
-            "fileSize": 5038285312,
-            "fileDataFromDate": "2025-02-06",
-            "fileDataToDate": "2025-02-06",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250206.tar",
-            "fileReleaseDate": "2025-02-06 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250130.tar",
-            "fileSize": 5490465280,
-            "fileDataFromDate": "2025-01-30",
-            "fileDataToDate": "2025-01-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250130.tar",
-            "fileReleaseDate": "2025-01-30 10:37:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250123.tar",
-            "fileSize": 4411075584,
-            "fileDataFromDate": "2025-01-23",
-            "fileDataToDate": "2025-01-23",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250123.tar",
-            "fileReleaseDate": "2025-01-23 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250116.tar",
-            "fileSize": 4651780608,
-            "fileDataFromDate": "2025-01-16",
-            "fileDataToDate": "2025-01-16",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250116.tar",
-            "fileReleaseDate": "2025-01-16 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250109.tar",
-            "fileSize": 5323929088,
-            "fileDataFromDate": "2025-01-09",
-            "fileDataToDate": "2025-01-09",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250109.tar",
-            "fileReleaseDate": "2025-01-09 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20250102.tar",
-            "fileSize": 5305335296,
-            "fileDataFromDate": "2025-01-02",
-            "fileDataToDate": "2025-01-02",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2025/I20250102.tar",
-            "fileReleaseDate": "2025-01-02 07:14:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241226.tar",
-            "fileSize": 5007809536,
-            "fileDataFromDate": "2024-12-26",
-            "fileDataToDate": "2024-12-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241226.tar",
-            "fileReleaseDate": "2024-12-26 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241219.tar",
-            "fileSize": 4891326464,
-            "fileDataFromDate": "2024-12-19",
-            "fileDataToDate": "2024-12-19",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241219.tar",
-            "fileReleaseDate": "2024-12-19 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241212.tar",
-            "fileSize": 5320920576,
-            "fileDataFromDate": "2024-12-12",
-            "fileDataToDate": "2024-12-12",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241212.tar",
-            "fileReleaseDate": "2024-12-12 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241205.tar",
-            "fileSize": 6248091136,
-            "fileDataFromDate": "2024-12-05",
-            "fileDataToDate": "2024-12-05",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241205.tar",
-            "fileReleaseDate": "2024-12-05 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241128.tar",
-            "fileSize": 5641357312,
-            "fileDataFromDate": "2024-11-28",
-            "fileDataToDate": "2024-11-28",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241128.tar",
-            "fileReleaseDate": "2024-11-28 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241121.tar",
-            "fileSize": 5251808768,
-            "fileDataFromDate": "2024-11-21",
-            "fileDataToDate": "2024-11-21",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241121.tar",
-            "fileReleaseDate": "2024-11-21 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241114.tar",
-            "fileSize": 5660250112,
-            "fileDataFromDate": "2024-11-14",
-            "fileDataToDate": "2024-11-14",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241114.tar",
-            "fileReleaseDate": "2024-11-14 00:03:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241107.tar",
-            "fileSize": 5882803712,
-            "fileDataFromDate": "2024-11-07",
-            "fileDataToDate": "2024-11-07",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241107.tar",
-            "fileReleaseDate": "2024-11-07 00:03:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241031.tar",
-            "fileSize": 5269803520,
-            "fileDataFromDate": "2024-10-31",
-            "fileDataToDate": "2024-10-31",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241031.tar",
-            "fileReleaseDate": "2024-10-31 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241024.tar",
-            "fileSize": 5173304320,
-            "fileDataFromDate": "2024-10-24",
-            "fileDataToDate": "2024-10-24",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241024.tar",
-            "fileReleaseDate": "2024-10-24 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241017.tar",
-            "fileSize": 5447626240,
-            "fileDataFromDate": "2024-10-17",
-            "fileDataToDate": "2024-10-17",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241017.tar",
-            "fileReleaseDate": "2024-10-17 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241010.tar",
-            "fileSize": 3923486720,
-            "fileDataFromDate": "2024-10-10",
-            "fileDataToDate": "2024-10-10",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241010.tar",
-            "fileReleaseDate": "2024-10-10 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "I20241003.tar",
-            "fileSize": 6694523392,
-            "fileDataFromDate": "2024-10-03",
-            "fileDataToDate": "2024-10-03",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPDT/2024/I20241003.tar",
-            "fileReleaseDate": "2024-10-03 00:03:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          }
-        ]
-      }
-    },
-    {
-      "productIdentifier": "GZLST",
-      "productDescriptionText": "Contains bibliographic (front page) information, a representative claim, and a drawing (if applicable) of each patent grant issued that week (Tuesdays). Includes U.S. Patent and Trademark Office Notices which provide important information and changes in rules concerning both patents and trademarks.",
-      "productTitleText": "Patent Official Gazettes",
-      "productFrequencyText": "WEEKLY",
-      "daysOfWeekText": "TUESDAY",
-      "productLabelArrayText": [
-        "Patent"
-      ],
-      "productDatasetArrayText": [
-        "Authoritative"
-      ],
-      "productDatasetCategoryArrayText": [
-        "Patent official gazettes"
-      ],
-      "productFromDate": "2002-07-02",
-      "productToDate": "2025-03-18",
-      "productTotalFileSize": 233978832663,
-      "productFileTotalQuantity": 1187,
-      "lastModifiedDateTime": "2025-03-18 07:14:00",
-      "mimeTypeIdentifierArrayText": [
-        "HTML"
-      ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "e-OG20250318_1532-3.zip",
-            "fileSize": 217718823,
-            "fileDataFromDate": "2025-03-18",
-            "fileDataToDate": "2025-03-18",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250318_1532-3.zip",
-            "fileReleaseDate": "2025-03-18 07:14:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250311_1532-2.zip",
-            "fileSize": 219540198,
-            "fileDataFromDate": "2025-03-11",
-            "fileDataToDate": "2025-03-11",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250311_1532-2.zip",
-            "fileReleaseDate": "2025-03-11 05:08:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250304_1532-1.zip",
-            "fileSize": 264478660,
-            "fileDataFromDate": "2025-03-04",
-            "fileDataToDate": "2025-03-04",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250304_1532-1.zip",
-            "fileReleaseDate": "2025-03-04 05:19:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250225_1531-4.zip",
-            "fileSize": 264966379,
-            "fileDataFromDate": "2025-02-25",
-            "fileDataToDate": "2025-02-25",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250225_1531-4.zip",
-            "fileReleaseDate": "2025-02-25 04:58:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250218_1531-3.zip",
-            "fileSize": 263381646,
-            "fileDataFromDate": "2025-02-18",
-            "fileDataToDate": "2025-02-18",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250218_1531-3.zip",
-            "fileReleaseDate": "2025-02-18 06:09:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250211_1531-2.zip",
-            "fileSize": 244325247,
-            "fileDataFromDate": "2025-02-11",
-            "fileDataToDate": "2025-02-11",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250211_1531-2.zip",
-            "fileReleaseDate": "2025-02-11 04:44:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250204_1531-1.zip",
-            "fileSize": 259918541,
-            "fileDataFromDate": "2025-02-04",
-            "fileDataToDate": "2025-02-04",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250204_1531-1.zip",
-            "fileReleaseDate": "2025-02-04 05:51:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250128_1530-4.zip",
-            "fileSize": 218752839,
-            "fileDataFromDate": "2025-01-28",
-            "fileDataToDate": "2025-01-28",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250128_1530-4.zip",
-            "fileReleaseDate": "2025-01-28 05:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250121_1530-3.zip",
-            "fileSize": 244412539,
-            "fileDataFromDate": "2025-01-21",
-            "fileDataToDate": "2025-01-21",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250121_1530-3.zip",
-            "fileReleaseDate": "2025-01-21 22:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250114_1530-2.zip",
-            "fileSize": 283477943,
-            "fileDataFromDate": "2025-01-14",
-            "fileDataToDate": "2025-01-14",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250114_1530-2.zip",
-            "fileReleaseDate": "2025-01-14 05:59:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20250107_1530-1.zip",
-            "fileSize": 292801762,
-            "fileDataFromDate": "2025-01-07",
-            "fileDataToDate": "2025-01-07",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2025/e-OG20250107_1530-1.zip",
-            "fileReleaseDate": "2025-01-07 08:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241231_1529-5.zip",
-            "fileSize": 291056196,
-            "fileDataFromDate": "2024-12-31",
-            "fileDataToDate": "2024-12-31",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241231_1529-5.zip",
-            "fileReleaseDate": "2024-12-31 06:59:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241224_1529-4.zip",
-            "fileSize": 259254985,
-            "fileDataFromDate": "2024-12-24",
-            "fileDataToDate": "2024-12-24",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241224_1529-4.zip",
-            "fileReleaseDate": "2024-12-24 06:57:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241217_1529-3.zip",
-            "fileSize": 134597262,
-            "fileDataFromDate": "2024-12-17",
-            "fileDataToDate": "2024-12-17",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241217_1529-3.zip",
-            "fileReleaseDate": "2024-12-17 06:42:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241210_1529-2.zip",
-            "fileSize": 247540646,
-            "fileDataFromDate": "2024-12-10",
-            "fileDataToDate": "2024-12-10",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241210_1529-2.zip",
-            "fileReleaseDate": "2024-12-10 03:20:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241203_1529-1.zip",
-            "fileSize": 178320008,
-            "fileDataFromDate": "2024-12-03",
-            "fileDataToDate": "2024-12-03",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241203_1529-1.zip",
-            "fileReleaseDate": "2024-12-03 04:14:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241126_1528-4.zip",
-            "fileSize": 231010875,
-            "fileDataFromDate": "2024-11-26",
-            "fileDataToDate": "2024-11-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241126_1528-4.zip",
-            "fileReleaseDate": "2024-11-26 08:28:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241119_1528-3.zip",
-            "fileSize": 230803612,
-            "fileDataFromDate": "2024-11-19",
-            "fileDataToDate": "2024-11-19",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241119_1528-3.zip",
-            "fileReleaseDate": "2024-11-19 04:57:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241112_1528-2.zip",
-            "fileSize": 254188383,
-            "fileDataFromDate": "2024-11-12",
-            "fileDataToDate": "2024-11-12",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241112_1528-2.zip",
-            "fileReleaseDate": "2024-11-12 08:14:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241105_1528-1.zip",
-            "fileSize": 177154662,
-            "fileDataFromDate": "2024-11-05",
-            "fileDataToDate": "2024-11-05",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241105_1528-1.zip",
-            "fileReleaseDate": "2024-11-05 08:46:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241029_1527-5.zip",
-            "fileSize": 230895614,
-            "fileDataFromDate": "2024-10-29",
-            "fileDataToDate": "2024-10-29",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241029_1527-5.zip",
-            "fileReleaseDate": "2024-10-29 04:16:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241022_1527-4.zip",
-            "fileSize": 267595698,
-            "fileDataFromDate": "2024-10-22",
-            "fileDataToDate": "2024-10-22",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241022_1527-4.zip",
-            "fileReleaseDate": "2024-10-22 05:18:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241015_1527-3.zip",
-            "fileSize": 246897303,
-            "fileDataFromDate": "2024-10-15",
-            "fileDataToDate": "2024-10-15",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241015_1527-3.zip",
-            "fileReleaseDate": "2024-10-15 03:18:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241008_1527-2.zip",
-            "fileSize": 231666557,
-            "fileDataFromDate": "2024-10-08",
-            "fileDataToDate": "2024-10-08",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241008_1527-2.zip",
-            "fileReleaseDate": "2024-10-08 06:50:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "e-OG20241001_1527-1.zip",
-            "fileSize": 264511782,
-            "fileDataFromDate": "2024-10-01",
-            "fileDataToDate": "2024-10-01",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/GZLST/2024/e-OG20241001_1527-1.zip",
-            "fileReleaseDate": "2024-10-01 05:20:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          }
-        ]
-      }
-    },
-    {
-      "productIdentifier": "APPMP2",
-      "productDescriptionText": "Contains the images of each patent application (non-provisional utility and plant) published weekly (Thursdays) from March 15, 2001 to present in Portable Document Format (PDF) created from the Patent Application Single-Page TIFF Images.",
-      "productTitleText": "Patent Application Multi-Page PDF Images",
-      "productFrequencyText": "WEEKLY",
-      "daysOfWeekText": "THURSDAY",
-      "productLabelArrayText": [
-        "Patent"
-      ],
-      "productDatasetArrayText": [
-        "Authoritative"
-      ],
-      "productDatasetCategoryArrayText": [
-        "Published patent applications (pre-grant publicati"
-      ],
-      "productFromDate": "2016-04-13",
-      "productToDate": "2025-03-20",
-      "productTotalFileSize": 13052126156800,
-      "productFileTotalQuantity": 1156,
-      "lastModifiedDateTime": "2025-03-20 05:57:00",
-      "mimeTypeIdentifierArrayText": [
-        "PDF"
-      ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "app_pdf_20250320.tar",
-            "fileSize": 20515819520,
-            "fileDataFromDate": "2025-03-20",
-            "fileDataToDate": "2025-03-20",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250320.tar",
-            "fileReleaseDate": "2025-03-20 05:57:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250313.tar",
-            "fileSize": 16604426240,
-            "fileDataFromDate": "2025-03-13",
-            "fileDataToDate": "2025-03-13",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250313.tar",
-            "fileReleaseDate": "2025-03-13 04:55:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250306.tar",
-            "fileSize": 19009955840,
-            "fileDataFromDate": "2025-03-06",
-            "fileDataToDate": "2025-03-06",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250306.tar",
-            "fileReleaseDate": "2025-03-06 03:57:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250227.tar",
-            "fileSize": 18616514560,
-            "fileDataFromDate": "2025-02-27",
-            "fileDataToDate": "2025-02-27",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250227.tar",
-            "fileReleaseDate": "2025-02-27 04:18:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250220.tar",
-            "fileSize": 15346022400,
-            "fileDataFromDate": "2025-02-20",
-            "fileDataToDate": "2025-02-20",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250220.tar",
-            "fileReleaseDate": "2025-02-20 05:11:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250213.tar",
-            "fileSize": 18026455040,
-            "fileDataFromDate": "2025-02-13",
-            "fileDataToDate": "2025-02-13",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250213.tar",
-            "fileReleaseDate": "2025-02-13 04:40:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250206.tar",
-            "fileSize": 17870950400,
-            "fileDataFromDate": "2025-02-06",
-            "fileDataToDate": "2025-02-06",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250206.tar",
-            "fileReleaseDate": "2025-02-06 04:53:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250130.tar",
-            "fileSize": 19678668800,
-            "fileDataFromDate": "2025-01-30",
-            "fileDataToDate": "2025-01-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250130.tar",
-            "fileReleaseDate": "2025-01-30 07:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250123.tar",
-            "fileSize": 15086305280,
-            "fileDataFromDate": "2025-01-23",
-            "fileDataToDate": "2025-01-23",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250123.tar",
-            "fileReleaseDate": "2025-01-23 20:57:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250116.tar",
-            "fileSize": 16033167360,
-            "fileDataFromDate": "2025-01-16",
-            "fileDataToDate": "2025-01-16",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250116.tar",
-            "fileReleaseDate": "2025-01-16 03:26:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250109.tar",
-            "fileSize": 17988577280,
-            "fileDataFromDate": "2025-01-09",
-            "fileDataToDate": "2025-01-09",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250109.tar",
-            "fileReleaseDate": "2025-01-09 10:22:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20250102.tar",
-            "fileSize": 18739896320,
-            "fileDataFromDate": "2025-01-02",
-            "fileDataToDate": "2025-01-02",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2025/app_pdf_20250102.tar",
-            "fileReleaseDate": "2025-01-02 07:20:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241226.tar",
-            "fileSize": 17784514560,
-            "fileDataFromDate": "2024-12-26",
-            "fileDataToDate": "2024-12-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241226.tar",
-            "fileReleaseDate": "2024-12-26 02:08:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241219.tar",
-            "fileSize": 16896337920,
-            "fileDataFromDate": "2024-12-19",
-            "fileDataToDate": "2024-12-19",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241219.tar",
-            "fileReleaseDate": "2024-12-19 06:15:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241212.tar",
-            "fileSize": 17204428800,
-            "fileDataFromDate": "2024-12-12",
-            "fileDataToDate": "2024-12-12",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241212.tar",
-            "fileReleaseDate": "2024-12-12 04:04:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241205.tar",
-            "fileSize": 21478696960,
-            "fileDataFromDate": "2024-12-05",
-            "fileDataToDate": "2024-12-05",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241205.tar",
-            "fileReleaseDate": "2024-12-05 05:16:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241128.tar",
-            "fileSize": 18323742720,
-            "fileDataFromDate": "2024-11-28",
-            "fileDataToDate": "2024-11-28",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241128.tar",
-            "fileReleaseDate": "2024-11-28 07:29:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241121.tar",
-            "fileSize": 17680650240,
-            "fileDataFromDate": "2024-11-21",
-            "fileDataToDate": "2024-11-21",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241121.tar",
-            "fileReleaseDate": "2024-11-21 04:18:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241114.tar",
-            "fileSize": 17892720640,
-            "fileDataFromDate": "2024-11-14",
-            "fileDataToDate": "2024-11-14",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241114.tar",
-            "fileReleaseDate": "2024-11-14 03:52:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241107.tar",
-            "fileSize": 19237478400,
-            "fileDataFromDate": "2024-11-07",
-            "fileDataToDate": "2024-11-07",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241107.tar",
-            "fileReleaseDate": "2024-11-07 10:25:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241031.tar",
-            "fileSize": 17792778240,
-            "fileDataFromDate": "2024-10-31",
-            "fileDataToDate": "2024-10-31",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241031.tar",
-            "fileReleaseDate": "2024-10-31 04:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241024.tar",
-            "fileSize": 17291468800,
-            "fileDataFromDate": "2024-10-24",
-            "fileDataToDate": "2024-10-24",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241024.tar",
-            "fileReleaseDate": "2024-10-24 05:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241017.tar",
-            "fileSize": 17682472960,
-            "fileDataFromDate": "2024-10-17",
-            "fileDataToDate": "2024-10-17",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241017.tar",
-            "fileReleaseDate": "2024-10-17 04:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241010.tar",
-            "fileSize": 13593128960,
-            "fileDataFromDate": "2024-10-10",
-            "fileDataToDate": "2024-10-10",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241010.tar",
-            "fileReleaseDate": "2024-10-10 04:31:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "app_pdf_20241003.tar",
-            "fileSize": 21784442880,
-            "fileDataFromDate": "2024-10-03",
-            "fileDataToDate": "2024-10-03",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPMP2/2024/app_pdf_20241003.tar",
-            "fileReleaseDate": "2024-10-03 03:50:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          }
-        ]
-      }
-    },
     {
       "productIdentifier": "PTGRAPS",
       "productDescriptionText": "Contains the concatenated full-text of each patent grant document issued weekly (Tuesdays) from January 1, 1976 to present (excludes images/drawings). This is the subset of the Patent Grant Full Text Data with Embedded TIFF Images.",
@@ -852,270 +15,15 @@
       "productDatasetCategoryArrayText": [
         "Issued patents (patent grants)"
       ],
-      "productFromDate": "1970-10-02",
-      "productToDate": "2017-04-03",
+      "productFromDate": "1976-01-06",
+      "productToDate": "2001-12-25",
       "productTotalFileSize": 25938442242,
       "productFileTotalQuantity": 1382,
-      "lastModifiedDateTime": "2017-04-03 10:05:00",
+      "lastModifiedDateTime": "2025-12-04 01:02:12",
       "mimeTypeIdentifierArrayText": [
         "ASCII",
         "XML"
-      ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "pftaps19860624_wk25.zip",
-            "fileSize": 8898220,
-            "fileDataFromDate": "2017-04-03",
-            "fileDataToDate": "2017-04-03",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1986/pftaps19860624_wk25.zip",
-            "fileReleaseDate": "2017-04-03 10:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1981/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1995/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1988/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1980/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1985/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1983/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1984/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1987/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1997/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1993/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1999/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1979/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1996/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1976/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1998/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1994/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1991/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1989/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1978/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1986/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1992/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1977/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1982/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          },
-          {
-            "fileName": "PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileSize": 51689842,
-            "fileDataFromDate": "2008-09-05",
-            "fileDataToDate": "2008-09-05",
-            "fileTypeText": "Document",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRAPS/1990/PatentFullTextAPSDoc_GreenBook.pdf",
-            "fileReleaseDate": "2008-09-05 13:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:00:00"
-          }
-        ]
-      }
+      ]
     },
     {
       "productIdentifier": "PTGRXML",
@@ -1133,274 +41,19 @@
         "Issued patents (patent grants)"
       ],
       "productFromDate": "2002-01-01",
-      "productToDate": "2025-03-18",
-      "productTotalFileSize": 116157210694,
-      "productFileTotalQuantity": 1237,
-      "lastModifiedDateTime": "2025-03-18 00:01:00",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 121951560037,
+      "productFileTotalQuantity": 1278,
+      "lastModifiedDateTime": "2025-12-04 01:02:08",
       "mimeTypeIdentifierArrayText": [
         "ASCII",
         "XML"
-      ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "ipg250318.zip",
-            "fileSize": 133485021,
-            "fileDataFromDate": "2025-03-18",
-            "fileDataToDate": "2025-03-18",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250318.zip",
-            "fileReleaseDate": "2025-03-18 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250311.zip",
-            "fileSize": 123948147,
-            "fileDataFromDate": "2025-03-11",
-            "fileDataToDate": "2025-03-11",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250311.zip",
-            "fileReleaseDate": "2025-03-11 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250304.zip",
-            "fileSize": 160171639,
-            "fileDataFromDate": "2025-03-04",
-            "fileDataToDate": "2025-03-04",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250304.zip",
-            "fileReleaseDate": "2025-03-04 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250225.zip",
-            "fileSize": 159543187,
-            "fileDataFromDate": "2025-02-25",
-            "fileDataToDate": "2025-02-25",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250225.zip",
-            "fileReleaseDate": "2025-02-25 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250218.zip",
-            "fileSize": 169313285,
-            "fileDataFromDate": "2025-02-18",
-            "fileDataToDate": "2025-02-18",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250218.zip",
-            "fileReleaseDate": "2025-02-18 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250211.zip",
-            "fileSize": 131400493,
-            "fileDataFromDate": "2025-02-11",
-            "fileDataToDate": "2025-02-11",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250211.zip",
-            "fileReleaseDate": "2025-02-11 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250204.zip",
-            "fileSize": 161623717,
-            "fileDataFromDate": "2025-02-04",
-            "fileDataToDate": "2025-02-04",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250204.zip",
-            "fileReleaseDate": "2025-02-04 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250128.zip",
-            "fileSize": 136623407,
-            "fileDataFromDate": "2025-01-28",
-            "fileDataToDate": "2025-01-28",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250128.zip",
-            "fileReleaseDate": "2025-01-28 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250121.zip",
-            "fileSize": 154584405,
-            "fileDataFromDate": "2025-01-21",
-            "fileDataToDate": "2025-01-21",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250121.zip",
-            "fileReleaseDate": "2025-01-21 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250114.zip",
-            "fileSize": 185597753,
-            "fileDataFromDate": "2025-01-14",
-            "fileDataToDate": "2025-01-14",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250114.zip",
-            "fileReleaseDate": "2025-01-14 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg250107.zip",
-            "fileSize": 183480780,
-            "fileDataFromDate": "2025-01-07",
-            "fileDataToDate": "2025-01-07",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2025/ipg250107.zip",
-            "fileReleaseDate": "2025-01-07 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241231.zip",
-            "fileSize": 175231284,
-            "fileDataFromDate": "2024-12-31",
-            "fileDataToDate": "2024-12-31",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241231.zip",
-            "fileReleaseDate": "2024-12-31 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241224.zip",
-            "fileSize": 169255503,
-            "fileDataFromDate": "2024-12-24",
-            "fileDataToDate": "2024-12-24",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241224.zip",
-            "fileReleaseDate": "2024-12-24 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241217.zip",
-            "fileSize": 85013451,
-            "fileDataFromDate": "2024-12-17",
-            "fileDataToDate": "2024-12-17",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241217.zip",
-            "fileReleaseDate": "2024-12-17 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241210.zip",
-            "fileSize": 165314294,
-            "fileDataFromDate": "2024-12-10",
-            "fileDataToDate": "2024-12-10",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241210.zip",
-            "fileReleaseDate": "2024-12-10 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241203.zip",
-            "fileSize": 105616546,
-            "fileDataFromDate": "2024-12-03",
-            "fileDataToDate": "2024-12-03",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241203.zip",
-            "fileReleaseDate": "2024-12-03 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241126.zip",
-            "fileSize": 136639199,
-            "fileDataFromDate": "2024-11-26",
-            "fileDataToDate": "2024-11-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241126.zip",
-            "fileReleaseDate": "2024-11-26 06:39:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241119.zip",
-            "fileSize": 140791265,
-            "fileDataFromDate": "2024-11-19",
-            "fileDataToDate": "2024-11-19",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241119.zip",
-            "fileReleaseDate": "2024-11-19 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241112.zip",
-            "fileSize": 158854965,
-            "fileDataFromDate": "2024-11-12",
-            "fileDataToDate": "2024-11-12",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241112.zip",
-            "fileReleaseDate": "2024-11-12 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241105.zip",
-            "fileSize": 97794891,
-            "fileDataFromDate": "2024-11-05",
-            "fileDataToDate": "2024-11-05",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241105.zip",
-            "fileReleaseDate": "2024-11-05 08:56:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241029.zip",
-            "fileSize": 135721905,
-            "fileDataFromDate": "2024-10-29",
-            "fileDataToDate": "2024-10-29",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241029.zip",
-            "fileReleaseDate": "2024-10-29 08:08:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241022.zip",
-            "fileSize": 154031327,
-            "fileDataFromDate": "2024-10-22",
-            "fileDataToDate": "2024-10-22",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241022.zip",
-            "fileReleaseDate": "2024-10-22 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241015.zip",
-            "fileSize": 146416203,
-            "fileDataFromDate": "2024-10-15",
-            "fileDataToDate": "2024-10-15",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241015.zip",
-            "fileReleaseDate": "2024-10-15 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241008.zip",
-            "fileSize": 134112866,
-            "fileDataFromDate": "2024-10-08",
-            "fileDataToDate": "2024-10-08",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241008.zip",
-            "fileReleaseDate": "2024-10-08 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          },
-          {
-            "fileName": "ipg241001.zip",
-            "fileSize": 150738681,
-            "fileDataFromDate": "2024-10-01",
-            "fileDataToDate": "2024-10-01",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRXML/2024/ipg241001.zip",
-            "fileReleaseDate": "2024-10-01 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:02:00"
-          }
-        ]
-      }
+      ]
     },
     {
-      "productIdentifier": "APPXML",
-      "productDescriptionText": "Provides the bulk zip files that contain the concatenated full-text of each patent application XML document (non-provisional utility and plant). This page provides an additional feature called \u201cView Patent Records\u201d which allows user to find or discover the patent applications that are bundled in the zip file. However, in this zip file, there may be applications that are not available in ODP and will not be included in the search results. Also, if there are revisions to the applications, the file will only show the original application.",
-      "productTitleText": "Patent Application Full-Text Data (No Images)",
+      "productIdentifier": "APPDT",
+      "productDescriptionText": "Contains the full text, images/drawings, and complex work units (tables, mathematical expressions, chemical structures, and genetic sequence data) of each patent application (non-provisional utility and plant) published weekly (Thursdays) from March 15, 2001 to present.",
+      "productTitleText": "Patent Application Full Text Data with Embedded TIFF Images (Application Red Book based on WIPO ST.36)",
       "productFrequencyText": "WEEKLY",
       "daysOfWeekText": "THURSDAY",
       "productLabelArrayText": [
@@ -1410,940 +63,17 @@
         "Authoritative"
       ],
       "productDatasetCategoryArrayText": [
-        "Patent Application"
+        "Patent Application",
+        "Published patent applications (pre-grant publicati"
       ],
       "productFromDate": "2001-03-15",
-      "productToDate": "2025-03-20",
-      "productTotalFileSize": 152663570822,
-      "productFileTotalQuantity": 1307,
-      "lastModifiedDateTime": "2025-03-20 00:02:00",
+      "productToDate": "2025-11-27",
+      "productTotalFileSize": 4010114526610,
+      "productFileTotalQuantity": 1922,
+      "lastModifiedDateTime": "2025-12-04 01:01:44",
       "mimeTypeIdentifierArrayText": [
         "XML"
-      ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "ipa250320.zip",
-            "fileSize": 202309906,
-            "fileDataFromDate": "2025-03-20",
-            "fileDataToDate": "2025-03-20",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250320.zip",
-            "fileReleaseDate": "2025-03-20 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250313.zip",
-            "fileSize": 168340831,
-            "fileDataFromDate": "2025-03-13",
-            "fileDataToDate": "2025-03-13",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250313.zip",
-            "fileReleaseDate": "2025-03-13 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250306.zip",
-            "fileSize": 190317472,
-            "fileDataFromDate": "2025-03-06",
-            "fileDataToDate": "2025-03-06",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250306.zip",
-            "fileReleaseDate": "2025-03-06 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250227.zip",
-            "fileSize": 188014455,
-            "fileDataFromDate": "2025-02-27",
-            "fileDataToDate": "2025-02-27",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250227.zip",
-            "fileReleaseDate": "2025-02-27 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250220.zip",
-            "fileSize": 155885243,
-            "fileDataFromDate": "2025-02-20",
-            "fileDataToDate": "2025-02-20",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250220.zip",
-            "fileReleaseDate": "2025-02-20 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250213.zip",
-            "fileSize": 182530369,
-            "fileDataFromDate": "2025-02-13",
-            "fileDataToDate": "2025-02-13",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250213.zip",
-            "fileReleaseDate": "2025-02-13 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250206.zip",
-            "fileSize": 183084766,
-            "fileDataFromDate": "2025-02-06",
-            "fileDataToDate": "2025-02-06",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250206.zip",
-            "fileReleaseDate": "2025-02-06 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250130.zip",
-            "fileSize": 202469259,
-            "fileDataFromDate": "2025-01-30",
-            "fileDataToDate": "2025-01-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250130.zip",
-            "fileReleaseDate": "2025-01-30 10:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250123.zip",
-            "fileSize": 151347850,
-            "fileDataFromDate": "2025-01-23",
-            "fileDataToDate": "2025-01-23",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250123.zip",
-            "fileReleaseDate": "2025-01-23 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250116.zip",
-            "fileSize": 159716048,
-            "fileDataFromDate": "2025-01-16",
-            "fileDataToDate": "2025-01-16",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250116.zip",
-            "fileReleaseDate": "2025-01-16 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250109.zip",
-            "fileSize": 182445782,
-            "fileDataFromDate": "2025-01-09",
-            "fileDataToDate": "2025-01-09",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250109.zip",
-            "fileReleaseDate": "2025-01-09 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa250102.zip",
-            "fileSize": 190518362,
-            "fileDataFromDate": "2025-01-02",
-            "fileDataToDate": "2025-01-02",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2025/ipa250102.zip",
-            "fileReleaseDate": "2025-01-02 07:12:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241226.zip",
-            "fileSize": 180407640,
-            "fileDataFromDate": "2024-12-26",
-            "fileDataToDate": "2024-12-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241226.zip",
-            "fileReleaseDate": "2024-12-26 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241219.zip",
-            "fileSize": 169920849,
-            "fileDataFromDate": "2024-12-19",
-            "fileDataToDate": "2024-12-19",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241219.zip",
-            "fileReleaseDate": "2024-12-19 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241212.zip",
-            "fileSize": 172197678,
-            "fileDataFromDate": "2024-12-12",
-            "fileDataToDate": "2024-12-12",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241212.zip",
-            "fileReleaseDate": "2024-12-12 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241205.zip",
-            "fileSize": 220993419,
-            "fileDataFromDate": "2024-12-05",
-            "fileDataToDate": "2024-12-05",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241205.zip",
-            "fileReleaseDate": "2024-12-05 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241128.zip",
-            "fileSize": 182662495,
-            "fileDataFromDate": "2024-11-28",
-            "fileDataToDate": "2024-11-28",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241128.zip",
-            "fileReleaseDate": "2024-11-28 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241121.zip",
-            "fileSize": 174245539,
-            "fileDataFromDate": "2024-11-21",
-            "fileDataToDate": "2024-11-21",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241121.zip",
-            "fileReleaseDate": "2024-11-21 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241114.zip",
-            "fileSize": 177731107,
-            "fileDataFromDate": "2024-11-14",
-            "fileDataToDate": "2024-11-14",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241114.zip",
-            "fileReleaseDate": "2024-11-14 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241107.zip",
-            "fileSize": 195509017,
-            "fileDataFromDate": "2024-11-07",
-            "fileDataToDate": "2024-11-07",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241107.zip",
-            "fileReleaseDate": "2024-11-07 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241031.zip",
-            "fileSize": 178613696,
-            "fileDataFromDate": "2024-10-31",
-            "fileDataToDate": "2024-10-31",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241031.zip",
-            "fileReleaseDate": "2024-10-31 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241024.zip",
-            "fileSize": 176359441,
-            "fileDataFromDate": "2024-10-24",
-            "fileDataToDate": "2024-10-24",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241024.zip",
-            "fileReleaseDate": "2024-10-24 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241017.zip",
-            "fileSize": 176784704,
-            "fileDataFromDate": "2024-10-17",
-            "fileDataToDate": "2024-10-17",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241017.zip",
-            "fileReleaseDate": "2024-10-17 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241010.zip",
-            "fileSize": 138921955,
-            "fileDataFromDate": "2024-10-10",
-            "fileDataToDate": "2024-10-10",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241010.zip",
-            "fileReleaseDate": "2024-10-10 00:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipa241003.zip",
-            "fileSize": 218347073,
-            "fileDataFromDate": "2024-10-03",
-            "fileDataToDate": "2024-10-03",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPXML/2024/ipa241003.zip",
-            "fileReleaseDate": "2024-10-03 00:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          }
-        ]
-      }
-    },
-    {
-      "productIdentifier": "ECOPAIR",
-      "productDescriptionText": "Contains detailed information on more than 13 million publicly viewable patent applications filed with the USPTO along with more than 1 million PCT applications through June 2023. The data files include information on each application's characteristics, prosecution history, continuation history, claims of foreign priority, patent term adjustment history, publication history, and correspondence address information.",
-      "productTitleText": "Patent Examination Research Dataset (PatEx) for Academia and Researchers",
-      "productFrequencyText": "YEARLY",
-      "productLabelArrayText": [
-        "Patent",
-        "Research"
-      ],
-      "productDatasetArrayText": [
-        "Research"
-      ],
-      "productDatasetCategoryArrayText": [
-        "Patent assignment economics data for academia and "
-      ],
-      "productFromDate": "2015-12-02",
-      "productToDate": "2023-09-26",
-      "productTotalFileSize": 278009502460,
-      "productFileTotalQuantity": 206,
-      "lastModifiedDateTime": "2023-09-26 08:56:00",
-      "mimeTypeIdentifierArrayText": [
-        "CSV",
-        "DTA"
-      ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "transactions.dta.zip",
-            "fileSize": 2274509558,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/transactions.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:56:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "transactions.csv.zip",
-            "fileSize": 2171684118,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/transactions.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:55:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "pta_summary.dta.zip",
-            "fileSize": 55731645,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/pta_summary.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "pte_summary.dta.zip",
-            "fileSize": 527156,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/pte_summary.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "pte_summary.csv.zip",
-            "fileSize": 353020,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/pte_summary.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "pta_summary.csv.zip",
-            "fileSize": 41910839,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/pta_summary.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "pat_term_adj.dta.zip",
-            "fileSize": 1721052843,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/pat_term_adj.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "pat_term_adj.csv.zip",
-            "fileSize": 2081981474,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/pat_term_adj.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:53:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "foreign_priority.dta.zip",
-            "fileSize": 83242896,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/foreign_priority.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:51:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "foreign_priority.csv.zip",
-            "fileSize": 56536965,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/foreign_priority.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:51:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "event_codes.dta.zip",
-            "fileSize": 42893,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/event_codes.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:51:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "event_codes.csv.zip",
-            "fileSize": 25423,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/event_codes.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:51:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "dta.zip",
-            "fileSize": 18873333769,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/dta.zip",
-            "fileReleaseDate": "2023-09-26 08:43:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "csv.zip",
-            "fileSize": 12974415851,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/csv.zip",
-            "fileReleaseDate": "2023-09-26 08:32:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "correspondence_address.dta.zip",
-            "fileSize": 392309423,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/correspondence_address.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:20:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "correspondence_address.csv.zip",
-            "fileSize": 423780621,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/correspondence_address.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:20:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "continuity_parents.dta.zip",
-            "fileSize": 137697097,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/continuity_parents.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:20:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "continuity_parents.csv.zip",
-            "fileSize": 102135383,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/continuity_parents.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:20:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "continuity_children.dta.zip",
-            "fileSize": 111803897,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/continuity_children.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:20:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "continuity_children.csv.zip",
-            "fileSize": 81853103,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/continuity_children.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:19:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "cms_documents.dta.zip",
-            "fileSize": 5513107485,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/cms_documents.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:19:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "cms_documents.csv.zip",
-            "fileSize": 2083641843,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/cms_documents.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:16:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "cms_document_codes.dta.zip",
-            "fileSize": 23755,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/cms_document_codes.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:15:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "attorney_agent.dta.zip",
-            "fileSize": 7005696957,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/attorney_agent.dta.zip",
-            "fileReleaseDate": "2023-09-26 08:15:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "cms_document_codes.csv.zip",
-            "fileSize": 15170,
-            "fileDataFromDate": "2023-09-26",
-            "fileDataToDate": "2023-09-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPAIR/2022/cms_document_codes.csv.zip",
-            "fileReleaseDate": "2023-09-26 08:15:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          }
-        ]
-      }
-    },
-    {
-      "productIdentifier": "APPBLXML",
-      "productDescriptionText": "Contains the concatenated bibliographic text (front page) of each patent application XML document (non-provisional utility and plant) published weekly (Thursdays) from March 15, 2001 to present (excludes images/drawings). Subset of the Patent Application Full Text Data. Note: The concatenated file in its entirety is not a valid XML document; it must be un-concatenated back to individual XML documents for XML data processing.",
-      "productTitleText": "Patent Application Bibliographic (Front Page) Data",
-      "productFrequencyText": "WEEKLY",
-      "daysOfWeekText": "THURSDAY",
-      "productLabelArrayText": [
-        "Patent"
-      ],
-      "productDatasetArrayText": [
-        "Authoritative"
-      ],
-      "productDatasetCategoryArrayText": [
-        "Patent Application"
-      ],
-      "productFromDate": "2001-03-15",
-      "productToDate": "2025-03-20",
-      "productTotalFileSize": 4609917195,
-      "productFileTotalQuantity": 1307,
-      "lastModifiedDateTime": "2025-03-20 00:05:00",
-      "mimeTypeIdentifierArrayText": [
-        "XML"
-      ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "ipab20250320_wk12.zip",
-            "fileSize": 5121368,
-            "fileDataFromDate": "2025-03-20",
-            "fileDataToDate": "2025-03-20",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250320_wk12.zip",
-            "fileReleaseDate": "2025-03-20 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250313_wk11.zip",
-            "fileSize": 4365283,
-            "fileDataFromDate": "2025-03-13",
-            "fileDataToDate": "2025-03-13",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250313_wk11.zip",
-            "fileReleaseDate": "2025-03-13 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250306_wk10.zip",
-            "fileSize": 5201877,
-            "fileDataFromDate": "2025-03-06",
-            "fileDataToDate": "2025-03-06",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250306_wk10.zip",
-            "fileReleaseDate": "2025-03-06 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250227_wk09.zip",
-            "fileSize": 4765178,
-            "fileDataFromDate": "2025-02-27",
-            "fileDataToDate": "2025-02-27",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250227_wk09.zip",
-            "fileReleaseDate": "2025-02-27 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250220_wk08.zip",
-            "fileSize": 3939990,
-            "fileDataFromDate": "2025-02-20",
-            "fileDataToDate": "2025-02-20",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250220_wk08.zip",
-            "fileReleaseDate": "2025-02-20 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250213_wk07.zip",
-            "fileSize": 4601368,
-            "fileDataFromDate": "2025-02-13",
-            "fileDataToDate": "2025-02-13",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250213_wk07.zip",
-            "fileReleaseDate": "2025-02-13 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250206_wk06.zip",
-            "fileSize": 4768713,
-            "fileDataFromDate": "2025-02-06",
-            "fileDataToDate": "2025-02-06",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250206_wk06.zip",
-            "fileReleaseDate": "2025-02-06 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250130_wk05.zip",
-            "fileSize": 5049913,
-            "fileDataFromDate": "2025-01-30",
-            "fileDataToDate": "2025-01-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250130_wk05.zip",
-            "fileReleaseDate": "2025-01-30 10:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250123_wk04.zip",
-            "fileSize": 3839220,
-            "fileDataFromDate": "2025-01-23",
-            "fileDataToDate": "2025-01-23",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250123_wk04.zip",
-            "fileReleaseDate": "2025-01-23 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250116_wk03.zip",
-            "fileSize": 4320244,
-            "fileDataFromDate": "2025-01-16",
-            "fileDataToDate": "2025-01-16",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250116_wk03.zip",
-            "fileReleaseDate": "2025-01-16 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250109_wk02.zip",
-            "fileSize": 4790161,
-            "fileDataFromDate": "2025-01-09",
-            "fileDataToDate": "2025-01-09",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250109_wk02.zip",
-            "fileReleaseDate": "2025-01-09 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20250102_wk01.zip",
-            "fileSize": 4981843,
-            "fileDataFromDate": "2025-01-02",
-            "fileDataToDate": "2025-01-02",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2025/ipab20250102_wk01.zip",
-            "fileReleaseDate": "2025-01-02 07:12:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241226_wk52.zip",
-            "fileSize": 4636674,
-            "fileDataFromDate": "2024-12-26",
-            "fileDataToDate": "2024-12-26",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241226_wk52.zip",
-            "fileReleaseDate": "2024-12-26 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241219_wk51.zip",
-            "fileSize": 4608240,
-            "fileDataFromDate": "2024-12-19",
-            "fileDataToDate": "2024-12-19",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241219_wk51.zip",
-            "fileReleaseDate": "2024-12-19 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241212_wk50.zip",
-            "fileSize": 4425046,
-            "fileDataFromDate": "2024-12-12",
-            "fileDataToDate": "2024-12-12",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241212_wk50.zip",
-            "fileReleaseDate": "2024-12-12 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241205_wk49.zip",
-            "fileSize": 5384381,
-            "fileDataFromDate": "2024-12-05",
-            "fileDataToDate": "2024-12-05",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241205_wk49.zip",
-            "fileReleaseDate": "2024-12-05 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241128_wk48.zip",
-            "fileSize": 4774198,
-            "fileDataFromDate": "2024-11-28",
-            "fileDataToDate": "2024-11-28",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241128_wk48.zip",
-            "fileReleaseDate": "2024-11-28 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241121_wk47.zip",
-            "fileSize": 4314202,
-            "fileDataFromDate": "2024-11-21",
-            "fileDataToDate": "2024-11-21",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241121_wk47.zip",
-            "fileReleaseDate": "2024-11-21 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241114_wk46.zip",
-            "fileSize": 4522639,
-            "fileDataFromDate": "2024-11-14",
-            "fileDataToDate": "2024-11-14",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241114_wk46.zip",
-            "fileReleaseDate": "2024-11-14 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241107_wk45.zip",
-            "fileSize": 4694578,
-            "fileDataFromDate": "2024-11-07",
-            "fileDataToDate": "2024-11-07",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241107_wk45.zip",
-            "fileReleaseDate": "2024-11-07 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241031_wk44.zip",
-            "fileSize": 4459112,
-            "fileDataFromDate": "2024-10-31",
-            "fileDataToDate": "2024-10-31",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241031_wk44.zip",
-            "fileReleaseDate": "2024-10-31 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241024_wk43.zip",
-            "fileSize": 4719122,
-            "fileDataFromDate": "2024-10-24",
-            "fileDataToDate": "2024-10-24",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241024_wk43.zip",
-            "fileReleaseDate": "2024-10-24 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241017_wk42.zip",
-            "fileSize": 4871741,
-            "fileDataFromDate": "2024-10-17",
-            "fileDataToDate": "2024-10-17",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241017_wk42.zip",
-            "fileReleaseDate": "2024-10-17 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241010_wk41.zip",
-            "fileSize": 3569298,
-            "fileDataFromDate": "2024-10-10",
-            "fileDataToDate": "2024-10-10",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241010_wk41.zip",
-            "fileReleaseDate": "2024-10-10 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ipab20241003_wk40.zip",
-            "fileSize": 5712218,
-            "fileDataFromDate": "2024-10-03",
-            "fileDataToDate": "2024-10-03",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/APPBLXML/2024/ipab20241003_wk40.zip",
-            "fileReleaseDate": "2024-10-03 00:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          }
-        ]
-      }
-    },
-    {
-      "productIdentifier": "ECOPATAI",
-      "productDescriptionText": "Contains Artificial Intelligence Patent Landscape data classifying 13,244,037 granted patents and PGPubs published from 1976 through 2020 in eight AI component technologies using state-of-the art machine learning based models.",
-      "productTitleText": "The Artificial Intelligence Patent Dataset (AIPD) for Academia and Researchers",
-      "productFrequencyText": "YEARLY",
-      "productLabelArrayText": [
-        "Patent",
-        "Research"
-      ],
-      "productDatasetArrayText": [
-        "Research"
-      ],
-      "productDatasetCategoryArrayText": [
-        "Patent assignment economics data for academia and "
-      ],
-      "productFromDate": "2021-07-30",
-      "productToDate": "2024-08-19",
-      "productTotalFileSize": 4769683051,
-      "productFileTotalQuantity": 8,
-      "lastModifiedDateTime": "2024-08-19 16:54:00",
-      "mimeTypeIdentifierArrayText": [
-        "DTA",
-        "TSV"
-      ],
-      "productFileBag": {
-        "count": 8,
-        "fileDataBag": [
-          {
-            "fileName": "ai_model_predictions.dta.zip",
-            "fileSize": 680119785,
-            "fileDataFromDate": "2024-08-19",
-            "fileDataToDate": "2024-08-19",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPATAI/2023/ai_model_predictions.dta.zip",
-            "fileReleaseDate": "2024-08-19 16:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ai_model_predictions.csv.zip",
-            "fileSize": 801405752,
-            "fileDataFromDate": "2024-08-19",
-            "fileDataToDate": "2024-08-19",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPATAI/2023/ai_model_predictions.csv.zip",
-            "fileReleaseDate": "2024-08-19 16:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "tsv.zip",
-            "fileSize": 1107479530,
-            "fileDataFromDate": "2021-07-30",
-            "fileDataToDate": "2021-07-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPATAI/2020/tsv.zip",
-            "fileReleaseDate": "2021-07-30 16:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "dta.zip",
-            "fileSize": 536599205,
-            "fileDataFromDate": "2021-07-30",
-            "fileDataToDate": "2021-07-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPATAI/2020/dta.zip",
-            "fileReleaseDate": "2021-07-30 16:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ai_model_training_doc_seedgroups.tsv.zip",
-            "fileSize": 14975271,
-            "fileDataFromDate": "2021-07-30",
-            "fileDataToDate": "2021-07-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPATAI/2020/ai_model_training_doc_seedgroups.tsv.zip",
-            "fileReleaseDate": "2021-07-30 16:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ai_model_predictions.tsv.zip",
-            "fileSize": 1092504281,
-            "fileDataFromDate": "2021-07-30",
-            "fileDataToDate": "2021-07-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPATAI/2020/ai_model_predictions.tsv.zip",
-            "fileReleaseDate": "2021-07-30 16:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ai_model_training_doc_seedgroups.dta.zip",
-            "fileSize": 16992766,
-            "fileDataFromDate": "2021-07-30",
-            "fileDataToDate": "2021-07-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPATAI/2020/ai_model_training_doc_seedgroups.dta.zip",
-            "fileReleaseDate": "2021-07-30 16:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "ai_model_predictions.dta.zip",
-            "fileSize": 519606461,
-            "fileDataFromDate": "2021-07-30",
-            "fileDataToDate": "2021-07-30",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/ECOPATAI/2020/ai_model_predictions.dta.zip",
-            "fileReleaseDate": "2021-07-30 16:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          }
-        ]
-      }
+      ]
     },
     {
       "productIdentifier": "PTGRMP2",
@@ -2360,269 +90,892 @@
       "productDatasetCategoryArrayText": [
         "Issued patents (patent grants)"
       ],
-      "productFromDate": "2016-05-03",
-      "productToDate": "2025-03-18",
-      "productTotalFileSize": 13629863905280,
-      "productFileTotalQuantity": 1751,
-      "lastModifiedDateTime": "2025-03-18 07:19:00",
+      "productFromDate": "1790-07-31",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 14187829985280,
+      "productFileTotalQuantity": 1826,
+      "lastModifiedDateTime": "2025-12-04 01:01:40",
       "mimeTypeIdentifierArrayText": [
         "PDF"
+      ]
+    },
+    {
+      "productIdentifier": "PTGRDT",
+      "productDescriptionText": "Contains the full text, images/drawings, and complex work units (tables, mathematical expressions, chemical structures, and genetic sequence data) of each patent grant issued weekly (Tuesdays) from January 1, 2001 to present.",
+      "productTitleText": "Patent Grant Full Text Data with Embedded TIFF Images (Grant Red Book based on WIPO ST.36) - XML",
+      "productFrequencyText": "WEEKLY",
+      "daysOfWeekText": "TUESDAY",
+      "productLabelArrayText": [
+        "Patent"
       ],
-      "productFileBag": {
-        "count": 25,
-        "fileDataBag": [
-          {
-            "fileName": "grant_pdf_20250318.tar",
-            "fileSize": 12260403200,
-            "fileDataFromDate": "2025-03-18",
-            "fileDataToDate": "2025-03-18",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250318.tar",
-            "fileReleaseDate": "2025-03-18 07:19:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01105.tar",
-            "fileSize": 1199196160,
-            "fileDataFromDate": "2025-03-18",
-            "fileDataToDate": "2025-03-18",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01105.tar",
-            "fileReleaseDate": "2025-03-18 07:15:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01104.tar",
-            "fileSize": 1270753280,
-            "fileDataFromDate": "2025-03-11",
-            "fileDataToDate": "2025-03-11",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01104.tar",
-            "fileReleaseDate": "2025-03-11 05:18:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250311.tar",
-            "fileSize": 11213731840,
-            "fileDataFromDate": "2025-03-11",
-            "fileDataToDate": "2025-03-11",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250311.tar",
-            "fileReleaseDate": "2025-03-11 05:06:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250304.tar",
-            "fileSize": 14567526400,
-            "fileDataFromDate": "2025-03-04",
-            "fileDataToDate": "2025-03-04",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250304.tar",
-            "fileReleaseDate": "2025-03-04 05:17:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01103.tar",
-            "fileSize": 1672632320,
-            "fileDataFromDate": "2025-03-04",
-            "fileDataToDate": "2025-03-04",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01103.tar",
-            "fileReleaseDate": "2025-03-04 05:10:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250225.tar",
-            "fileSize": 14516705280,
-            "fileDataFromDate": "2025-02-25",
-            "fileDataToDate": "2025-02-25",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250225.tar",
-            "fileReleaseDate": "2025-02-25 04:55:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01102.tar",
-            "fileSize": 1327052800,
-            "fileDataFromDate": "2025-02-25",
-            "fileDataToDate": "2025-02-25",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01102.tar",
-            "fileReleaseDate": "2025-02-25 04:48:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250218.tar",
-            "fileSize": 15411978240,
-            "fileDataFromDate": "2025-02-18",
-            "fileDataToDate": "2025-02-18",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250218.tar",
-            "fileReleaseDate": "2025-02-18 06:07:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01101.tar",
-            "fileSize": 1799966720,
-            "fileDataFromDate": "2025-02-18",
-            "fileDataToDate": "2025-02-18",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01101.tar",
-            "fileReleaseDate": "2025-02-18 06:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01100.tar",
-            "fileSize": 1169756160,
-            "fileDataFromDate": "2025-02-11",
-            "fileDataToDate": "2025-02-11",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01100.tar",
-            "fileReleaseDate": "2025-02-11 04:42:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250211.tar",
-            "fileSize": 12024811520,
-            "fileDataFromDate": "2025-02-11",
-            "fileDataToDate": "2025-02-11",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250211.tar",
-            "fileReleaseDate": "2025-02-11 04:36:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01099.tar",
-            "fileSize": 851824640,
-            "fileDataFromDate": "2025-02-04",
-            "fileDataToDate": "2025-02-04",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01099.tar",
-            "fileReleaseDate": "2025-02-04 05:57:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250204.tar",
-            "fileSize": 14799226880,
-            "fileDataFromDate": "2025-02-04",
-            "fileDataToDate": "2025-02-04",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250204.tar",
-            "fileReleaseDate": "2025-02-04 05:44:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01098.tar",
-            "fileSize": 929413120,
-            "fileDataFromDate": "2025-01-28",
-            "fileDataToDate": "2025-01-28",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01098.tar",
-            "fileReleaseDate": "2025-01-28 05:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250128.tar",
-            "fileSize": 12581232640,
-            "fileDataFromDate": "2025-01-28",
-            "fileDataToDate": "2025-01-28",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250128.tar",
-            "fileReleaseDate": "2025-01-28 04:58:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01096.tar",
-            "fileSize": 916234240,
-            "fileDataFromDate": "2025-01-21",
-            "fileDataToDate": "2025-01-21",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01096.tar",
-            "fileReleaseDate": "2025-01-21 21:41:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250121.tar",
-            "fileSize": 13935667200,
-            "fileDataFromDate": "2025-01-21",
-            "fileDataToDate": "2025-01-21",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250121.tar",
-            "fileReleaseDate": "2025-01-21 09:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250114.tar",
-            "fileSize": 16753039360,
-            "fileDataFromDate": "2025-01-15",
-            "fileDataToDate": "2025-01-15",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250114.tar",
-            "fileReleaseDate": "2025-01-15 08:35:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01095.tar",
-            "fileSize": 1240412160,
-            "fileDataFromDate": "2025-01-14",
-            "fileDataToDate": "2025-01-14",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01095.tar",
-            "fileReleaseDate": "2025-01-14 05:49:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01094.tar",
-            "fileSize": 2081761280,
-            "fileDataFromDate": "2025-01-10",
-            "fileDataToDate": "2025-01-10",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_maint_M01094.tar",
-            "fileReleaseDate": "2025-01-10 15:54:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20250107.tar",
-            "fileSize": 16700794880,
-            "fileDataFromDate": "2025-01-07",
-            "fileDataToDate": "2025-01-07",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2025/grant_pdf_20250107.tar",
-            "fileReleaseDate": "2025-01-07 09:01:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20241231.tar",
-            "fileSize": 16049233920,
-            "fileDataFromDate": "2024-12-31",
-            "fileDataToDate": "2024-12-31",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2024/grant_pdf_20241231.tar",
-            "fileReleaseDate": "2024-12-31 07:05:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_maint_M01093.tar",
-            "fileSize": 646154240,
-            "fileDataFromDate": "2024-12-31",
-            "fileDataToDate": "2024-12-31",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2024/grant_pdf_maint_M01093.tar",
-            "fileReleaseDate": "2024-12-31 07:00:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          },
-          {
-            "fileName": "grant_pdf_20241224.tar",
-            "fileSize": 15352760320,
-            "fileDataFromDate": "2024-12-24",
-            "fileDataToDate": "2024-12-24",
-            "fileTypeText": "Data",
-            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PTGRMP2/2024/grant_pdf_20241224.tar",
-            "fileReleaseDate": "2024-12-24 07:02:00",
-            "fileLastModifiedDateTime": "2025-03-24 19:01:00"
-          }
-        ]
-      }
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)"
+      ],
+      "productFromDate": "2002-01-01",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 2751010470217,
+      "productFileTotalQuantity": 1596,
+      "lastModifiedDateTime": "2025-12-04 01:01:35",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "PTGRDSGM",
+      "productDescriptionText": "Contains the full text, images/drawings, and complex work units (tables, mathematical expressions, chemical structures, and genetic sequence data) of each patent grant issued weekly (Tuesdays) from January 1, 2001 to present.",
+      "productTitleText": "Patent Grant Full Text Data with Embedded TIFF Images (Grant Red Book based on WIPO ST.36) - SGML",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)"
+      ],
+      "productFromDate": "2001-01-02",
+      "productToDate": "2001-12-25",
+      "productTotalFileSize": 39804511783,
+      "productFileTotalQuantity": 53,
+      "lastModifiedDateTime": "2025-12-04 01:01:33",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "PTBLXML",
+      "productDescriptionText": "Contains the concatenated bibliographic text (front page) of each patent grant document issued weekly (Tuesdays) from January 1, 1976 to present (excludes images/drawings). Subset of the Patent Grant Full Text Data. Note: The concatenated file in its entirety is not a valid XML document; it must be un-concatenated back to individual XML documents for XML data processing.",
+      "productTitleText": "Patent Grant Bibliographic (Front Page) Text Data - XML",
+      "productFrequencyText": "WEEKLY",
+      "daysOfWeekText": "TUESDAY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)"
+      ],
+      "productFromDate": "2002-01-01",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 19039905338,
+      "productFileTotalQuantity": 1308,
+      "lastModifiedDateTime": "2025-12-04 01:01:31",
+      "mimeTypeIdentifierArrayText": [
+        "ASCII",
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "PTBLAPS",
+      "productDescriptionText": "Contains the concatenated bibliographic text (front page) of each patent grant document issued weekly (Tuesdays) from January 1, 1976 to present (excludes images/drawings). Subset of the Patent Grant Full Text Data.",
+      "productTitleText": "Patent Grant Bibliographic (Front Page) Text Data - APS",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)"
+      ],
+      "productFromDate": "1976-01-01",
+      "productToDate": "2017-04-03",
+      "productTotalFileSize": 2625304548,
+      "productFileTotalQuantity": 253,
+      "lastModifiedDateTime": "2025-12-04 01:01:29",
+      "mimeTypeIdentifierArrayText": [
+        "ASCII",
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "APPXML",
+      "productDescriptionText": "Provides the bulk zip files that contain the concatenated full-text of each patent application XML document (non-provisional utility and plant). This page provides an additional feature called \u201cView Patent Records\u201d which allows user to find or discover the patent applications that are bundled in the zip file. However, in this zip file, there may be applications that are not available in ODP and will not be included in the search results. Also, if there are revisions to the applications, the file will only show the original application.",
+      "productTitleText": "Patent Application Full-Text Data (No Images)",
+      "productFrequencyText": "WEEKLY",
+      "daysOfWeekText": "THURSDAY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Application",
+        "Published patent applications (pre-grant publicati"
+      ],
+      "productFromDate": "2001-03-15",
+      "productToDate": "2025-11-27",
+      "productTotalFileSize": 158798128464,
+      "productFileTotalQuantity": 1346,
+      "lastModifiedDateTime": "2025-12-04 01:01:21",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "APPBLXML",
+      "productDescriptionText": "Contains the concatenated bibliographic text (front page) of each patent application XML document (non-provisional utility and plant) published weekly (Thursdays) from March 15, 2001 to present (excludes images/drawings). Subset of the Patent Application Full Text Data. Note: The concatenated file in its entirety is not a valid XML document; it must be un-concatenated back to individual XML documents for XML data processing.",
+      "productTitleText": "Patent Application Bibliographic (Front Page) Data",
+      "productFrequencyText": "WEEKLY",
+      "daysOfWeekText": "THURSDAY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Application",
+        "Published patent applications (pre-grant publicati"
+      ],
+      "productFromDate": "2001-03-15",
+      "productToDate": "2025-11-27",
+      "productTotalFileSize": 4765491996,
+      "productFileTotalQuantity": 1346,
+      "lastModifiedDateTime": "2025-12-04 01:01:21",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "GZLST",
+      "productDescriptionText": "Contains bibliographic (front page) information, a representative claim, and a drawing (if applicable) of each patent grant issued that week (Tuesdays). Includes U.S. Patent and Trademark Office Notices which provide important information and changes in rules concerning both patents and trademarks.",
+      "productTitleText": "Patent Official Gazettes",
+      "productFrequencyText": "WEEKLY",
+      "daysOfWeekText": "TUESDAY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent official gazettes"
+      ],
+      "productFromDate": "2002-07-02",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 243127042050,
+      "productFileTotalQuantity": 1224,
+      "lastModifiedDateTime": "2025-12-04 01:01:17",
+      "mimeTypeIdentifierArrayText": [
+        "HTML"
+      ]
+    },
+    {
+      "productIdentifier": "APPMP2",
+      "productDescriptionText": "Contains the images of each patent application (non-provisional utility and plant) published weekly (Thursdays) from March 15, 2001 to present in Portable Document Format (PDF) created from the Patent Application Single-Page TIFF Images.",
+      "productTitleText": "Patent Application Multi-Page PDF Images",
+      "productFrequencyText": "WEEKLY",
+      "daysOfWeekText": "THURSDAY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Application",
+        "Published patent applications (pre-grant publicati"
+      ],
+      "productFromDate": "2001-03-15",
+      "productToDate": "2025-11-27",
+      "productTotalFileSize": 13646080655872,
+      "productFileTotalQuantity": 1192,
+      "lastModifiedDateTime": "2025-12-04 01:01:16",
+      "mimeTypeIdentifierArrayText": [
+        "PDF"
+      ]
+    },
+    {
+      "productIdentifier": "TRCFECO2",
+      "productDescriptionText": "Contains detailed information on 12.1 million trademark applications filed with or registrations issued by the USPTO between 1870 and January 2023. For more information: https://www.uspto.gov/learning-and-resources/ip-policy/economic-research/research-datasets",
+      "productTitleText": "Trademark Case File Data for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Research",
+        "Trademark"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Trademark applications"
+      ],
+      "productFromDate": "2013-01-02",
+      "productToDate": "2024-03-27",
+      "productTotalFileSize": 161900862773,
+      "productFileTotalQuantity": 468,
+      "lastModifiedDateTime": "2025-12-04 01:00:50",
+      "mimeTypeIdentifierArrayText": [
+        "CSV",
+        "DTA"
+      ]
+    },
+    {
+      "productIdentifier": "PASDL",
+      "productDescriptionText": "Contains daily (front file - Calendar Year 2025) patent assignment text (no drawings/images) derived from patent assignment recordations made at the USPTO.",
+      "productTitleText": "Patent Assignment XML (Ownership) Text - Daily",
+      "productFrequencyText": "DAILY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Assignment"
+      ],
+      "productFromDate": "2025-01-01",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 3503812721,
+      "productFileTotalQuantity": 337,
+      "lastModifiedDateTime": "2025-12-04 01:00:48",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "TRTDXFAP",
+      "productDescriptionText": "Pending and registered trademark text data (no images) to include word mark, serial number, registration number, filing date, registration date, goods and services, classification number(s), status code(s), design search code(s), pseudo mark(s) in CY2025. The file format is eXtensible Markup Language (XML) in accordance with the U.S. Trademark Applications Version 2.3 Document Type Definition (DTD).",
+      "productTitleText": "Trademark Full Text XML Data (No Images) \u2013 Daily Applications",
+      "productFrequencyText": "DAILY",
+      "productLabelArrayText": [
+        "Trademark"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Trademark applications"
+      ],
+      "productFromDate": "2025-01-01",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 11745953393,
+      "productFileTotalQuantity": 339,
+      "lastModifiedDateTime": "2025-12-04 01:00:47",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "PASYR",
+      "productDescriptionText": "Contains annual (backfile - AUG 1980  DEC 2023) patent assignment text (no drawings/images) derived from patent assignment recordations made at the USPTO.",
+      "productTitleText": "Patent Assignment XML (Ownership) Text - Annual",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Assignment"
+      ],
+      "productFromDate": "1980-01-01",
+      "productToDate": "2024-12-31",
+      "productTotalFileSize": 2605596057,
+      "productFileTotalQuantity": 22,
+      "lastModifiedDateTime": "2025-12-04 01:00:44",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "TTABTDXF",
+      "productDescriptionText": "TTAB text data (no images) in CY2025. The file format is eXtensible Markup Language (XML) in accordance with the U.S. Trademark Trial and Appeal Board Version 1.0 Document Type Definition (DTD).",
+      "productTitleText": "Trademark Full Text XML Data (No Images) \u2013 Daily TTAB",
+      "productFrequencyText": "DAILY",
+      "productLabelArrayText": [
+        "Trademark"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Trademark trial and appeal board"
+      ],
+      "productFromDate": "2025-01-01",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 67934901,
+      "productFileTotalQuantity": 337,
+      "lastModifiedDateTime": "2025-12-04 01:00:43",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "TRTDXFAG",
+      "productDescriptionText": "Assignment text data (no images) in CY2025. The file format is eXtensible Markup Language (XML) in accordance with the U.S. Trademark Assignments Version 0.4 Document Type Definition (DTD).",
+      "productTitleText": "Trademark Full Text XML Data (No Images) \u2013 Daily Assignments",
+      "productFrequencyText": "DAILY",
+      "productLabelArrayText": [
+        "Trademark"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Trademark assignments"
+      ],
+      "productFromDate": "2025-01-01",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 18016969,
+      "productFileTotalQuantity": 337,
+      "lastModifiedDateTime": "2025-12-04 01:00:43",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "TRTYRAP",
+      "productDescriptionText": "Contains (backfile) pending and registered trademark text data (no images) to include word mark, serial number, registration number, filing date, registration date, goods and services, classification number(s), status code(s), design search code(s), pseudo mark(s) from (APR 1884 - DEC 2024). The file format is eXtensible Markup Language (XML) in accordance with the U.S. Trademark Applications Version 2.3 Document Type Definition (DTD).",
+      "productTitleText": "Trademark Full Text XML Data (No Images) \u2013 Annual Applications",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Trademark"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Trademark applications"
+      ],
+      "productFromDate": "1884-04-07",
+      "productToDate": "2024-12-31",
+      "productTotalFileSize": 9713544714,
+      "productFileTotalQuantity": 86,
+      "lastModifiedDateTime": "2025-12-04 01:00:40",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "ECOPAIR",
+      "productDescriptionText": "Contains detailed information on more than 13 million publicly viewable patent applications filed with the USPTO along with more than 1 million PCT applications through June 2023. The data files include information on each application's characteristics, prosecution history, continuation history, claims of foreign priority, patent term adjustment history, publication history, and correspondence address information.",
+      "productTitleText": "Patent Examination Research Dataset (PatEx) for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Application",
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2015-12-02",
+      "productToDate": "2023-09-26",
+      "productTotalFileSize": 278009502460,
+      "productFileTotalQuantity": 206,
+      "lastModifiedDateTime": "2025-12-04 01:00:38",
+      "mimeTypeIdentifierArrayText": [
+        "CSV",
+        "DTA"
+      ]
+    },
+    {
+      "productIdentifier": "TTABYR",
+      "productDescriptionText": "Contains (backfile) Trademark Trial and Appeal Board text data (OCT 2, 1951 - DEC 31, 2024). The file format is eXtensible Markup Language (XML) in accordance with the U.S. Trademark Trial and Appeal Board Version 1.0 Document Type Definition (DTD).",
+      "productTitleText": "Trademark Full Text XML Data (No Images) \u2013 Annual TTAB",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Trademark"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Trademark trial and appeal board"
+      ],
+      "productFromDate": "1951-10-02",
+      "productToDate": "2024-12-31",
+      "productTotalFileSize": 184301175,
+      "productFileTotalQuantity": 1,
+      "lastModifiedDateTime": "2025-12-04 01:00:36",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "TRTYRAG",
+      "productDescriptionText": "Contains (backfile) Trademark Assignment text data (JAN 3, 1955 - DEC 31, 2024). The file format is eXtensible Markup Language (XML) in accordance with the U.S. Trademark Assignments Version 0.4 Document Type Definition (DTD).",
+      "productTitleText": "Trademark Full Text XML Data (No Images) \u2013 Annual Assignments",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Trademark"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Trademark assignments"
+      ],
+      "productFromDate": "1955-01-03",
+      "productToDate": "2024-12-31",
+      "productTotalFileSize": 268846498,
+      "productFileTotalQuantity": 1,
+      "lastModifiedDateTime": "2025-12-04 01:00:36",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "TRASECO",
+      "productDescriptionText": "Contains detailed information on 1.29 million assignments and other transactions recorded at the USPTO between 1952 and 2023 and involving 2.28 million unique trademark properties. For more information: https://www.uspto.gov/learning-and-resources/ip-policy/economic-research/research-datasets",
+      "productTitleText": "Trademark Assignment Data for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Research",
+        "Trademark"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Trademark assignments"
+      ],
+      "productFromDate": "2014-04-18",
+      "productToDate": "2024-04-01",
+      "productTotalFileSize": 8808161260,
+      "productFileTotalQuantity": 176,
+      "lastModifiedDateTime": "2025-12-04 01:00:36",
+      "mimeTypeIdentifierArrayText": [
+        "CSV",
+        "DTA"
+      ]
+    },
+    {
+      "productIdentifier": "ECORSEXC",
+      "productDescriptionText": "Contains detailed information on roughly 10.0 million patent assignments and other transactions recorded at the USPTO since 1970 and involving roughly 17.8 million patents and patent applications. For more information: http://www.uspto.gov/learning-and-resources/electronic-data-products/data",
+      "productTitleText": "Patent Assignment Data for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Assignment",
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2015-08-05",
+      "productToDate": "2024-04-19",
+      "productTotalFileSize": 50129871249,
+      "productFileTotalQuantity": 126,
+      "lastModifiedDateTime": "2025-12-04 01:00:33",
+      "mimeTypeIdentifierArrayText": [
+        "DTA",
+        "TSV"
+      ]
+    },
+    {
+      "productIdentifier": "PTGRSGM",
+      "productDescriptionText": "Contains the concatenated full-text of each patent grant document issued weekly (Tuesdays) from January 1, 1976 to present (excludes images/drawings). This is the subset of the Patent Grant Full Text Data with Embedded TIFF Images. Note: The concatenated file in its entirety is not a valid SGML document; it must be un-concatenated back to individual SGML documents for SGML data processing.",
+      "productTitleText": "Patent Grant Full-Text Data (No Images) - SGML",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)"
+      ],
+      "productFromDate": "2001-01-02",
+      "productToDate": "2001-12-25",
+      "productTotalFileSize": 2318073072,
+      "productFileTotalQuantity": 52,
+      "lastModifiedDateTime": "2025-12-04 01:00:32",
+      "mimeTypeIdentifierArrayText": [
+        "ASCII",
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "PTBLSGM",
+      "productDescriptionText": "Contains the concatenated bibliographic text (front page) of each patent grant document issued weekly (Tuesdays) from January 1, 1976 to present (excludes images/drawings). Subset of the Patent Grant Full Text Data. Note: The concatenated file in its entirety is not a valid SGML document; it must be un-concatenated back to individual SGML documents for SGML data processing.",
+      "productTitleText": "Patent Grant Bibliographic (Front Page) Text Data - SGML",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)"
+      ],
+      "productFromDate": "2001-01-02",
+      "productToDate": "2001-12-25",
+      "productTotalFileSize": 211292562,
+      "productFileTotalQuantity": 52,
+      "lastModifiedDateTime": "2025-12-04 01:00:27",
+      "mimeTypeIdentifierArrayText": [
+        "ASCII",
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "PTLITIG",
+      "productDescriptionText": "Contains detailed U.S. District Courts patent litigation data on 81,350 unique court cases filed during the period 1963 - 2020. The data was collected from the Public Access to Court Electronic Records (PACER) and RECAP as sources for all of the content. The final output datasets, provided in five different files, include information on the litigating parties involved and their attorneys; the cause of action; the court location; important dates in the litigation history; and, covering over 5 million document level information from the docket reports, descriptions of all documents submitted in a given case.",
+      "productTitleText": "Patent Litigation Docket Report Data Files for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2016-12-29",
+      "productToDate": "2024-03-27",
+      "productTotalFileSize": 4943349666,
+      "productFileTotalQuantity": 40,
+      "lastModifiedDateTime": "2025-12-04 01:00:25",
+      "mimeTypeIdentifierArrayText": [
+        "CSV",
+        "DTA"
+      ]
+    },
+    {
+      "productIdentifier": "PTMNFEE2",
+      "productDescriptionText": "Contains recorded maintenance fee events for patents granted from September 1, 1981 to present. Each new weekly file is cumulative.",
+      "productTitleText": "Patent Maintenance Fee Events",
+      "productFrequencyText": "WEEKLY",
+      "daysOfWeekText": "TUESDAY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)"
+      ],
+      "productFromDate": "2025-06-24",
+      "productToDate": "2025-12-02",
+      "productTotalFileSize": 4446715598,
+      "productFileTotalQuantity": 25,
+      "lastModifiedDateTime": "2025-12-04 01:00:23",
+      "mimeTypeIdentifierArrayText": [
+        "ASCII"
+      ]
+    },
+    {
+      "productIdentifier": "PTAPPCLM",
+      "productDescriptionText": "Contains detailed information on claims from U.S. patents granted between January 1976 and December 2014 and U.S. patent applications published between March 15, 2001 and December 2014. The dataset is derived from the Patent Grant Full Text and Patent Application Full Text bulk data files. The Office of Chief Economist (OCE) applied a Python algorithm to identify individual claims as well as the dependency relationship between claims. From the parsed claims text, OCE created six data files containing individually-parsed claims, claim-level statistics, and document-level statistics, including newly-developed measures of patent scope.",
+      "productTitleText": "Patent and Patent Application Claims Research Dataset for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)",
+        "Patent Application",
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2016-10-07",
+      "productToDate": "2016-10-11",
+      "productTotalFileSize": 44112683780,
+      "productFileTotalQuantity": 14,
+      "lastModifiedDateTime": "2025-12-04 01:00:22",
+      "mimeTypeIdentifierArrayText": [
+        "CSV",
+        "DTA"
+      ]
+    },
+    {
+      "productIdentifier": "HISTEXC",
+      "productDescriptionText": "Contains four research datasets containing time series and micro-level data by National Bureau of Economic Research (NBER) technology sub-category on applications, grants, and in-force patents spanning two centuries of innovation. For more information: https://www.uspto.gov/learning-and-resources/ip-policy/economic-research/research-datasets",
+      "productTitleText": "Historical Patent Data Files for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)",
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2015-06-25",
+      "productToDate": "2015-07-02",
+      "productTotalFileSize": 1203500855,
+      "productFileTotalQuantity": 14,
+      "lastModifiedDateTime": "2025-12-04 01:00:22",
+      "mimeTypeIdentifierArrayText": [
+        "CSV",
+        "DTA"
+      ]
+    },
+    {
+      "productIdentifier": "CPCMCAPP",
+      "productDescriptionText": "Contains Cooperative Patent Classification (CPC) information for all U.S. patent applications published by the U.S. Patent and Trademark Office (USPTO) from March 15, 2001 to present.It is available as XML with schemas or text monthly (usually by the 15th of the month).",
+      "productTitleText": "Cooperative Patent Classification (CPC) Master Classification Files for U.S. Patent Applications",
+      "productFrequencyText": "MONTHLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent and patent application classification"
+      ],
+      "productFromDate": "2025-06-17",
+      "productToDate": "2025-11-17",
+      "productTotalFileSize": 6016780372,
+      "productFileTotalQuantity": 13,
+      "lastModifiedDateTime": "2025-12-04 01:00:22",
+      "mimeTypeIdentifierArrayText": [
+        "TXT",
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "CPCMCPT",
+      "productDescriptionText": "Contains Cooperative Patent Classification (CPC) classification information for all U.S. patent grants issued by the U.S. Patent and Trademark Office (USPTO) from July 31, 1790 to present.It is available as XML with schemas or text monthly (usually by the 15th of the month).",
+      "productTitleText": "Cooperative Patent Classification (CPC) Master Classification Files for U.S. Patent Grants",
+      "productFrequencyText": "MONTHLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Authoritative"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent and patent application  classification"
+      ],
+      "productFromDate": "2025-06-17",
+      "productToDate": "2025-11-17",
+      "productTotalFileSize": 6535751221,
+      "productFileTotalQuantity": 13,
+      "lastModifiedDateTime": "2025-12-04 01:00:22",
+      "mimeTypeIdentifierArrayText": [
+        "TXT",
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "ECOPATAI",
+      "productDescriptionText": "Contains Artificial Intelligence Patent Landscape data classifying 13,244,037 granted patents and PGPubs published from 1976 through 2020 in eight AI component technologies using state-of-the art machine learning based models.",
+      "productTitleText": "The Artificial Intelligence Patent Dataset (AIPD) for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)",
+        "Patent Application",
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2021-07-30",
+      "productToDate": "2024-08-19",
+      "productTotalFileSize": 4769683051,
+      "productFileTotalQuantity": 8,
+      "lastModifiedDateTime": "2025-12-04 01:00:21",
+      "mimeTypeIdentifierArrayText": [
+        "DTA",
+        "TSV"
+      ]
+    },
+    {
+      "productIdentifier": "PTAPOATH",
+      "productDescriptionText": "Contains a research dataset of images of signatures extracted from patent inventor oath documents used for validation of micro entity certifications ranging from SEP 1998 to SEP 2022. It includes 883,811 documents and oath document signature images, is 40.5 GB of total size, and is broken into 8 zip files for the Patent Application Series Codes 12 to 17, 29, and 35. Each of these zip files contain folders for each application number in a given series. The application folders contain the oath document identifier that includes the image(s) of the signature(s) as PNG, and JSON file that contains the application number, the inventor name(s), and confidence level of the signature extraction algorithm.",
+      "productTitleText": "Patent and Patent Application Oath Signature Dataset for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)",
+        "Patent Application",
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2022-09-30",
+      "productToDate": "2022-09-30",
+      "productTotalFileSize": 43528776253,
+      "productFileTotalQuantity": 8,
+      "lastModifiedDateTime": "2025-12-04 01:00:21",
+      "mimeTypeIdentifierArrayText": [
+        "JPEG",
+        "JSON"
+      ]
+    },
+    {
+      "productIdentifier": "PTOFFACT",
+      "productDescriptionText": "Contains detailed information on 4.4 million Office actions mailed from 2008 through June 2017 for 2.2 million publicly viewable patent applications. The data are sourced from the text of Non-Final Rejection and Final Rejection Office actions issued by patent examiners to applicants during the patent examination process. The data files include information on grounds for rejection raised, the claims in question, and pertinent prior art.",
+      "productTitleText": "Patent Application Office Actions Research Dataset for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Application",
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2017-11-29",
+      "productToDate": "2017-11-29",
+      "productTotalFileSize": 3225736011,
+      "productFileTotalQuantity": 9,
+      "lastModifiedDateTime": "2025-12-04 01:00:21",
+      "mimeTypeIdentifierArrayText": [
+        "CSV",
+        "DTA"
+      ]
+    },
+    {
+      "productIdentifier": "MOONSHOT",
+      "productDescriptionText": "This curated dataset consists of 269,353 patent documents (published patent applications and granted patents) spanning the 1976 to 2016 period and is intended to help identify promising R&D on the horizon in diagnostics, therapeutics, data analytics, and model biological systems.",
+      "productTitleText": "Cancer Moonshot Patent Data Files for Academia and Researchers",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)",
+        "Patent Application",
+        "Patent assignment economics data for academia and "
+      ],
+      "productFromDate": "2016-08-19",
+      "productToDate": "2016-08-19",
+      "productTotalFileSize": 20014583,
+      "productFileTotalQuantity": 2,
+      "lastModifiedDateTime": "2025-12-04 01:00:20",
+      "mimeTypeIdentifierArrayText": [
+        "CSV"
+      ]
+    },
+    {
+      "productIdentifier": "PTFWPRE",
+      "productDescriptionText": "Bibliographic and assignments static patent data compiled into file sets. The Weekly Datasets (10-year increments) can be downloaded in bulk.",
+      "productTitleText": "Patent File Wrapper (Bulk Datasets) - Weekly",
+      "productFrequencyText": "WEEKLY",
+      "daysOfWeekText": "SUNDAY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent file wrapper"
+      ],
+      "productFromDate": "2001-01-01",
+      "productToDate": "2025-12-31",
+      "productTotalFileSize": 60403759533,
+      "productFileTotalQuantity": 3,
+      "lastModifiedDateTime": "2025-12-03 03:21:45",
+      "mimeTypeIdentifierArrayText": [
+        "JSON"
+      ]
+    },
+    {
+      "productIdentifier": "PTFWPRD",
+      "productDescriptionText": "Bibliographic and assignments static patent data compiled into file sets. The Delta Datasets (daily increments) can be downloaded in bulk.",
+      "productTitleText": "Patent File Wrapper (Bulk Datasets) - Daily",
+      "productFrequencyText": "DAILY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent file wrapper"
+      ],
+      "productFromDate": "2025-11-27",
+      "productToDate": "2025-12-03",
+      "productTotalFileSize": 21471013468,
+      "productFileTotalQuantity": 7,
+      "lastModifiedDateTime": "2025-12-03 02:06:57",
+      "mimeTypeIdentifierArrayText": [
+        "JSON"
+      ]
+    },
+    {
+      "productIdentifier": "PEDSXML",
+      "productDescriptionText": "Entire Dataset files contain Patent data consolidated based on patent application filing year. These static bulk datasets were created on 3/16/2025 and include content from 1900 through 2000 (not inclusive). These datasets were copied over from Patent Examination Data System (PEDS) that was retired on 3/15/2025. These static datasets can be downloaded in 20-year increments and can be downloaded in XML format.",
+      "productTitleText": "Patent Examination Data System (Bulk Datasets) \u2013 XML",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Application"
+      ],
+      "productFromDate": "1900-01-01",
+      "productToDate": "2000-12-31",
+      "productTotalFileSize": 6373040128,
+      "productFileTotalQuantity": 6,
+      "lastModifiedDateTime": "2025-03-16 11:21:17",
+      "mimeTypeIdentifierArrayText": [
+        "XML"
+      ]
+    },
+    {
+      "productIdentifier": "PEDSJSON",
+      "productDescriptionText": "Entire Dataset files contain Patent data consolidated based on patent application filing year. These static bulk datasets were created on 3/17/2025 and include content from 1900 through 2000 (not inclusive). These datasets were copied over from Patent Examination Data System (PEDS) that was retired on 3/15/2025. These static datasets can be downloaded in 20-year increments and can be downloaded in JSON format.",
+      "productTitleText": "Patent Examination Data System (Bulk Datasets) - JSON",
+      "productFrequencyText": "YEARLY",
+      "productLabelArrayText": [
+        "Patent"
+      ],
+      "productDatasetArrayText": [
+        "Research"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Patent Application"
+      ],
+      "productFromDate": "1900-01-01",
+      "productToDate": "2000-12-31",
+      "productTotalFileSize": 3866320896,
+      "productFileTotalQuantity": 6,
+      "lastModifiedDateTime": "2025-03-16 11:21:17",
+      "mimeTypeIdentifierArrayText": [
+        "JSON"
+      ]
     }
   ]
 }

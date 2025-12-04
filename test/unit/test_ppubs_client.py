@@ -326,11 +326,13 @@ async def test_run_query_creates_session_if_missing(ppubs_client, mock_session_d
     """Test that run_query creates session if not exists."""
     assert ppubs_client.case_id is None
 
-    with patch.object(ppubs_client, 'get_session', new_callable=AsyncMock) as mock_get_session:
-        with patch.object(ppubs_client, 'make_request', new_callable=AsyncMock) as mock_request:
-            mock_get_session.return_value = mock_session_data
-            ppubs_client.case_id = "test-case-123456"  # Simulate session creation
+    async def mock_get_session_impl():
+        """Mock get_session that sets case_id as a side effect."""
+        ppubs_client.case_id = "test-case-123456"
+        return mock_session_data
 
+    with patch.object(ppubs_client, 'get_session', side_effect=mock_get_session_impl) as mock_get_session:
+        with patch.object(ppubs_client, 'make_request', new_callable=AsyncMock) as mock_request:
             # Mock responses
             mock_request.side_effect = [
                 MagicMock(status_code=200, get=lambda x, y: False),
