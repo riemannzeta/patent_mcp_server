@@ -10,7 +10,7 @@ Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of 
 
 ## Features
 
-This server provides **50+ tools** across 6 USPTO data sources for:
+This server provides **51 tools** across 6 USPTO data sources for:
 
 1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS and PatentsView
 2. **Full Text Documents** - Get complete text of patents including claims, description, and specification
@@ -164,6 +164,13 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 
 ## Available Tools
 
+### Utility Tools
+| Tool | Description |
+|------|-------------|
+| `check_api_status` | Check status of all USPTO APIs |
+| `get_cpc_info` | Get CPC classification information |
+| `get_status_code` | Look up USPTO status code meaning |
+
 ### Patent Public Search (ppubs.uspto.gov)
 | Tool | Description |
 |------|-------------|
@@ -188,7 +195,6 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 | `odp_get_documents` | Get file wrapper documents |
 | `odp_search_datasets` | Search bulk data products |
 | `odp_get_dataset` | Get dataset product details |
-| `get_status_code` | Look up status code meaning |
 
 ### PTAB API v3 (Patent Trial and Appeal Board)
 | Tool | Description |
@@ -200,7 +206,6 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 | `ptab_get_decision` | Get decision details |
 | `ptab_search_appeals` | Search ex parte appeals |
 | `ptab_get_appeal` | Get appeal decision details |
-| `ptab_search_interferences` | Search historical interferences |
 
 ### PatentsView API
 | Tool | Description |
@@ -211,10 +216,14 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 | `patentsview_get_assignee` | Get assignee details |
 | `patentsview_search_inventors` | Search disambiguated inventors |
 | `patentsview_get_inventor` | Get inventor details |
+| `patentsview_search_attorneys` | Search patent attorneys/agents |
+| `patentsview_get_attorney` | Get attorney details |
 | `patentsview_get_claims` | Get patent claims text |
 | `patentsview_get_description` | Get patent description |
 | `patentsview_search_by_cpc` | Search by CPC classification |
 | `patentsview_lookup_cpc` | Look up CPC code info |
+| `patentsview_search_by_ipc` | Search by IPC classification |
+| `patentsview_lookup_ipc` | Look up IPC code info |
 
 ### Office Action APIs
 | Tool | Description |
@@ -283,7 +292,17 @@ uv sync --dev
 
 ## Version History
 
-### v0.5.0 (Current)
+### v0.6.1 (Current)
+- Added PatentsView attorney search tools (`patentsview_search_attorneys`, `patentsview_get_attorney`)
+- Added PatentsView IPC classification tools (`patentsview_lookup_ipc`, `patentsview_search_by_ipc`)
+- Fixed bug in `search_publications` method (pagination options not being passed)
+- Added new PatentsView API endpoints (attorney, IPC, pregrant publication text, citations)
+- Updated README with complete tool documentation
+
+### v0.6.0
+- PyPI release preparation
+
+### v0.5.0
 - Focused on USPTO-only data sources
 - Renamed ODP tools with `odp_` prefix for clarity
 - Improved function signatures (using `query` instead of `q`)
