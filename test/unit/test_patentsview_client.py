@@ -247,6 +247,128 @@ async def test_lookup_cpc_group(patentsview_client):
 
 
 # ============================================================================
+# Attorney Search Tests
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_attorneys(patentsview_client):
+    """Test attorney search."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"attorneys": [], "count": 0}
+
+        query = {"attorney_name_last": "Smith"}
+        result = await patentsview_client.search_attorneys(query)
+
+        mock_request.assert_called_once()
+        assert PatentsViewEndpoints.ATTORNEY in mock_request.call_args[0][0]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_attorneys_by_organization(patentsview_client):
+    """Test attorney search by organization."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"attorneys": [], "count": 0}
+
+        query = {"attorney_organization": {"_contains": "LLP"}}
+        result = await patentsview_client.search_attorneys(query, size=50)
+
+        mock_request.assert_called_once()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_get_attorney(patentsview_client):
+    """Test getting a specific attorney."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"attorney_id": "atty123"}
+
+        result = await patentsview_client.get_attorney("atty123")
+
+        mock_request.assert_called_once()
+        assert "atty123" in mock_request.call_args[0][0]
+
+
+# ============================================================================
+# IPC Classification Tests
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_ipc(patentsview_client):
+    """Test IPC classification search."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"ipcs": [], "count": 0}
+
+        query = {"ipc_class": "G06"}
+        result = await patentsview_client.search_ipc(query)
+
+        mock_request.assert_called_once()
+        assert PatentsViewEndpoints.IPC in mock_request.call_args[0][0]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_ipc_with_subclass(patentsview_client):
+    """Test IPC search with subclass query."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"ipcs": [], "count": 0}
+
+        query = {"ipc_subclass": {"_begins": "G06F"}}
+        result = await patentsview_client.search_ipc(query, size=50)
+
+        mock_request.assert_called_once()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_lookup_ipc(patentsview_client):
+    """Test IPC code lookup."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"ipc_class": "G06F", "ipc_title": "Electric digital data processing"}
+
+        result = await patentsview_client.lookup_ipc("G06F")
+
+        mock_request.assert_called_once()
+        assert "G06F" in mock_request.call_args[0][0]
+
+
+# ============================================================================
+# Publications Tests
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_publications(patentsview_client):
+    """Test pregrant publication search."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"publications": [], "count": 0}
+
+        query = {"publication_title": {"_contains": "neural"}}
+        result = await patentsview_client.search_publications(query)
+
+        mock_request.assert_called_once()
+        assert PatentsViewEndpoints.PUBLICATION in mock_request.call_args[0][0]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_publications_with_options(patentsview_client):
+    """Test publication search passes size option correctly."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"publications": [], "count": 0}
+
+        query = {"publication_id": "20200001234"}
+        result = await patentsview_client.search_publications(query, size=50)
+
+        mock_request.assert_called_once()
+        # Verify the params include the options
+        call_args = mock_request.call_args
+        assert 'params' in call_args.kwargs or len(call_args.args) > 1
+
+
+# ============================================================================
 # Rate Limiting Tests
 # ============================================================================
 

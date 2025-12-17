@@ -480,7 +480,7 @@ class PatentsViewClient:
             Dictionary containing publication search results
         """
         options = {"size": min(size, 1000)}
-        params = self._build_query(query, fields, options=options)
+        params = self._build_query(query, fields, o=options)
 
         return await self._make_request(PatentsViewEndpoints.PUBLICATION, params=params)
 
@@ -502,6 +502,74 @@ class PatentsViewClient:
         params = self._build_query(query, fields)
 
         return await self._make_request(PatentsViewEndpoints.FOREIGN_CITATION, params=params)
+
+    async def search_attorneys(
+        self,
+        query: Dict[str, Any],
+        fields: Optional[List[str]] = None,
+        size: int = 100,
+    ) -> Dict[str, Any]:
+        """Search patent attorneys.
+
+        Args:
+            query: Query object for attorney search
+                   Example: {"attorney_name_last": "Smith"}
+                   Example: {"attorney_organization": {"_contains": "LLP"}}
+            fields: List of fields to return
+            size: Results per page
+
+        Returns:
+            Dictionary containing attorney search results
+        """
+        options = {"size": min(size, 1000)}
+        params = self._build_query(query, fields, o=options)
+
+        return await self._make_request(PatentsViewEndpoints.ATTORNEY, params=params)
+
+    async def get_attorney(self, attorney_id: str) -> Dict[str, Any]:
+        """Get a specific attorney by ID.
+
+        Args:
+            attorney_id: Attorney ID
+
+        Returns:
+            Dictionary containing attorney details
+        """
+        return await self._make_request(f"{PatentsViewEndpoints.ATTORNEY}{attorney_id}/")
+
+    async def search_ipc(
+        self,
+        query: Dict[str, Any],
+        fields: Optional[List[str]] = None,
+        size: int = 100,
+    ) -> Dict[str, Any]:
+        """Search IPC (International Patent Classification) codes.
+
+        Args:
+            query: Query object for IPC search
+                   Example: {"ipc_class": "G06"}
+                   Example: {"ipc_subclass": {"_begins": "G06F"}}
+            fields: List of fields to return
+            size: Results per page
+
+        Returns:
+            Dictionary containing IPC search results
+        """
+        options = {"size": min(size, 1000)}
+        params = self._build_query(query, fields, o=options)
+
+        return await self._make_request(PatentsViewEndpoints.IPC, params=params)
+
+    async def lookup_ipc(self, ipc_code: str) -> Dict[str, Any]:
+        """Look up IPC classification information.
+
+        Args:
+            ipc_code: IPC code (e.g., "G06F")
+
+        Returns:
+            Dictionary containing IPC classification details
+        """
+        return await self._make_request(f"{PatentsViewEndpoints.IPC}{ipc_code}/")
 
     async def close(self):
         """Close the client connections."""

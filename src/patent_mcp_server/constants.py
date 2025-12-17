@@ -91,18 +91,37 @@ class PTABProceedingStatus:
 
 class PatentsViewEndpoints:
     """PatentsView API endpoint paths."""
+    # Core patent endpoints
     PATENT = "/api/v1/patent/"
+    PUBLICATION = "/api/v1/publication/"
+
+    # Entity endpoints
     ASSIGNEE = "/api/v1/assignee/"
     INVENTOR = "/api/v1/inventor/"
+    ATTORNEY = "/api/v1/patent/attorney/"
+
+    # Classification endpoints
     CPC_CLASS = "/api/v1/cpc_class/"
     CPC_SUBCLASS = "/api/v1/cpc_subclass/"
     CPC_GROUP = "/api/v1/cpc_group/"
+    IPC = "/api/v1/ipc/"
+
+    # Patent text endpoints (granted patents)
     CLAIMS = "/api/v1/g_claim/"
     BRIEF_SUMMARY = "/api/v1/g_brf_sum_text/"
     DESCRIPTION = "/api/v1/g_detail_desc_text/"
     DRAWING_DESC = "/api/v1/g_draw_desc_text/"
-    PUBLICATION = "/api/v1/publication/"
+
+    # Publication text endpoints (pregrant)
+    PG_CLAIMS = "/api/v1/pg_claim/"
+    PG_BRIEF_SUMMARY = "/api/v1/pg_brf_sum_text/"
+    PG_DESCRIPTION = "/api/v1/pg_detail_desc_text/"
+    PG_DRAWING_DESC = "/api/v1/pg_draw_desc_text/"
+
+    # Citation endpoints
     FOREIGN_CITATION = "/api/v1/patent/foreign_citation/"
+    US_PATENT_CITATION = "/api/v1/patent/us_patent_citation/"
+    US_APPLICATION_CITATION = "/api/v1/patent/us_application_citation/"
 
 
 class OfficeActionTypes:

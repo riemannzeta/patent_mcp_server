@@ -1290,6 +1290,92 @@ async def patentsview_lookup_cpc(cpc_code: str) -> Dict[str, Any]:
         return await patentsview_client.lookup_cpc_class(cpc_code)
 
 
+@mcp.tool()
+async def patentsview_search_attorneys(
+    name: str,
+    limit: int = 100,
+) -> Dict[str, Any]:
+    """Search for patent attorneys/agents.
+
+    USE THIS TOOL WHEN: You need to find patents handled by specific
+    attorneys or law firms, or research attorney prosecution history.
+
+    Args:
+        name: Attorney or firm name (partial match supported)
+        limit: Maximum results to return (default: 100, max: 1000)
+
+    Returns:
+        List of attorneys with their IDs for detailed lookups.
+    """
+    # Support searching by last name or organization
+    query = {"_or": [
+        {"attorney_name_last": {"_contains": name}},
+        {"attorney_organization": {"_contains": name}},
+    ]}
+
+    result = await patentsview_client.search_attorneys(query, size=limit)
+
+    if is_error(result):
+        return result
+
+    return check_and_truncate(ResponseEnvelope.from_patentsview(result, 0, limit))
+
+
+@mcp.tool()
+async def patentsview_get_attorney(attorney_id: str) -> Dict[str, Any]:
+    """Get detailed attorney information by ID.
+
+    Args:
+        attorney_id: Attorney ID from search results
+    """
+    return await patentsview_client.get_attorney(attorney_id)
+
+
+@mcp.tool()
+async def patentsview_lookup_ipc(ipc_code: str) -> Dict[str, Any]:
+    """Look up IPC (International Patent Classification) code details.
+
+    USE THIS TOOL WHEN: You need to understand what technology area
+    an IPC code represents, or find the IPC hierarchy.
+
+    Args:
+        ipc_code: IPC code (e.g., "G06F" for data processing)
+
+    Returns:
+        IPC classification title and description.
+    """
+    return await patentsview_client.lookup_ipc(ipc_code)
+
+
+@mcp.tool()
+async def patentsview_search_by_ipc(
+    ipc_code: str,
+    limit: int = 100,
+) -> Dict[str, Any]:
+    """Search patents by IPC (International Patent Classification) code.
+
+    USE THIS TOOL WHEN: You need to find patents in a specific technology
+    area using the international classification system (vs CPC which is
+    US/European focused).
+
+    Args:
+        ipc_code: IPC code (e.g., "G06F" for data processing)
+        limit: Maximum results to return (default: 100, max: 1000)
+
+    Returns:
+        List of patents with the specified IPC classification.
+    """
+    # Search for patents with this IPC code
+    query = {"ipc_class": {"_begins": ipc_code}}
+
+    result = await patentsview_client.search_ipc(query, size=limit)
+
+    if is_error(result):
+        return result
+
+    return check_and_truncate(ResponseEnvelope.from_patentsview(result, 0, limit))
+
+
 # =====================================================================
 # Office Action Tools
 # =====================================================================
