@@ -418,6 +418,80 @@ async def test_http_error_handling(patentsview_client):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
+async def test_http_400_error_uses_header_message(patentsview_client):
+    """Test that 400 errors extract message from X-Status-Reason header."""
+    with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.text = '{"error": true}'
+        mock_response.headers = {"X-Status-Reason": "Invalid query: missing required field 'q'"}
+        mock_response.json.return_value = {"error": True}
+
+        error = httpx.HTTPStatusError("Bad Request", request=MagicMock(), response=mock_response)
+        mock_get.side_effect = error
+
+        # Clear rate limit state first
+        patentsview_client._request_times = []
+
+        result = await patentsview_client._make_request("/test")
+
+        assert result.get("error") is True
+        assert result.get("status_code") == 400
+        # Message should be from X-Status-Reason header, NOT boolean True
+        assert isinstance(result.get("message"), str)
+        assert result.get("message") == "Invalid query: missing required field 'q'"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_http_error_without_header_uses_response_text(patentsview_client):
+    """Test that errors without X-Status-Reason use response text."""
+    with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_response.text = "Internal Server Error"
+        mock_response.headers = {}  # No X-Status-Reason header
+        mock_response.json.return_value = {"error": True}
+
+        error = httpx.HTTPStatusError("Internal Server Error", request=MagicMock(), response=mock_response)
+        mock_get.side_effect = error
+
+        # Clear rate limit state first
+        patentsview_client._request_times = []
+
+        result = await patentsview_client._make_request("/test")
+
+        assert result.get("error") is True
+        assert isinstance(result.get("message"), str)
+        # When no X-Status-Reason, should use response text
+        assert result.get("message") == "Internal Server Error"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_http_error_json_parse_failure_uses_header(patentsview_client):
+    """Test that errors failing JSON parse use X-Status-Reason header."""
+    with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.text = "Not valid JSON"
+        mock_response.headers = {"X-Status-Reason": "Invalid request format"}
+        mock_response.json.side_effect = ValueError("Invalid JSON")
+
+        error = httpx.HTTPStatusError("Bad Request", request=MagicMock(), response=mock_response)
+        mock_get.side_effect = error
+
+        # Clear rate limit state first
+        patentsview_client._request_times = []
+
+        result = await patentsview_client._make_request("/test")
+
+        assert result.get("error") is True
+        assert result.get("message") == "Invalid request format"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
 async def test_rate_limit_429_handling(patentsview_client):
     """Test handling of 429 rate limit response."""
     with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:

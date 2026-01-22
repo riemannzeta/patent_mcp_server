@@ -59,18 +59,29 @@ class ApiError:
         Returns:
             Standardized error dictionary
         """
+        message = response_text  # Default fallback
+        error_code = None
+        details = None
+
         if response_json:
-            return ApiError.create(
-                message=response_json.get("error", response_json.get("message", response_text)),
-                status_code=status_code,
-                error_code=response_json.get("errorCode"),
-                details=response_json.get("errorDetails")
-            )
-        else:
-            return ApiError.create(
-                message=response_text,
-                status_code=status_code
-            )
+            # Try to extract message - prefer "message" field, then "error" if it's a string
+            potential_message = response_json.get("message")
+            if not isinstance(potential_message, str) or not potential_message:
+                potential_message = response_json.get("error")
+
+            # Only use if it's a non-empty string (not a boolean like {"error": true})
+            if isinstance(potential_message, str) and potential_message:
+                message = potential_message
+
+            error_code = response_json.get("errorCode")
+            details = response_json.get("errorDetails")
+
+        return ApiError.create(
+            message=message,
+            status_code=status_code,
+            error_code=error_code,
+            details=details
+        )
 
     @staticmethod
     def from_exception(exception: Exception, context: Optional[str] = None) -> Dict[str, Any]:

@@ -410,3 +410,84 @@ def test_error_with_context():
     assert error["error"] is True
     assert error["message"] == "Failed to download PDF"
     assert isinstance(error.get("details"), dict)
+
+
+# ============================================================================
+# Boolean Error Flag Handling Tests (PatentsView API)
+# ============================================================================
+
+@pytest.mark.unit
+def test_from_http_error_with_boolean_error_flag():
+    """Test that boolean 'error' field is NOT used as message."""
+    response_json = {"error": True}
+
+    error = ApiError.from_http_error(
+        status_code=400,
+        response_text="Bad Request: Invalid query syntax",
+        response_json=response_json
+    )
+
+    assert error["error"] is True
+    assert error["status_code"] == 400
+    assert isinstance(error["message"], str)
+    assert error["message"] == "Bad Request: Invalid query syntax"
+
+
+@pytest.mark.unit
+def test_from_http_error_prefers_message_field():
+    """Test that 'message' field is preferred over 'error' field."""
+    response_json = {
+        "error": True,
+        "message": "Query parameter 'q' is required"
+    }
+
+    error = ApiError.from_http_error(
+        status_code=400,
+        response_text="Bad Request",
+        response_json=response_json
+    )
+
+    assert error["message"] == "Query parameter 'q' is required"
+
+
+@pytest.mark.unit
+def test_from_http_error_uses_string_error_field():
+    """Test that string 'error' field is used as message."""
+    response_json = {"error": "Invalid patent number format"}
+
+    error = ApiError.from_http_error(
+        status_code=400,
+        response_text="Bad Request",
+        response_json=response_json
+    )
+
+    assert error["message"] == "Invalid patent number format"
+
+
+@pytest.mark.unit
+def test_from_http_error_with_false_error_flag():
+    """Test handling of 'error': false (shouldn't be used as message)."""
+    response_json = {"error": False}
+
+    error = ApiError.from_http_error(
+        status_code=400,
+        response_text="Something went wrong",
+        response_json=response_json
+    )
+
+    assert error["message"] == "Something went wrong"
+    assert isinstance(error["message"], str)
+
+
+@pytest.mark.unit
+def test_from_http_error_with_empty_message_field():
+    """Test handling of empty message field falls back to response_text."""
+    response_json = {"error": True, "message": ""}
+
+    error = ApiError.from_http_error(
+        status_code=400,
+        response_text="Fallback error message",
+        response_json=response_json
+    )
+
+    assert error["message"] == "Fallback error message"

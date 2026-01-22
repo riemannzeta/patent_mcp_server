@@ -157,15 +157,18 @@ class PatentsViewClient:
 
             try:
                 error_json = e.response.json()
+                # PatentsView uses X-Status-Reason header for actual error details
+                error_message = status_reason if status_reason else e.response.text
                 return ApiError.from_http_error(
                     status_code=status_code,
-                    response_text=e.response.text,
+                    response_text=error_message,
                     response_json=error_json
                 )
             except Exception:
+                error_message = status_reason if status_reason else e.response.text
                 return ApiError.from_http_error(
                     status_code=status_code,
-                    response_text=f"{status_reason or e.response.text}"
+                    response_text=error_message
                 )
 
         except (httpx.TimeoutException, httpx.NetworkError) as e:
