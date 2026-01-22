@@ -40,6 +40,16 @@ from patent_mcp_server.patents import (
     get_status_code,
     odp_search_datasets,
     odp_get_dataset,
+
+    # PatentsView tools
+    patentsview_search_patents,
+    patentsview_get_patent,
+    patentsview_search_assignees,
+    patentsview_search_inventors,
+    patentsview_get_claims,
+    patentsview_get_description,
+    patentsview_search_by_cpc,
+    patentsview_lookup_cpc,
 )
 
 # Test constants
@@ -317,3 +327,100 @@ async def test_odp_get_dataset(results_dir):
     # Note: This may fail if product_id doesn't exist, which is acceptable for this test
     # Just check that we got a response
     assert result is not None, "Expected a response"
+
+
+# ===================================================================
+# Tests for PatentsView API (search.patentsview.org)
+# ===================================================================
+
+
+async def test_patentsview_search_patents(results_dir):
+    """Test searching for patents via PatentsView."""
+    result = await patentsview_search_patents(
+        query="neural network",
+        search_type="any",
+        limit=10
+    )
+
+    await save_result(result, "patentsview_search_patents.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    # PatentsView returns 'patents' key on success
+    assert "patents" in result or result.get("success") is True, "Expected patents in response"
+
+
+async def test_patentsview_search_patents_phrase(results_dir):
+    """Test phrase search via PatentsView."""
+    result = await patentsview_search_patents(
+        query="machine learning",
+        search_type="phrase",
+        limit=5
+    )
+
+    await save_result(result, "patentsview_search_patents_phrase.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+
+
+async def test_patentsview_get_patent(results_dir):
+    """Test retrieving a specific patent by ID."""
+    result = await patentsview_get_patent(patent_id="7861317")
+
+    await save_result(result, "patentsview_get_patent.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+
+
+async def test_patentsview_search_assignees(results_dir):
+    """Test searching for assignees."""
+    result = await patentsview_search_assignees(
+        query='{"assignee_organization": {"_contains": "Apple"}}',
+        limit=10
+    )
+
+    await save_result(result, "patentsview_search_assignees.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+
+
+async def test_patentsview_search_inventors(results_dir):
+    """Test searching for inventors."""
+    result = await patentsview_search_inventors(
+        query='{"inventor_name_last": "Smith"}',
+        limit=10
+    )
+
+    await save_result(result, "patentsview_search_inventors.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+
+
+async def test_patentsview_get_claims(results_dir):
+    """Test getting patent claims."""
+    result = await patentsview_get_claims(patent_id="7861317")
+
+    await save_result(result, "patentsview_get_claims.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+
+
+async def test_patentsview_search_by_cpc(results_dir):
+    """Test searching by CPC classification."""
+    result = await patentsview_search_by_cpc(
+        cpc_code="G06N",
+        limit=10
+    )
+
+    await save_result(result, "patentsview_search_by_cpc.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+
+
+async def test_patentsview_lookup_cpc(results_dir):
+    """Test CPC code lookup."""
+    result = await patentsview_lookup_cpc(cpc_code="G06")
+
+    await save_result(result, "patentsview_lookup_cpc.json", results_dir)
+
+    # CPC lookup may return empty for some codes, so just check no error
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"

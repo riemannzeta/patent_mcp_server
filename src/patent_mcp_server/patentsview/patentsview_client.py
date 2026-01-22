@@ -150,7 +150,10 @@ class PatentsViewClient:
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             status_reason = e.response.headers.get("X-Status-Reason", "")
-            logger.error(f"HTTP error: {status_code} - {status_reason}")
+            logger.error(
+                f"HTTP {status_code} error for {method} {url}: {status_reason}. "
+                f"Request params={params}, body={data}"
+            )
 
             try:
                 error_json = e.response.json()
@@ -179,6 +182,7 @@ class PatentsViewClient:
         f: Optional[List[str]] = None,
         s: Optional[List[Dict[str, str]]] = None,
         o: Optional[Dict[str, Any]] = None,
+        for_post: bool = True,
     ) -> Dict[str, Any]:
         """Build a PatentsView API query object.
 
@@ -187,20 +191,33 @@ class PatentsViewClient:
             f: Fields to return
             s: Sort order
             o: Options (pagination, etc.)
+            for_post: If True, return raw dicts for POST body.
+                      If False, return JSON-stringified values for GET params.
 
         Returns:
-            Query parameters dict
+            Query dict for POST body (for_post=True) or
+            Query parameters dict with JSON strings (for_post=False)
         """
-        params = {"q": json.dumps(q)}
-
-        if f:
-            params["f"] = json.dumps(f)
-        if s:
-            params["s"] = json.dumps(s)
-        if o:
-            params["o"] = json.dumps(o)
-
-        return params
+        if for_post:
+            # For POST requests: return raw objects as JSON body
+            body = {"q": q}
+            if f:
+                body["f"] = f
+            if s:
+                body["s"] = s
+            if o:
+                body["o"] = o
+            return body
+        else:
+            # For GET requests: JSON-stringify values for URL params
+            params = {"q": json.dumps(q)}
+            if f:
+                params["f"] = json.dumps(f)
+            if s:
+                params["s"] = json.dumps(s)
+            if o:
+                params["o"] = json.dumps(o)
+            return params
 
     async def search_patents(
         self,
@@ -232,9 +249,13 @@ class PatentsViewClient:
         if not exclude_withdrawn:
             options["exclude_withdrawn"] = False
 
-        params = self._build_query(query, fields, sort, options)
+        body = self._build_query(query, fields, sort, options, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.PATENT, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.PATENT,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def get_patent(self, patent_id: str) -> Dict[str, Any]:
         """Get a specific patent by ID.
@@ -309,9 +330,13 @@ class PatentsViewClient:
             Dictionary containing assignee search results
         """
         options = {"size": min(size, 1000)}
-        params = self._build_query(query, fields, o=options)
+        body = self._build_query(query, fields, o=options, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.ASSIGNEE, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.ASSIGNEE,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def get_assignee(self, assignee_id: str) -> Dict[str, Any]:
         """Get a specific assignee by ID.
@@ -342,9 +367,13 @@ class PatentsViewClient:
             Dictionary containing inventor search results
         """
         options = {"size": min(size, 1000)}
-        params = self._build_query(query, fields, o=options)
+        body = self._build_query(query, fields, o=options, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.INVENTOR, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.INVENTOR,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def get_inventor(self, inventor_id: str) -> Dict[str, Any]:
         """Get a specific inventor by ID.
@@ -373,9 +402,13 @@ class PatentsViewClient:
         """
         query = {"patent_id": patent_id}
         default_fields = fields or ["patent_id", "claim_sequence", "claim_text"]
-        params = self._build_query(query, default_fields)
+        body = self._build_query(query, default_fields, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.CLAIMS, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.CLAIMS,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def get_patent_summary(
         self,
@@ -390,9 +423,13 @@ class PatentsViewClient:
             Dictionary containing patent brief summary
         """
         query = {"patent_id": patent_id}
-        params = self._build_query(query)
+        body = self._build_query(query, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.BRIEF_SUMMARY, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.BRIEF_SUMMARY,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def get_patent_description(
         self,
@@ -407,9 +444,13 @@ class PatentsViewClient:
             Dictionary containing patent detailed description
         """
         query = {"patent_id": patent_id}
-        params = self._build_query(query)
+        body = self._build_query(query, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.DESCRIPTION, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.DESCRIPTION,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def search_by_cpc(
         self,
@@ -480,9 +521,13 @@ class PatentsViewClient:
             Dictionary containing publication search results
         """
         options = {"size": min(size, 1000)}
-        params = self._build_query(query, fields, o=options)
+        body = self._build_query(query, fields, o=options, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.PUBLICATION, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.PUBLICATION,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def get_foreign_citations(
         self,
@@ -499,9 +544,13 @@ class PatentsViewClient:
             Dictionary containing foreign citations
         """
         query = {"patent_id": patent_id}
-        params = self._build_query(query, fields)
+        body = self._build_query(query, fields, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.FOREIGN_CITATION, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.FOREIGN_CITATION,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def search_attorneys(
         self,
@@ -522,9 +571,13 @@ class PatentsViewClient:
             Dictionary containing attorney search results
         """
         options = {"size": min(size, 1000)}
-        params = self._build_query(query, fields, o=options)
+        body = self._build_query(query, fields, o=options, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.ATTORNEY, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.ATTORNEY,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def get_attorney(self, attorney_id: str) -> Dict[str, Any]:
         """Get a specific attorney by ID.
@@ -556,9 +609,13 @@ class PatentsViewClient:
             Dictionary containing IPC search results
         """
         options = {"size": min(size, 1000)}
-        params = self._build_query(query, fields, o=options)
+        body = self._build_query(query, fields, o=options, for_post=True)
 
-        return await self._make_request(PatentsViewEndpoints.IPC, params=params)
+        return await self._make_request(
+            PatentsViewEndpoints.IPC,
+            method=HTTPMethods.POST,
+            data=body
+        )
 
     async def lookup_ipc(self, ipc_code: str) -> Dict[str, Any]:
         """Look up IPC classification information.

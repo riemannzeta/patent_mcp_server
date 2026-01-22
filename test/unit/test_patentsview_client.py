@@ -88,7 +88,7 @@ async def test_get_patent(patentsview_client):
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_search_patents_with_query(patentsview_client):
-    """Test search with complex query object."""
+    """Test search with complex query object uses POST method."""
     with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
         mock_request.return_value = {"patents": [], "count": 0, "total_hits": 0}
 
@@ -100,6 +100,11 @@ async def test_search_patents_with_query(patentsview_client):
         result = await patentsview_client.search_patents(query, size=50)
 
         mock_request.assert_called_once()
+        # Verify POST method is used with data (not params)
+        call_kwargs = mock_request.call_args.kwargs
+        assert call_kwargs.get("method") == "POST"
+        assert "data" in call_kwargs
+        assert call_kwargs["data"]["q"] == query  # Raw object, not JSON string
 
 
 # ============================================================================
@@ -355,7 +360,7 @@ async def test_search_publications(patentsview_client):
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_search_publications_with_options(patentsview_client):
-    """Test publication search passes size option correctly."""
+    """Test publication search passes size option correctly via POST."""
     with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
         mock_request.return_value = {"publications": [], "count": 0}
 
@@ -363,9 +368,11 @@ async def test_search_publications_with_options(patentsview_client):
         result = await patentsview_client.search_publications(query, size=50)
 
         mock_request.assert_called_once()
-        # Verify the params include the options
-        call_args = mock_request.call_args
-        assert 'params' in call_args.kwargs or len(call_args.args) > 1
+        # Verify POST method with data (not params)
+        call_kwargs = mock_request.call_args.kwargs
+        assert call_kwargs.get("method") == "POST"
+        assert "data" in call_kwargs
+        assert call_kwargs["data"]["o"]["size"] == 50
 
 
 # ============================================================================
@@ -444,16 +451,49 @@ async def test_rate_limit_429_handling(patentsview_client):
 # ============================================================================
 
 @pytest.mark.unit
-def test_build_query():
-    """Test query building."""
+def test_build_query_for_post():
+    """Test query building for POST requests returns raw objects."""
     client = PatentsViewClient()
 
     query = {"patent_title": "test"}
-    params = client._build_query(query, f=["patent_id"], s=[{"patent_date": "desc"}])
+    body = client._build_query(query, f=["patent_id"], s=[{"patent_date": "desc"}], for_post=True)
 
+    # for_post=True should return raw objects, not JSON strings
+    assert body["q"] == {"patent_title": "test"}
+    assert body["f"] == ["patent_id"]
+    assert body["s"] == [{"patent_date": "desc"}]
+    assert isinstance(body["q"], dict)
+    assert isinstance(body["f"], list)
+
+
+@pytest.mark.unit
+def test_build_query_for_get():
+    """Test query building for GET requests returns JSON strings."""
+    client = PatentsViewClient()
+
+    query = {"patent_title": "test"}
+    params = client._build_query(query, f=["patent_id"], s=[{"patent_date": "desc"}], for_post=False)
+
+    # for_post=False should return JSON-stringified values
     assert "q" in params
     assert "f" in params
     assert "s" in params
+    assert isinstance(params["q"], str)  # Should be JSON string
+    assert isinstance(params["f"], str)  # Should be JSON string
+    assert '{"patent_title": "test"}' == params["q"]
+
+
+@pytest.mark.unit
+def test_build_query_default_is_post():
+    """Test that default query building mode is for POST."""
+    client = PatentsViewClient()
+
+    query = {"patent_id": "7861317"}
+    # Default (no for_post argument) should behave like for_post=True
+    body = client._build_query(query)
+
+    assert body["q"] == {"patent_id": "7861317"}
+    assert isinstance(body["q"], dict)
 
 
 @pytest.mark.unit
@@ -462,11 +502,110 @@ def test_build_query_minimal():
     client = PatentsViewClient()
 
     query = {"patent_id": "7861317"}
-    params = client._build_query(query)
+    body = client._build_query(query, for_post=True)
 
-    assert "q" in params
-    assert "f" not in params
-    assert "s" not in params
+    assert "q" in body
+    assert "f" not in body
+    assert "s" not in body
+
+
+# ============================================================================
+# POST Method Verification Tests
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_assignees_uses_post(patentsview_client):
+    """Test that search_assignees uses POST method."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"assignees": [], "count": 0}
+
+        query = {"assignee_organization": {"_contains": "IBM"}}
+        await patentsview_client.search_assignees(query)
+
+        call_kwargs = mock_request.call_args.kwargs
+        assert call_kwargs.get("method") == "POST"
+        assert "data" in call_kwargs
+        assert call_kwargs["data"]["q"] == query
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_inventors_uses_post(patentsview_client):
+    """Test that search_inventors uses POST method."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"inventors": [], "count": 0}
+
+        query = {"inventor_name_last": "Smith"}
+        await patentsview_client.search_inventors(query)
+
+        call_kwargs = mock_request.call_args.kwargs
+        assert call_kwargs.get("method") == "POST"
+        assert "data" in call_kwargs
+        assert call_kwargs["data"]["q"] == query
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_get_patent_claims_uses_post(patentsview_client):
+    """Test that get_patent_claims uses POST method."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"claims": [], "count": 0}
+
+        await patentsview_client.get_patent_claims("7861317")
+
+        call_kwargs = mock_request.call_args.kwargs
+        assert call_kwargs.get("method") == "POST"
+        assert "data" in call_kwargs
+        assert call_kwargs["data"]["q"] == {"patent_id": "7861317"}
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_publications_uses_post(patentsview_client):
+    """Test that search_publications uses POST method."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"publications": [], "count": 0}
+
+        query = {"publication_title": {"_contains": "neural"}}
+        await patentsview_client.search_publications(query)
+
+        call_kwargs = mock_request.call_args.kwargs
+        assert call_kwargs.get("method") == "POST"
+        assert "data" in call_kwargs
+        assert call_kwargs["data"]["q"] == query
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_attorneys_uses_post(patentsview_client):
+    """Test that search_attorneys uses POST method."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"attorneys": [], "count": 0}
+
+        query = {"attorney_name_last": "Smith"}
+        await patentsview_client.search_attorneys(query)
+
+        call_kwargs = mock_request.call_args.kwargs
+        assert call_kwargs.get("method") == "POST"
+        assert "data" in call_kwargs
+        assert call_kwargs["data"]["q"] == query
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_ipc_uses_post(patentsview_client):
+    """Test that search_ipc uses POST method."""
+    with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = {"ipcs": [], "count": 0}
+
+        query = {"ipc_class": "G06"}
+        await patentsview_client.search_ipc(query)
+
+        call_kwargs = mock_request.call_args.kwargs
+        assert call_kwargs.get("method") == "POST"
+        assert "data" in call_kwargs
+        assert call_kwargs["data"]["q"] == query
 
 
 # ============================================================================
