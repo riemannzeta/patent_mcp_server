@@ -307,10 +307,10 @@ class PatentsViewClient:
 
         default_fields = fields or [
             "patent_id", "patent_title", "patent_abstract", "patent_date",
-            "patent_type", "patent_num_claims",
+            "patent_type",
             "assignees.assignee_organization", "assignees.assignee_type",
             "inventors.inventor_name_first", "inventors.inventor_name_last",
-            "cpcs.cpc_group_id", "cpcs.cpc_group_title",
+            "cpc_current.cpc_group_id", "cpc_current.cpc_subclass_id",
         ]
 
         return await self.search_patents(query, fields=default_fields, size=size)
@@ -473,13 +473,13 @@ class PatentsViewClient:
         """
         # Handle both exact match and prefix match
         if "/" in cpc_code:
-            query = {"cpcs.cpc_subgroup_id": cpc_code}
+            query = {"cpc_current.cpc_group_id": cpc_code}
         else:
-            query = {"cpcs.cpc_group_id": {"_begins": cpc_code}}
+            query = {"cpc_current.cpc_subclass_id": {"_begins": cpc_code}}
 
         default_fields = fields or [
             "patent_id", "patent_title", "patent_date",
-            "cpcs.cpc_group_id", "cpcs.cpc_group_title",
+            "cpc_current.cpc_group_id", "cpc_current.cpc_subclass_id",
             "assignees.assignee_organization",
         ]
 
