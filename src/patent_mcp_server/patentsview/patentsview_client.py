@@ -145,7 +145,20 @@ class PatentsViewClient:
                     response = await self.client.post(url, json=data)
 
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+
+            # PatentsView can return errors with HTTP 200 - normalize them
+            if isinstance(data.get("error"), bool) and data.get("error") is True:
+                message = data.get("message")
+                if not isinstance(message, str) or not message:
+                    message = "PatentsView API error"
+                return ApiError.create(
+                    message=message,
+                    status_code=data.get("status_code", 200),
+                    details={"raw_response": data}
+                )
+
+            return data
 
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code

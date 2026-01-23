@@ -492,6 +492,122 @@ async def test_http_error_json_parse_failure_uses_header(patentsview_client):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
+async def test_http_200_with_error_boolean_message(patentsview_client):
+    """Test HTTP 200 with {"error": true, "message": true} returns normalized error."""
+    with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"error": True, "message": True, "status_code": 400}
+        mock_response.raise_for_status = MagicMock()  # No exception for 200
+
+        mock_get.return_value = mock_response
+
+        # Clear rate limit state first
+        patentsview_client._request_times = []
+
+        result = await patentsview_client._make_request("/test")
+
+        assert result.get("error") is True
+        # Message should be normalized to a string, not boolean
+        assert isinstance(result.get("message"), str)
+        assert result.get("message") == "PatentsView API error"
+        assert result.get("status_code") == 400
+        # Raw response should be preserved in details
+        assert result.get("details", {}).get("raw_response") == {"error": True, "message": True, "status_code": 400}
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_http_200_with_error_string_message(patentsview_client):
+    """Test HTTP 200 with {"error": true, "message": "actual error"} preserves message."""
+    with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"error": True, "message": "Invalid query syntax", "status_code": 400}
+        mock_response.raise_for_status = MagicMock()  # No exception for 200
+
+        mock_get.return_value = mock_response
+
+        # Clear rate limit state first
+        patentsview_client._request_times = []
+
+        result = await patentsview_client._make_request("/test")
+
+        assert result.get("error") is True
+        # Message should be preserved as-is
+        assert result.get("message") == "Invalid query syntax"
+        assert result.get("status_code") == 400
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_http_200_with_error_empty_message(patentsview_client):
+    """Test HTTP 200 with {"error": true, "message": ""} returns default error message."""
+    with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"error": True, "message": ""}
+        mock_response.raise_for_status = MagicMock()
+
+        mock_get.return_value = mock_response
+
+        # Clear rate limit state first
+        patentsview_client._request_times = []
+
+        result = await patentsview_client._make_request("/test")
+
+        assert result.get("error") is True
+        # Empty message should be normalized
+        assert result.get("message") == "PatentsView API error"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_http_200_success_returns_data(patentsview_client):
+    """Test HTTP 200 with valid data (no error) returns data normally."""
+    with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"patents": [{"patent_id": "123"}], "count": 1, "total_hits": 1}
+        mock_response.raise_for_status = MagicMock()
+
+        mock_get.return_value = mock_response
+
+        # Clear rate limit state first
+        patentsview_client._request_times = []
+
+        result = await patentsview_client._make_request("/test")
+
+        # Should return the data as-is
+        assert result.get("patents") == [{"patent_id": "123"}]
+        assert result.get("count") == 1
+        assert result.get("error") is None
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_http_200_with_error_false_returns_data(patentsview_client):
+    """Test HTTP 200 with {"error": false, ...} returns data normally."""
+    with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"error": False, "data": "some_value"}
+        mock_response.raise_for_status = MagicMock()
+
+        mock_get.return_value = mock_response
+
+        # Clear rate limit state first
+        patentsview_client._request_times = []
+
+        result = await patentsview_client._make_request("/test")
+
+        # Should return the data as-is, not treated as error
+        assert result.get("error") is False
+        assert result.get("data") == "some_value"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
 async def test_rate_limit_429_handling(patentsview_client):
     """Test handling of 429 rate limit response."""
     with patch.object(patentsview_client.client, 'get', new_callable=AsyncMock) as mock_get:
