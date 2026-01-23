@@ -1145,7 +1145,7 @@ async def patentsview_search_assignees(
     Returns:
         Disambiguated assignee records with patent counts.
     """
-    query = {"assignee_organization": {"_contains": name}}
+    query = {"_text_any": {"assignee_organization": name}}
     result = await patentsview_client.search_assignees(query, size=limit)
 
     if is_error(result):
@@ -1184,11 +1184,11 @@ async def patentsview_search_inventors(
     parts = name.strip().split()
     if len(parts) >= 2:
         query = {"_and": [
-            {"inventor_name_first": {"_contains": parts[0]}},
-            {"inventor_name_last": {"_contains": parts[-1]}},
+            {"_text_any": {"inventor_name_first": parts[0]}},
+            {"_text_any": {"inventor_name_last": parts[-1]}},
         ]}
     else:
-        query = {"inventor_name_last": {"_contains": name}}
+        query = {"_text_any": {"inventor_name_last": name}}
 
     result = await patentsview_client.search_inventors(query, size=limit)
 
@@ -1309,8 +1309,8 @@ async def patentsview_search_attorneys(
     """
     # Support searching by last name or organization
     query = {"_or": [
-        {"attorney_name_last": {"_contains": name}},
-        {"attorney_organization": {"_contains": name}},
+        {"_text_any": {"attorney_name_last": name}},
+        {"_text_any": {"attorney_organization": name}},
     ]}
 
     result = await patentsview_client.search_attorneys(query, size=limit)

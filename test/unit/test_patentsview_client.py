@@ -242,13 +242,19 @@ async def test_lookup_cpc_class(patentsview_client):
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_lookup_cpc_group(patentsview_client):
-    """Test CPC group lookup."""
+    """Test CPC group lookup with slash-to-colon URL conversion."""
     with patch.object(patentsview_client, '_make_request', new_callable=AsyncMock) as mock_request:
         mock_request.return_value = {"cpc_group": "G06N3/08"}
 
         result = await patentsview_client.lookup_cpc_group("G06N3/08")
 
         mock_request.assert_called_once()
+        # Verify slash is converted to colon in URL
+        url_arg = mock_request.call_args[0][0]
+        assert "G06N3:08" in url_arg, f"Expected 'G06N3:08' in URL, got: {url_arg}"
+        # The URL ends with trailing slash, so check the CPC code part doesn't have slash
+        cpc_part = url_arg.split("cpc_group/")[1].rstrip("/")
+        assert "/" not in cpc_part, f"CPC code should not contain slash: {cpc_part}"
 
 
 # ============================================================================

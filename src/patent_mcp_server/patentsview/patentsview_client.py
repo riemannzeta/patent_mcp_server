@@ -338,7 +338,7 @@ class PatentsViewClient:
 
         Args:
             query: Query object for assignee search
-                   Example: {"assignee_organization": {"_contains": "IBM"}}
+                   Example: {"_text_any": {"assignee_organization": "IBM"}}
             fields: List of fields to return
             size: Results per page
 
@@ -375,7 +375,7 @@ class PatentsViewClient:
 
         Args:
             query: Query object for inventor search
-                   Example: {"inventor_name_last": "Smith"}
+                   Example: {"_text_any": {"inventor_name_last": "Smith"}}
             fields: List of fields to return
             size: Results per page
 
@@ -518,7 +518,9 @@ class PatentsViewClient:
         Returns:
             Dictionary containing CPC group details
         """
-        return await self._make_request(f"{PatentsViewEndpoints.CPC_GROUP}{cpc_group}/")
+        # Convert slash to colon for API URL (e.g., "G06N3/08" → "G06N3:08")
+        cpc_group_formatted = cpc_group.replace("/", ":")
+        return await self._make_request(f"{PatentsViewEndpoints.CPC_GROUP}{cpc_group_formatted}/")
 
     async def search_publications(
         self,
@@ -578,8 +580,8 @@ class PatentsViewClient:
 
         Args:
             query: Query object for attorney search
-                   Example: {"attorney_name_last": "Smith"}
-                   Example: {"attorney_organization": {"_contains": "LLP"}}
+                   Example: {"_text_any": {"attorney_name_last": "Smith"}}
+                   Example: {"_text_any": {"attorney_organization": "LLP"}}
             fields: List of fields to return
             size: Results per page
 
