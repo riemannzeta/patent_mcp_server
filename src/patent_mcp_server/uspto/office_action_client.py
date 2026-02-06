@@ -8,6 +8,9 @@ APIs included:
 - Office Action Text Retrieval API
 - Office Action Citations API
 - Office Action Rejection API
+
+Note: These APIs are planned for migration to the Open Data Portal (ODP) in early 2026.
+Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
 """
 
 import logging

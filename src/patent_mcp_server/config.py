@@ -36,7 +36,7 @@ class Config:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/0.6.1")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/0.6.2")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry
@@ -75,8 +75,8 @@ class Config:
 
         if not cls.USPTO_API_KEY:
             logger.warning(
-                "USPTO_API_KEY not set. API tools (api.uspto.gov) may not work. "
-                "See README.md for instructions on obtaining an API key."
+                "USPTO_API_KEY not set. ODP API tools (api.uspto.gov) will return 403. "
+                "Register at https://data.uspto.gov and visit 'My ODP' to get your API key."
             )
 
         if not cls.PATENTSVIEW_API_KEY:

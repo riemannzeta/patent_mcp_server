@@ -30,11 +30,11 @@ This server interacts with six USPTO patent data sources:
 | Source | Description | Auth Required |
 |--------|-------------|---------------|
 | **ppubs.uspto.gov** | Full text documents, PDF downloads, advanced search (daily updates) | No |
-| **api.uspto.gov (ODP)** | Metadata, continuity, transactions, assignments, prosecution history | Yes (USPTO API Key) |
-| **PTAB API v3** | IPR/PGR/CBM proceedings, decisions, appeals, interferences | Yes (USPTO API Key) |
+| **api.uspto.gov (ODP)** | Metadata, continuity, transactions, assignments, prosecution history | Yes (ODP API Key) |
+| **PTAB API v3 (ODP)** | IPR/PGR/CBM proceedings, decisions, appeals, interferences | Yes (ODP API Key) |
 | **PatentsView API** | Disambiguated inventor/assignee data, advanced search | Yes (PatentsView Key) |
-| **Office Action APIs** | Full-text office actions, citations, rejections (12-series apps, June 2018+) | Yes (USPTO API Key) |
-| **Patent Litigation API** | 74,000+ district court patent cases | Yes (USPTO API Key) |
+| **Office Action APIs** | Full-text office actions, citations, rejections (12-series apps, June 2018+) | Yes (ODP API Key) |
+| **Patent Litigation API** | 74,000+ district court patent cases | Yes (ODP API Key) |
 
 ## Prerequisites
 
@@ -73,17 +73,19 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## API Key Setup
 
-### USPTO API Key (Required for most tools)
+### USPTO ODP API Key (Required for most tools)
 
-To use the api.uspto.gov tools (ODP, PTAB, Office Actions, Litigation), you need an Open Data Portal API key:
+To use the api.uspto.gov tools (ODP, PTAB, Office Actions, Litigation), you need an Open Data Portal API key. Without it, these endpoints return `403 Forbidden`.
 
-1. Visit [USPTO's Getting Started page](https://data.uspto.gov/apis/getting-started) and follow the instructions to request an API key.
+1. Create a USPTO.gov account at [data.uspto.gov](https://data.uspto.gov) (requires ID.me verification)
+2. Once signed in, visit **"My ODP"** in the site navigation to get your API key
+3. See the [Getting Started guide](https://data.uspto.gov/apis/getting-started) for detailed instructions
 
-2. Create a `.env` file in the patent_mcp_server directory:
+4. Create a `.env` file in the patent_mcp_server directory:
    ```bash
    USPTO_API_KEY=your_actual_key_here
    ```
-   Note: The PPUBS tools will work without this API key.
+   Note: The PPUBS and PatentsView tools will work without this API key.
 
 ### PatentsView API Key (Optional)
 
@@ -120,9 +122,9 @@ ENABLE_CACHING=true        # Enable/disable session caching
 
 # API Endpoints (usually don't need to change)
 PPUBS_BASE_URL=https://ppubs.uspto.gov
-API_BASE_URL=https://api.uspto.gov
+API_BASE_URL=https://api.uspto.gov          # ODP API endpoint (NOT data.uspto.gov)
 PATENTSVIEW_BASE_URL=https://search.patentsview.org
-OFFICE_ACTION_BASE_URL=https://developer.uspto.gov
+OFFICE_ACTION_BASE_URL=https://developer.uspto.gov  # Migration to ODP planned early 2026
 ```
 
 ## Claude Desktop Configuration
@@ -292,7 +294,13 @@ uv sync --dev
 
 ## Version History
 
-### v0.6.1 (Current)
+### v0.6.2 (Current)
+- Updated API key registration instructions: keys are now obtained from [data.uspto.gov](https://data.uspto.gov) ("My ODP")
+- Clarified that `api.uspto.gov` is the correct API endpoint (not `data.uspto.gov` which is the web portal)
+- Noted PTAB API v3 migration to ODP and Office Action API migration (early 2026)
+- Updated data source descriptions and auth documentation
+
+### v0.6.1
 - Added PatentsView attorney search tools (`patentsview_search_attorneys`, `patentsview_get_attorney`)
 - Added PatentsView IPC classification tools (`patentsview_lookup_ipc`, `patentsview_search_by_ipc`)
 - Fixed bug in `search_publications` method (pagination options not being passed)
