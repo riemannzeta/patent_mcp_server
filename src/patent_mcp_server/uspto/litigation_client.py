@@ -5,6 +5,7 @@ This module provides access to the OCE Patent Litigation Cases API
 for accessing district court case records involving patents.
 
 Contains 74,623+ district court case records.
+Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
 """
 
 import logging

@@ -3,6 +3,9 @@ USPTO Enriched Citation API Client
 
 This module provides access to the USPTO Enriched Citation API v3
 for patent evaluation insights and citation analysis.
+
+Note: This API is scheduled for decommissioning and migration to ODP in early 2026.
+Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
 """
 
 import logging

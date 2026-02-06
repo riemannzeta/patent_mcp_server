@@ -268,13 +268,14 @@ DATA_SOURCES = {
     "odp": {
         "name": "USPTO Open Data Portal (ODP)",
         "base_url": "https://api.uspto.gov",
-        "description": "Patent metadata, file wrapper data, continuity, assignments.",
+        "portal_url": "https://data.uspto.gov",
+        "description": "Patent metadata, file wrapper data, continuity, assignments. API key from data.uspto.gov required.",
         "coverage": {
-            "applications": "Patent applications with prosecution history",
+            "applications": "Patent applications with prosecution history (filed on or after Jan 1, 2001)",
             "assignments": "Recorded patent assignments",
             "transactions": "Prosecution transaction history",
         },
-        "rate_limits": "Requires API key, standard rate limits apply",
+        "rate_limits": "Requires ODP API key (register at data.uspto.gov), standard rate limits apply",
         "auth_required": True,
         "best_for": [
             "Prosecution history and file wrapper data",
@@ -304,16 +305,17 @@ DATA_SOURCES = {
         ],
     },
     "ptab": {
-        "name": "USPTO PTAB API",
+        "name": "USPTO PTAB API v3 (via ODP)",
         "base_url": "https://api.uspto.gov/api/v1/patent/trials",
-        "description": "Patent Trial and Appeal Board data - IPR, PGR, CBM proceedings.",
+        "portal_url": "https://data.uspto.gov",
+        "description": "Patent Trial and Appeal Board data - IPR, PGR, CBM proceedings. Migrated to ODP; requires ODP API key.",
         "coverage": {
             "proceedings": "IPR, PGR, CBM, derivation proceedings from 2012",
             "decisions": "Institution and final written decisions",
             "appeals": "Ex parte appeal decisions",
             "interferences": "Historical interference proceedings (pre-AIA)",
         },
-        "rate_limits": "Standard USPTO API limits",
+        "rate_limits": "Requires ODP API key, standard rate limits apply",
         "auth_required": True,
         "best_for": [
             "IPR/PGR/CBM proceeding research",
@@ -325,13 +327,13 @@ DATA_SOURCES = {
     "office_actions": {
         "name": "USPTO Office Action APIs",
         "base_url": "https://developer.uspto.gov",
-        "description": "Full-text office actions, citations, and rejection data.",
+        "description": "Full-text office actions, citations, and rejection data. Migration to ODP planned early 2026.",
         "coverage": {
             "applications": "12-series applications from June 2018",
             "citations": "References cited in office actions",
             "rejections": "Rejection data with claim-level details",
         },
-        "rate_limits": "Standard USPTO API limits",
+        "rate_limits": "Requires ODP API key, standard rate limits apply",
         "auth_required": True,
         "best_for": [
             "Office action full text",
@@ -343,12 +345,12 @@ DATA_SOURCES = {
     "litigation": {
         "name": "USPTO Patent Litigation API",
         "base_url": "https://api.uspto.gov/api/v1/patent/litigation",
-        "description": "District court patent litigation case records.",
+        "description": "District court patent litigation case records. Requires ODP API key.",
         "coverage": {
             "cases": "74,000+ district court cases",
             "date_range": "Historical litigation records",
         },
-        "rate_limits": "Standard USPTO API limits",
+        "rate_limits": "Requires ODP API key, standard rate limits apply",
         "auth_required": True,
         "best_for": [
             "Patent litigation history",
