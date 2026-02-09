@@ -4,6 +4,9 @@ USPTO PTAB API Client (Patent Trial and Appeal Board)
 This module provides access to the PTAB API v3 at api.uspto.gov for accessing
 Patent Trial and Appeal Board data including IPR, PGR, CBM proceedings,
 trial decisions, appeal outcomes, and interference records.
+
+Note: PTAB API v3 has been migrated to the Open Data Portal (ODP).
+Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
 """
 
 import logging

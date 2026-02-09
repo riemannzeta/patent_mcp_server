@@ -1,9 +1,12 @@
 """
-USPTO Open Data Protocol (ODP) API Module (api.uspto.gov)
+USPTO Open Data Portal (ODP) API Module (api.uspto.gov)
 
-This module provides tools for accessing the USPTO Open Data Protocol API at api.uspto.gov,
+This module provides tools for accessing the USPTO Open Data Portal API at api.uspto.gov,
 which provides metadata, continuity information, transactions, and assignment data
 for patents and applications.
+
+Note: Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
+The API endpoint is api.uspto.gov; data.uspto.gov is the web portal only.
 """
 
 import os
@@ -29,9 +32,10 @@ logger = logging.getLogger('api_uspto_gov')
 
 
 class ApiUsptoClient:
-    """Client for the USPTO Open Data Protocol (ODP) API at api.uspto.gov.
+    """Client for the USPTO Open Data Portal (ODP) API at api.uspto.gov.
 
     This client provides access to patent and patent application metadata.
+    Requires an ODP API key (register at https://data.uspto.gov).
 
     Supports context manager protocol for proper resource cleanup.
     """
