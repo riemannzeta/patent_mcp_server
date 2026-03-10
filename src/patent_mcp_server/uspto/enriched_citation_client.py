@@ -1,11 +1,16 @@
 """
 USPTO Enriched Citation API Client
 
-This module provides access to the USPTO Enriched Citation API v3
-for patent evaluation insights and citation analysis.
+Provides access to the USPTO Enriched Citation metadata via the DS API
+at developer.uspto.gov. This Solr-based API contains ~1.2M enriched
+citation records extracted from patent office actions (Oct 2017+).
 
-Note: This API is scheduled for decommissioning and migration to ODP in early 2026.
-Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
+The API is publicly accessible (no API key required) and uses
+form-encoded POST requests with Solr query syntax.
+
+API docs: https://developer.uspto.gov/ds-api-docs/index.html?url=
+https://developer.uspto.gov/ds-api/swagger/docs/
+enriched_cited_reference_metadata.json
 """
 
 import logging
@@ -21,23 +26,28 @@ from tenacity import (
 from patent_mcp_server.util.logging import LoggingTransport
 from patent_mcp_server.util.errors import ApiError
 from patent_mcp_server.config import config
-from patent_mcp_server.constants import HTTPMethods, Defaults
 
 logger = logging.getLogger('enriched_citation_client')
 
+DS_API_BASE = (
+    "https://developer.uspto.gov/ds-api"
+    "/enriched_cited_reference_metadata/1"
+)
+
 
 class EnrichedCitationClient:
-    """Client for the USPTO Enriched Citation API v3.
+    """Client for the USPTO Enriched Citation DS API.
 
-    Provides patent evaluation insights for IP5 stakeholders including
-    citation analysis, patent family data, and evaluation metrics.
+    Searches enriched citation metadata extracted from patent
+    office actions. Each record links a patent application to a
+    cited reference with claim mappings, passage locations, and
+    citation categories (X=anticipation, Y=obviousness, A=general).
     """
 
     def __init__(self):
-        self.base_url = f"{config.API_BASE_URL}/api/v3/patent/citations"
+        self.base_url = DS_API_BASE
         self.headers = {
             "User-Agent": config.USER_AGENT,
-            "X-API-KEY": config.USPTO_API_KEY if config.USPTO_API_KEY else "",
             "Accept": "application/json",
         }
 
@@ -65,43 +75,53 @@ class EnrichedCitationClient:
             min=config.RETRY_MIN_WAIT,
             max=config.RETRY_MAX_WAIT
         ),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
+        retry=retry_if_exception_type(
+            (httpx.TimeoutException, httpx.NetworkError)
+        ),
         reraise=True
     )
-    async def _make_request(
+    async def _search(
         self,
-        endpoint: str,
-        method: str = HTTPMethods.GET,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None
+        criteria: str,
+        start: int = 0,
+        rows: int = 25,
     ) -> Dict[str, Any]:
-        """Make a request to the Enriched Citation API.
+        """Execute a Solr search against the DS API.
 
         Args:
-            endpoint: API endpoint path
-            method: HTTP method
-            params: Query parameters for GET requests
-            data: JSON body for POST requests
+            criteria: Solr query string (e.g. "patentApplicationNumber:16080156")
+            start: Pagination offset
+            rows: Number of results to return
 
         Returns:
-            Response JSON dictionary or error dictionary
+            Parsed JSON response with 'response.docs' array.
         """
-        url = f"{self.base_url}{endpoint}"
-        logger.info(f"Making {method} request to {url}")
+        url = f"{self.base_url}/records"
+        form_data = {
+            "criteria": criteria,
+            "start": str(start),
+            "rows": str(rows),
+        }
+        logger.info(
+            f"DS API search: {criteria} (start={start}, rows={rows})"
+        )
 
         try:
-            if method == HTTPMethods.GET:
-                response = await self.client.get(url, params=params)
-            else:
-                response = await self.client.post(url, json=data)
-
+            response = await self.client.post(
+                url,
+                data=form_data,
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            )
             response.raise_for_status()
             return response.json()
 
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
-            logger.error(f"HTTP error: {status_code} - {e.response.text}")
-
+            logger.error(
+                f"HTTP error: {status_code} - {e.response.text}"
+            )
             try:
                 error_json = e.response.json()
                 return ApiError.from_http_error(
@@ -121,7 +141,60 @@ class EnrichedCitationClient:
 
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
-            return ApiError.from_exception(e, "Enriched Citation API request failed")
+            return ApiError.from_exception(
+                e, "Enriched Citation DS API request failed"
+            )
+
+    def _format_response(
+        self, raw: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Normalize DS API response into a consistent envelope."""
+        if "error" in raw and raw.get("error"):
+            return raw
+
+        resp = raw.get("response", {})
+        docs = resp.get("docs", [])
+        num_found = resp.get("numFound", 0)
+
+        citations = []
+        for doc in docs:
+            citations.append({
+                "application_number": doc.get(
+                    "patentApplicationNumber"
+                ),
+                "cited_document": doc.get(
+                    "citedDocumentIdentifier"
+                ),
+                "citation_category": doc.get(
+                    "citationCategoryCode"
+                ),
+                "rejected_claims": doc.get(
+                    "relatedClaimNumberText"
+                ),
+                "passage_location": doc.get(
+                    "passageLocationText"
+                ),
+                "office_action_date": doc.get(
+                    "officeActionDate"
+                ),
+                "office_action_category": doc.get(
+                    "officeActionCategory"
+                ),
+                "examiner_cited": doc.get(
+                    "examinercitedreferenceindicator", False
+                ),
+                "inventor": doc.get("inventorNameText"),
+                "quality": doc.get("qualitySummaryText"),
+            })
+
+        return {
+            "result": {
+                "error": False,
+                "total": num_found,
+                "count": len(citations),
+                "citations": citations,
+            }
+        }
 
     async def get_patent_citations(
         self,
@@ -129,23 +202,38 @@ class EnrichedCitationClient:
         include_forward: bool = True,
         include_backward: bool = True,
     ) -> Dict[str, Any]:
-        """Get enriched citation data for a patent.
+        """Get enriched citation data for a patent application.
+
+        Searches for all office action citations where this patent
+        number appears as either the application or the cited ref.
 
         Args:
-            patent_number: Patent number (e.g., "7123456")
-            include_forward: Include forward citations (patents citing this one)
-            include_backward: Include backward citations (patents this one cites)
+            patent_number: Patent or application number
+            include_forward: Include records where this patent is cited
+            include_backward: Include records where this patent cites
 
         Returns:
-            Dictionary containing enriched citation data
+            Normalized citation data with claims and passages.
         """
-        params = {
-            "patentNumber": patent_number,
-            "includeForward": str(include_forward).lower(),
-            "includeBackward": str(include_backward).lower(),
-        }
+        parts = []
 
-        return await self._make_request("/patent", params=params)
+        if include_backward:
+            parts.append(
+                f"patentApplicationNumber:{patent_number}"
+            )
+        if include_forward:
+            parts.append(
+                f"citedDocumentIdentifier:*{patent_number}*"
+            )
+
+        if not parts:
+            return self._format_response(
+                {"response": {"docs": [], "numFound": 0}}
+            )
+
+        criteria = " OR ".join(parts)
+        raw = await self._search(criteria, rows=100)
+        return self._format_response(raw)
 
     async def search_citations(
         self,
@@ -156,75 +244,136 @@ class EnrichedCitationClient:
         assignee: Optional[str] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
-        offset: int = Defaults.SEARCH_START,
-        limit: int = Defaults.API_LIMIT,
+        offset: int = 0,
+        limit: int = 25,
     ) -> Dict[str, Any]:
         """Search enriched citation records.
 
         Args:
-            query: Full-text search query
-            citing_patent: Patent number that is citing
-            cited_patent: Patent number being cited
-            citation_category: Category of citation (X, Y, A, etc.)
-            assignee: Assignee name
-            date_from: Citation date range start (YYYY-MM-DD)
-            date_to: Citation date range end (YYYY-MM-DD)
+            query: Free-text Solr query
+            citing_patent: Application number that is citing
+            cited_patent: Document being cited (supports wildcards)
+            citation_category: Category code (X, Y, A, D, etc.)
+            assignee: Not available in DS API (ignored)
+            date_from: Office action date range start (YYYY-MM-DD)
+            date_to: Office action date range end (YYYY-MM-DD)
             offset: Starting position for pagination
             limit: Maximum results to return
 
         Returns:
-            Dictionary containing search results
+            Normalized search results.
         """
-        params = {"offset": offset, "limit": limit}
+        parts = []
 
         if query:
-            params["q"] = query
+            parts.append(query)
         if citing_patent:
-            params["citingPatent"] = citing_patent
+            parts.append(
+                f"patentApplicationNumber:{citing_patent}"
+            )
         if cited_patent:
-            params["citedPatent"] = cited_patent
+            parts.append(
+                f"citedDocumentIdentifier:*{cited_patent}*"
+            )
         if citation_category:
-            params["citationCategory"] = citation_category
-        if assignee:
-            params["assignee"] = assignee
-        if date_from:
-            params["dateFrom"] = date_from
-        if date_to:
-            params["dateTo"] = date_to
+            parts.append(
+                f"citationCategoryCode:{citation_category}"
+            )
+        if date_from and date_to:
+            parts.append(
+                f"officeActionDate:"
+                f"[{date_from}T00:00:00 TO {date_to}T23:59:59]"
+            )
+        elif date_from:
+            parts.append(
+                f"officeActionDate:"
+                f"[{date_from}T00:00:00 TO *]"
+            )
+        elif date_to:
+            parts.append(
+                f"officeActionDate:"
+                f"[* TO {date_to}T23:59:59]"
+            )
 
-        return await self._make_request("/search", params=params)
+        criteria = " AND ".join(parts) if parts else "*:*"
+        raw = await self._search(criteria, start=offset, rows=limit)
+        return self._format_response(raw)
 
     async def get_citation_metrics(
         self,
         patent_number: str,
     ) -> Dict[str, Any]:
-        """Get citation metrics and evaluation data for a patent.
+        """Get citation metrics for a patent.
+
+        Counts forward citations (where this patent is cited as
+        prior art) and backward citations (references in this
+        patent's office actions).
 
         Args:
-            patent_number: Patent number
+            patent_number: Patent or application number
 
         Returns:
-            Dictionary containing citation metrics including:
-            - Forward citation count
-            - Backward citation count
-            - Citation age metrics
-            - Technology field analysis
+            Citation counts and category breakdown.
         """
-        return await self._make_request(f"/metrics/{patent_number}")
+        # Backward: this patent's office action citations
+        backward_raw = await self._search(
+            f"patentApplicationNumber:{patent_number}",
+            rows=0,
+        )
+        backward_count = (
+            backward_raw.get("response", {}).get("numFound", 0)
+        )
+
+        # Forward: citations of this patent by others
+        forward_raw = await self._search(
+            f"citedDocumentIdentifier:*{patent_number}*",
+            rows=0,
+        )
+        forward_count = (
+            forward_raw.get("response", {}).get("numFound", 0)
+        )
+
+        # Category breakdown (backward only)
+        categories = {}
+        if backward_count > 0:
+            detail_raw = await self._search(
+                f"patentApplicationNumber:{patent_number}",
+                rows=min(backward_count, 500),
+            )
+            for doc in detail_raw.get(
+                "response", {}
+            ).get("docs", []):
+                cat = doc.get("citationCategoryCode", "unknown")
+                categories[cat] = categories.get(cat, 0) + 1
+
+        return {
+            "result": {
+                "error": False,
+                "patent_number": patent_number,
+                "forward_citation_count": forward_count,
+                "backward_citation_count": backward_count,
+                "category_breakdown": categories,
+            }
+        }
 
     async def get_patent_family_citations(
         self,
         family_id: str,
     ) -> Dict[str, Any]:
-        """Get citations for an entire patent family.
+        """Get citations for a patent family.
+
+        Note: The DS API does not have a family ID field.
+        This searches by the family_id as if it were an
+        application number. For true family lookups, use
+        the PatentsView API instead.
 
         Args:
-            family_id: Patent family identifier
+            family_id: Patent family identifier or app number
 
         Returns:
-            Dictionary containing family-level citation data
+            Citation data for the identifier.
         """
-        return await self._make_request(f"/family/{family_id}")
+        return await self.get_patent_citations(family_id)
 
     async def close(self):
         """Close the client connections."""
