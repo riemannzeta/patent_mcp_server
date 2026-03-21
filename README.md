@@ -124,7 +124,7 @@ ENABLE_CACHING=true        # Enable/disable session caching
 PPUBS_BASE_URL=https://ppubs.uspto.gov
 API_BASE_URL=https://api.uspto.gov          # ODP API endpoint (NOT data.uspto.gov)
 PATENTSVIEW_BASE_URL=https://search.patentsview.org
-OFFICE_ACTION_BASE_URL=https://developer.uspto.gov  # Migration to ODP planned early 2026
+OFFICE_ACTION_BASE_URL=https://developer.uspto.gov  # Legacy - decommissioned early 2026, pending ODP migration
 ```
 
 ## Claude Desktop Configuration

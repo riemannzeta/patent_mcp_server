@@ -1,16 +1,17 @@
 """
 USPTO Office Action API Client
 
-This module provides access to USPTO Office Action APIs at developer.uspto.gov
-for accessing full-text office actions, citations, and rejection data.
+This module provides access to USPTO Office Action APIs via the Open Data Portal
+(ODP) at api.uspto.gov for accessing full-text office actions, citations, and
+rejection data.
 
 APIs included:
 - Office Action Text Retrieval API
 - Office Action Citations API
 - Office Action Rejection API
 
-Note: These APIs are planned for migration to the Open Data Portal (ODP) in early 2026.
-Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
+Note: These APIs were migrated from developer.uspto.gov to api.uspto.gov in
+early 2026. Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
 """
 
 import logging

@@ -30,7 +30,7 @@ class Config:
     PATENTSVIEW_RATE_LIMIT: int = int(os.getenv("PATENTSVIEW_RATE_LIMIT", "45"))  # requests per minute
 
     # Office Action API
-    OFFICE_ACTION_BASE_URL: str = os.getenv("OFFICE_ACTION_BASE_URL", "https://developer.uspto.gov")
+    OFFICE_ACTION_BASE_URL: str = os.getenv("OFFICE_ACTION_BASE_URL", "https://developer.uspto.gov")  # Legacy - decommissioned early 2026, pending ODP migration
 
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")

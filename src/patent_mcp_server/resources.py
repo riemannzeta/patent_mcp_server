@@ -326,20 +326,25 @@ DATA_SOURCES = {
     },
     "office_actions": {
         "name": "USPTO Office Action APIs",
-        "base_url": "https://developer.uspto.gov",
-        "description": "Full-text office actions, citations, and rejection data. Migration to ODP planned early 2026.",
+        "base_url": "N/A",
+        "description": (
+            "TEMPORARILY UNAVAILABLE. Legacy endpoints at developer.uspto.gov "
+            "were decommissioned in early 2026. Migration to ODP (api.uspto.gov) "
+            "is pending. Use odp_get_documents to access office action documents "
+            "from the file wrapper as a workaround."
+        ),
         "coverage": {
-            "applications": "12-series applications from June 2018",
-            "citations": "References cited in office actions",
-            "rejections": "Rejection data with claim-level details",
+            "applications": "Unavailable pending ODP migration",
+            "citations": "Use get_enriched_citations (also pending) or patentsview",
+            "rejections": "Use odp_get_documents to find office action documents",
         },
-        "rate_limits": "Requires ODP API key, standard rate limits apply",
+        "rate_limits": "N/A",
         "auth_required": True,
         "best_for": [
-            "Office action full text",
-            "Examiner citation analysis",
-            "Rejection pattern analysis",
-            "Prosecution strategy research",
+            "Office action full text (UNAVAILABLE - use odp_get_documents)",
+            "Examiner citation analysis (UNAVAILABLE - use patentsview)",
+            "Rejection pattern analysis (UNAVAILABLE - use odp_get_documents)",
+            "Prosecution strategy research (use odp_get_transactions instead)",
         ],
     },
     "litigation": {

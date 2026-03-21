@@ -340,8 +340,13 @@ async def check_api_status() -> Dict[str, Any]:
         },
         "office_actions": {
             "name": "Office Action APIs",
-            "configured": bool(config.USPTO_API_KEY),
-            "api_key_set": bool(config.USPTO_API_KEY),
+            "configured": False,
+            "status": "UNAVAILABLE",
+            "note": (
+                "Legacy endpoints at developer.uspto.gov were decommissioned "
+                "in early 2026. Migration to ODP (api.uspto.gov) is pending. "
+                "Use odp_get_documents as a workaround."
+            ),
         },
         "litigation": {
             "name": "Patent Litigation API",
@@ -1390,7 +1395,10 @@ async def get_office_action_text(
     USE THIS TOOL WHEN: You need to read examiner rejections, requirements,
     and objections from prosecution.
 
-    Note: Data available from June 2018 for 12-series applications.
+    IMPORTANT: The legacy Office Action text APIs (developer.uspto.gov) were
+    decommissioned in early 2026 and have NOT yet been migrated to the ODP.
+    This tool is temporarily unavailable. Use odp_get_documents to list file
+    wrapper documents (including office actions) and download them instead.
 
     Args:
         application_number: Application number (e.g., "16123456")
@@ -1399,13 +1407,18 @@ async def get_office_action_text(
     Returns:
         Office action text including rejections and examiner comments.
     """
-    try:
-        app_num = validate_app_number(application_number)
-    except ValueError as e:
-        return ApiError.validation_error(str(e), "application_number")
-
-    result = await office_action_client.get_office_action_text(app_num, mail_date)
-    return check_and_truncate(result)
+    return {
+        "error": True,
+        "message": (
+            "Office Action text API is temporarily unavailable. The legacy "
+            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
+            "and have not yet been migrated to the ODP (api.uspto.gov). "
+            "Use odp_get_documents to list file wrapper documents including "
+            "office actions, then download them from Patent Center."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use odp_get_documents(app_num) to find office action documents in the file wrapper.",
+    }
 
 
 @mcp.tool()
@@ -1421,6 +1434,9 @@ async def search_office_actions(
 ) -> Dict[str, Any]:
     """Search office actions across applications.
 
+    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned,
+    ODP migration pending. Use odp_get_documents or odp_get_transactions instead.
+
     Args:
         query: Full-text search query
         application_number: Filter by application number
@@ -1431,17 +1447,18 @@ async def search_office_actions(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    result = await office_action_client.search_office_actions(
-        query=query,
-        application_number=application_number,
-        examiner_name=examiner_name,
-        art_unit=art_unit,
-        mail_date_from=mail_date_from,
-        mail_date_to=mail_date_to,
-        offset=offset,
-        limit=limit,
-    )
-    return check_and_truncate(result)
+    return {
+        "error": True,
+        "message": (
+            "Office Action search API is temporarily unavailable. The legacy "
+            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
+            "and have not yet been migrated to the ODP (api.uspto.gov). "
+            "Use odp_get_transactions to search prosecution history, or "
+            "odp_search_applications to find applications by examiner/art unit."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use odp_get_transactions(app_num) or odp_search_applications().",
+    }
 
 
 @mcp.tool()
@@ -1454,6 +1471,9 @@ async def get_office_action_citations(
     USE THIS TOOL WHEN: You need to see what references the examiner
     cited against an application.
 
+    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned,
+    ODP migration pending. Use get_enriched_citations as an alternative.
+
     Args:
         application_number: Application number
         mail_date: Optional filter by mail date (YYYY-MM-DD)
@@ -1461,13 +1481,18 @@ async def get_office_action_citations(
     Returns:
         Citations from Form PTO-892, PTO-1449, and office action text.
     """
-    try:
-        app_num = validate_app_number(application_number)
-    except ValueError as e:
-        return ApiError.validation_error(str(e), "application_number")
-
-    result = await office_action_client.get_office_action_citations(app_num, mail_date)
-    return check_and_truncate(result)
+    return {
+        "error": True,
+        "message": (
+            "Office Action citations API is temporarily unavailable. The legacy "
+            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
+            "and have not yet been migrated to the ODP (api.uspto.gov). "
+            "Try get_enriched_citations for citation data, or use "
+            "odp_get_documents to find PTO-892/PTO-1449 forms in the file wrapper."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use get_enriched_citations(patent_number) or odp_get_documents(app_num).",
+    }
 
 
 @mcp.tool()
@@ -1480,6 +1505,9 @@ async def get_office_action_rejections(
     USE THIS TOOL WHEN: You need structured data about claim rejections
     including rejection type (102, 103, 112) and affected claims.
 
+    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned,
+    ODP migration pending. Use odp_get_documents to find office actions.
+
     Args:
         application_number: Application number
         mail_date: Optional filter by mail date (YYYY-MM-DD)
@@ -1487,13 +1515,18 @@ async def get_office_action_rejections(
     Returns:
         Rejection data with claim-level details.
     """
-    try:
-        app_num = validate_app_number(application_number)
-    except ValueError as e:
-        return ApiError.validation_error(str(e), "application_number")
-
-    result = await office_action_client.get_office_action_rejections(app_num, mail_date)
-    return check_and_truncate(result)
+    return {
+        "error": True,
+        "message": (
+            "Office Action rejections API is temporarily unavailable. The legacy "
+            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
+            "and have not yet been migrated to the ODP (api.uspto.gov). "
+            "Use odp_get_documents to find office action documents in the file "
+            "wrapper and download them from Patent Center for rejection details."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use odp_get_documents(app_num) to find office action documents.",
+    }
 
 
 # =====================================================================
@@ -1511,6 +1544,11 @@ async def get_enriched_citations(
     USE THIS TOOL WHEN: You need citation analysis including forward
     citations (who cites this patent) and backward (what this patent cites).
 
+    IMPORTANT: The legacy Enriched Citation API (developer.uspto.gov) was
+    decommissioned in early 2026 and has NOT yet been migrated to the ODP.
+    This tool is temporarily unavailable. Use patentsview_get_patent for
+    basic citation data instead.
+
     Args:
         patent_number: Patent number
         include_forward: Include forward citations (default: True)
@@ -1519,15 +1557,18 @@ async def get_enriched_citations(
     Returns:
         Enriched citation data with metrics.
     """
-    try:
-        patent_num = validate_patent_number(patent_number)
-    except ValueError as e:
-        return ApiError.validation_error(str(e), "patent_number")
-
-    result = await enriched_citation_client.get_patent_citations(
-        patent_num, include_forward, include_backward
-    )
-    return check_and_truncate(result)
+    return {
+        "error": True,
+        "message": (
+            "Enriched Citation API is temporarily unavailable. The legacy "
+            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
+            "and have not yet been migrated to the ODP (api.uspto.gov). "
+            "Use patentsview_get_patent for basic citation data, or "
+            "odp_get_documents to find PTO-892 citation forms in the file wrapper."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use patentsview_get_patent(patent_number) for citation data.",
+    }
 
 
 @mcp.tool()
@@ -1542,6 +1583,9 @@ async def search_citations(
 ) -> Dict[str, Any]:
     """Search citation records.
 
+    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned,
+    ODP migration pending. Use patentsview_search_patents instead.
+
     Args:
         citing_patent: Patent that is citing
         cited_patent: Patent being cited
@@ -1551,16 +1595,17 @@ async def search_citations(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    result = await enriched_citation_client.search_citations(
-        citing_patent=citing_patent,
-        cited_patent=cited_patent,
-        assignee=assignee,
-        date_from=date_from,
-        date_to=date_to,
-        offset=offset,
-        limit=limit,
-    )
-    return check_and_truncate(result)
+    return {
+        "error": True,
+        "message": (
+            "Enriched Citation search API is temporarily unavailable. The legacy "
+            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
+            "and have not yet been migrated to the ODP (api.uspto.gov). "
+            "Use patentsview_search_patents for citation-based patent searches."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use patentsview_search_patents(query) for citation searches.",
+    }
 
 
 @mcp.tool()
@@ -1570,15 +1615,23 @@ async def get_citation_metrics(patent_number: str) -> Dict[str, Any]:
     USE THIS TOOL WHEN: You need quantitative citation analysis including
     forward/backward counts and citation age metrics.
 
+    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned,
+    ODP migration pending.
+
     Args:
         patent_number: Patent number
     """
-    try:
-        patent_num = validate_patent_number(patent_number)
-    except ValueError as e:
-        return ApiError.validation_error(str(e), "patent_number")
-
-    return await enriched_citation_client.get_citation_metrics(patent_num)
+    return {
+        "error": True,
+        "message": (
+            "Citation metrics API is temporarily unavailable. The legacy "
+            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
+            "and have not yet been migrated to the ODP (api.uspto.gov). "
+            "Use patentsview_get_patent for basic citation counts."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use patentsview_get_patent(patent_number) for citation counts.",
+    }
 
 
 # =====================================================================
