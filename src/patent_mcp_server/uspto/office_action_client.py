@@ -10,8 +10,9 @@ APIs included:
 - Office Action Citations API
 - Office Action Rejection API
 
-Note: These APIs were migrated from developer.uspto.gov to api.uspto.gov in
-early 2026. Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
+Note: These APIs were decommissioned at developer.uspto.gov in early 2026.
+Pending migration to api.uspto.gov (ODP). The client is preserved for
+future reconnection once replacement endpoints are available.
 """
 
 import logging

@@ -796,7 +796,7 @@ wheels = [
 
 [[package]]
 name = "patent-mcp-server"
-version = "0.6.2"
+version = "0.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "h2" },

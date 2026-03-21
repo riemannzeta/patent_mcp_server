@@ -5,9 +5,9 @@ Provides access to the USPTO Enriched Citation metadata via the DS API
 at api.uspto.gov. This Solr-based API contains ~1.2M enriched
 citation records extracted from patent office actions (Oct 2017+).
 
-Note: This API was migrated from developer.uspto.gov to api.uspto.gov in
-early 2026 and now requires an ODP API key. Uses form-encoded POST
-requests with Solr query syntax.
+Note: This API was decommissioned at developer.uspto.gov in early 2026.
+Pending migration to api.uspto.gov (ODP). The client is preserved for
+future reconnection once a replacement endpoint is available.
 """
 
 import logging
@@ -45,7 +45,6 @@ class EnrichedCitationClient:
         self.base_url = DS_API_BASE
         self.headers = {
             "User-Agent": config.USER_AGENT,
-            "X-API-KEY": config.USPTO_API_KEY if config.USPTO_API_KEY else "",
             "Accept": "application/json",
         }
 
