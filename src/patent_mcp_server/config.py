@@ -24,10 +24,10 @@ class Config:
     PPUBS_BASE_URL: str = os.getenv("PPUBS_BASE_URL", "https://ppubs.uspto.gov")
     API_BASE_URL: str = os.getenv("API_BASE_URL", "https://api.uspto.gov")
 
-    # PatentsView API
-    PATENTSVIEW_API_KEY: Optional[str] = os.getenv("PATENTSVIEW_API_KEY")
-    PATENTSVIEW_BASE_URL: str = os.getenv("PATENTSVIEW_BASE_URL", "https://search.patentsview.org")
-    PATENTSVIEW_RATE_LIMIT: int = int(os.getenv("PATENTSVIEW_RATE_LIMIT", "45"))  # requests per minute
+    # PatentsView API - shut down March 20, 2026; data migrated to ODP bulk datasets
+    PATENTSVIEW_API_KEY: Optional[str] = os.getenv("PATENTSVIEW_API_KEY")  # Legacy - shut down March 2026
+    PATENTSVIEW_BASE_URL: str = os.getenv("PATENTSVIEW_BASE_URL", "https://search.patentsview.org")  # Legacy - shut down March 2026
+    PATENTSVIEW_RATE_LIMIT: int = int(os.getenv("PATENTSVIEW_RATE_LIMIT", "45"))  # Legacy - shut down March 2026
 
     # Office Action API
     OFFICE_ACTION_BASE_URL: str = os.getenv("OFFICE_ACTION_BASE_URL", "https://developer.uspto.gov")  # Legacy - decommissioned early 2026, pending ODP migration
@@ -36,7 +36,7 @@ class Config:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/0.6.2")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/0.8.0")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry
@@ -79,11 +79,7 @@ class Config:
                 "Register at https://data.uspto.gov and visit 'My ODP' to get your API key."
             )
 
-        if not cls.PATENTSVIEW_API_KEY:
-            logger.warning(
-                "PATENTSVIEW_API_KEY not set. PatentsView API tools may not work. "
-                "Request an API key at https://patentsview-support.atlassian.net/servicedesk/customer/portal/1"
-            )
+        # PatentsView API was shut down March 20, 2026 - no longer warn about missing key
 
         logger.info(f"Configuration loaded: LOG_LEVEL={cls.LOG_LEVEL}, "
                    f"TIMEOUT={cls.REQUEST_TIMEOUT}s, "

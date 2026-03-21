@@ -90,7 +90,11 @@ class PTABProceedingStatus:
 
 
 class PatentsViewEndpoints:
-    """PatentsView API endpoint paths."""
+    """PatentsView API endpoint paths.
+
+    Note: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. These constants are retained for reference only.
+    """
     # Core patent endpoints
     PATENT = "/api/v1/patent/"
     PUBLICATION = "/api/v1/publication/"

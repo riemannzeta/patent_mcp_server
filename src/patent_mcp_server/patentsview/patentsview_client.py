@@ -1,11 +1,11 @@
 """
 PatentsView PatentSearch API Client
 
-This module provides access to the PatentsView API at search.patentsview.org
-for advanced patent search capabilities with full-text search, inventor/assignee
-disambiguation, and CPC classification lookups.
+Note: The PatentsView API (search.patentsview.org) was shut down on March 20, 2026.
+This client is retained for reference but is no longer functional. PatentsView data
+has been migrated to the USPTO Open Data Portal as bulk downloadable datasets.
 
-API Reference: https://search.patentsview.org/docs/docs/Search%20API/SearchAPIReference/
+Original API Reference: https://search.patentsview.org/docs/docs/Search%20API/SearchAPIReference/
 """
 
 import asyncio

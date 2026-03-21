@@ -331,9 +331,11 @@ async def test_odp_get_dataset(results_dir):
 
 # ===================================================================
 # Tests for PatentsView API (search.patentsview.org)
+# NOTE: PatentsView API was shut down March 20, 2026. Tests skipped.
 # ===================================================================
 
 
+@pytest.mark.skip(reason="PatentsView API shut down March 2026")
 async def test_patentsview_search_patents(results_dir):
     """Test searching for patents via PatentsView."""
     result = await patentsview_search_patents(
@@ -349,6 +351,7 @@ async def test_patentsview_search_patents(results_dir):
     assert "patents" in result or result.get("success") is True, "Expected patents in response"
 
 
+@pytest.mark.skip(reason="PatentsView API shut down March 2026")
 async def test_patentsview_search_patents_phrase(results_dir):
     """Test phrase search via PatentsView."""
     result = await patentsview_search_patents(
@@ -362,6 +365,7 @@ async def test_patentsview_search_patents_phrase(results_dir):
     assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
 
+@pytest.mark.skip(reason="PatentsView API shut down March 2026")
 async def test_patentsview_get_patent(results_dir):
     """Test retrieving a specific patent by ID."""
     result = await patentsview_get_patent(patent_id="7861317")
@@ -371,6 +375,7 @@ async def test_patentsview_get_patent(results_dir):
     assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
 
+@pytest.mark.skip(reason="PatentsView API shut down March 2026")
 async def test_patentsview_search_assignees(results_dir):
     """Test searching for assignees."""
     result = await patentsview_search_assignees(
@@ -383,6 +388,7 @@ async def test_patentsview_search_assignees(results_dir):
     assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
 
+@pytest.mark.skip(reason="PatentsView API shut down March 2026")
 async def test_patentsview_search_inventors(results_dir):
     """Test searching for inventors."""
     result = await patentsview_search_inventors(
@@ -395,6 +401,7 @@ async def test_patentsview_search_inventors(results_dir):
     assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
 
+@pytest.mark.skip(reason="PatentsView API shut down March 2026")
 async def test_patentsview_get_claims(results_dir):
     """Test getting patent claims."""
     result = await patentsview_get_claims(patent_id="7861317")
@@ -404,6 +411,7 @@ async def test_patentsview_get_claims(results_dir):
     assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
 
+@pytest.mark.skip(reason="PatentsView API shut down March 2026")
 async def test_patentsview_search_by_cpc(results_dir):
     """Test searching by CPC classification."""
     result = await patentsview_search_by_cpc(
@@ -416,6 +424,7 @@ async def test_patentsview_search_by_cpc(results_dir):
     assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
 
+@pytest.mark.skip(reason="PatentsView API shut down March 2026")
 async def test_patentsview_lookup_cpc(results_dir):
     """Test CPC code lookup."""
     result = await patentsview_lookup_cpc(cpc_code="G06")

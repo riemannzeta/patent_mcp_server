@@ -287,21 +287,28 @@ DATA_SOURCES = {
     },
     "patentsview": {
         "name": "PatentsView Patent Search API",
-        "base_url": "https://search.patentsview.org",
-        "description": "Advanced patent search with disambiguated inventor/assignee data.",
+        "base_url": "N/A",
+        "description": (
+            "SHUT DOWN. The PatentsView API (search.patentsview.org) was shut "
+            "down on March 20, 2026. Data has been migrated to the USPTO Open "
+            "Data Portal as bulk downloadable datasets (Granted Patent "
+            "Disambiguated Data, Pre-Grant Publication Disambiguated Data, "
+            "Long Text Data, Sorted Patent Data). Use ppubs_search_patents "
+            "for patent search, odp_search_datasets to find bulk datasets."
+        ),
         "coverage": {
-            "patents": "US granted patents from 1976 to present",
-            "inventors": "Disambiguated inventor records",
-            "assignees": "Disambiguated assignee/company records",
+            "patents": "Use ppubs_search_patents or ppubs_get_patent_by_number",
+            "inventors": "Bulk data via odp_search_datasets (PatentsView disambiguated data)",
+            "assignees": "Bulk data via odp_search_datasets (PatentsView disambiguated data)",
         },
-        "rate_limits": "45 requests per minute",
-        "auth_required": True,
+        "rate_limits": "N/A",
+        "auth_required": False,
         "best_for": [
-            "Inventor disambiguation (linking same inventor across patents)",
-            "Assignee disambiguation (company name variations)",
-            "CPC classification searches",
-            "Patent claims and description text",
-            "Citation analysis",
+            "Patent search (UNAVAILABLE - use ppubs_search_patents)",
+            "Inventor disambiguation (UNAVAILABLE - use odp_search_datasets for bulk data)",
+            "Assignee disambiguation (UNAVAILABLE - use odp_search_datasets for bulk data)",
+            "CPC searches (UNAVAILABLE - use ppubs_search_patents with CPC query)",
+            "Patent claims/description (UNAVAILABLE - use ppubs_get_full_document)",
         ],
     },
     "ptab": {
@@ -335,14 +342,14 @@ DATA_SOURCES = {
         ),
         "coverage": {
             "applications": "Unavailable pending ODP migration",
-            "citations": "Use get_enriched_citations (also pending) or patentsview",
+            "citations": "Use odp_get_documents or ppubs tools",
             "rejections": "Use odp_get_documents to find office action documents",
         },
         "rate_limits": "N/A",
         "auth_required": True,
         "best_for": [
             "Office action full text (UNAVAILABLE - use odp_get_documents)",
-            "Examiner citation analysis (UNAVAILABLE - use patentsview)",
+            "Examiner citation analysis (UNAVAILABLE - use odp_get_documents)",
             "Rejection pattern analysis (UNAVAILABLE - use odp_get_documents)",
             "Prosecution strategy research (use odp_get_transactions instead)",
         ],

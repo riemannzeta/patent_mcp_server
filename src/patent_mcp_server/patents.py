@@ -7,8 +7,8 @@ with multiple USPTO patent data APIs:
 1. ppubs.uspto.gov - Full text patent documents, PDF downloads, and advanced search
 2. api.uspto.gov - Metadata, continuity information, transactions, and assignments
 3. PTAB API v3 - Patent Trial and Appeal Board proceedings and decisions
-4. PatentsView API - Disambiguated inventor/assignee data with advanced search
-5. Office Action APIs - Full-text office actions, citations, and rejections
+4. PatentsView API - UNAVAILABLE (shut down March 2026; data migrated to ODP bulk datasets)
+5. Office Action APIs - UNAVAILABLE (decommissioned early 2026, pending ODP migration)
 
 The server uses stdio transport for Claude Code/Cursor integration.
 
@@ -334,9 +334,15 @@ async def check_api_status() -> Dict[str, Any]:
         },
         "patentsview": {
             "name": "PatentsView API",
-            "configured": bool(config.PATENTSVIEW_API_KEY),
-            "api_key_set": bool(config.PATENTSVIEW_API_KEY),
-            "rate_limit": f"{config.PATENTSVIEW_RATE_LIMIT} requests/minute",
+            "configured": False,
+            "status": "UNAVAILABLE",
+            "note": (
+                "PatentsView API (search.patentsview.org) was shut down on "
+                "March 20, 2026. Data has been migrated to ODP as bulk "
+                "downloadable datasets. Use ppubs_search_patents for patent "
+                "search, odp_get_application for metadata, or "
+                "odp_search_datasets to find PatentsView bulk datasets."
+            ),
         },
         "office_actions": {
             "name": "Office Action APIs",
@@ -1088,49 +1094,52 @@ async def patentsview_search_patents(
 ) -> Dict[str, Any]:
     """Search US patents with PatentsView full-text search.
 
-    USE THIS TOOL WHEN: You need advanced search with inventor/assignee
-    disambiguation, or need to search patent text beyond title/abstract.
-
-    PREFER OVER ppubs_search_patents WHEN: You need disambiguated entity
-    data or better structured results for analysis.
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use ppubs_search_patents for full-text patent search.
+    PatentsView disambiguated data is available as bulk datasets on the
+    USPTO Open Data Portal (use odp_search_datasets to find them).
 
     Args:
         query: Search terms for patent titles and abstracts
-        search_type: Match type:
-                    - "any": Match any word (OR logic) - broadest
-                    - "all": Match all words (AND logic) - narrower
-                    - "phrase": Exact phrase match - most precise
+        search_type: Match type ("any", "all", "phrase")
         offset: Starting position (default: 0)
         limit: Max results (default: 100, max: 1000)
-
-    Returns:
-        Normalized response with patents including disambiguated
-        inventor/assignee IDs for further lookup.
     """
-    if limit > 1000:
-        return ApiError.validation_error("Limit cannot exceed 1000", "limit")
-
-    result = await patentsview_client.search_by_text(
-        query, search_type, size=limit
-    )
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_patentsview(result, offset, limit))
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView search API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use ppubs_search_patents for full-text patent search. PatentsView "
+            "disambiguated data is available as bulk datasets on the USPTO Open "
+            "Data Portal (use odp_search_datasets to find them)."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use ppubs_search_patents(query) for patent search.",
+    }
 
 
 @mcp.tool()
 async def patentsview_get_patent(patent_id: str) -> Dict[str, Any]:
     """Get detailed patent information from PatentsView.
 
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use ppubs_get_patent_by_number for patent details.
+
     Args:
         patent_id: Patent ID/number (e.g., "7861317")
-
-    Returns:
-        Patent details with disambiguated inventors and assignees.
     """
-    return await patentsview_client.get_patent(patent_id)
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use ppubs_get_patent_by_number for patent details, or "
+            "odp_get_application for application metadata."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use ppubs_get_patent_by_number(patent_number) for patent details.",
+    }
 
 
 @mcp.tool()
@@ -1140,33 +1149,52 @@ async def patentsview_search_assignees(
 ) -> Dict[str, Any]:
     """Search for assignees (companies/organizations) with disambiguation.
 
-    USE THIS TOOL WHEN: You need to find patents by company accounting
-    for name variations and subsidiaries.
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use ppubs_search_patents with an assignee name query
+    (e.g., AN/"company name") as a workaround.
 
     Args:
         name: Assignee/company name (partial match supported)
         limit: Max results (default: 100, max: 1000)
-
-    Returns:
-        Disambiguated assignee records with patent counts.
     """
-    query = {"_text_any": {"assignee_organization": name}}
-    result = await patentsview_client.search_assignees(query, size=limit)
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_patentsview(result, 0, limit))
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use ppubs_search_patents with an assignee name query "
+            '(e.g., query=\'AN/"company name"\') to search by assignee. '
+            "Disambiguated assignee data is available as bulk datasets "
+            "on the USPTO Open Data Portal (use odp_search_datasets)."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": 'Use ppubs_search_patents(query=\'AN/"company name"\') to search by assignee.',
+    }
 
 
 @mcp.tool()
 async def patentsview_get_assignee(assignee_id: str) -> Dict[str, Any]:
     """Get detailed assignee information by disambiguated ID.
 
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. No direct replacement exists for disambiguated assignee
+    lookups. Use odp_search_datasets to find PatentsView bulk datasets.
+
     Args:
         assignee_id: Disambiguated assignee ID from search results
     """
-    return await patentsview_client.get_assignee(assignee_id)
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "No direct replacement exists for disambiguated assignee ID lookups. "
+            "Disambiguated assignee data is available as bulk datasets on the "
+            "USPTO Open Data Portal (use odp_search_datasets to find them)."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use odp_search_datasets to find PatentsView bulk disambiguated datasets.",
+    }
 
 
 @mcp.tool()
@@ -1176,82 +1204,102 @@ async def patentsview_search_inventors(
 ) -> Dict[str, Any]:
     """Search for inventors with disambiguation.
 
-    USE THIS TOOL WHEN: You need to find all patents by an inventor
-    accounting for name variations across filings.
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use ppubs_search_patents with an inventor name query
+    (e.g., IN/"last name") as a workaround.
 
     Args:
         name: Inventor name (last name, or "First Last")
         limit: Max results (default: 100, max: 1000)
-
-    Returns:
-        Disambiguated inventor records with patent counts.
     """
-    parts = name.strip().split()
-    if len(parts) >= 2:
-        query = {"_and": [
-            {"_text_any": {"inventor_name_first": parts[0]}},
-            {"_text_any": {"inventor_name_last": parts[-1]}},
-        ]}
-    else:
-        query = {"_text_any": {"inventor_name_last": name}}
-
-    result = await patentsview_client.search_inventors(query, size=limit)
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_patentsview(result, 0, limit))
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use ppubs_search_patents with an inventor name query "
+            '(e.g., query=\'IN/"inventor name"\') to search by inventor. '
+            "Disambiguated inventor data is available as bulk datasets "
+            "on the USPTO Open Data Portal (use odp_search_datasets)."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": 'Use ppubs_search_patents(query=\'IN/"inventor name"\') to search by inventor.',
+    }
 
 
 @mcp.tool()
 async def patentsview_get_inventor(inventor_id: str) -> Dict[str, Any]:
     """Get detailed inventor information by disambiguated ID.
 
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. No direct replacement exists for disambiguated inventor
+    lookups. Use odp_search_datasets to find PatentsView bulk datasets.
+
     Args:
         inventor_id: Disambiguated inventor ID from search results
     """
-    return await patentsview_client.get_inventor(inventor_id)
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "No direct replacement exists for disambiguated inventor ID lookups. "
+            "Disambiguated inventor data is available as bulk datasets on the "
+            "USPTO Open Data Portal (use odp_search_datasets to find them)."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use odp_search_datasets to find PatentsView bulk disambiguated datasets.",
+    }
 
 
 @mcp.tool()
 async def patentsview_get_claims(patent_id: str) -> Dict[str, Any]:
     """Get all claims text for a patent.
 
-    USE THIS TOOL WHEN: You need to analyze patent claim scope and language.
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use ppubs_get_full_document to retrieve patent text
+    including claims.
 
     Args:
         patent_id: Patent ID/number (e.g., "7861317")
-
-    Returns:
-        All claims with sequence numbers and text.
     """
-    result = await patentsview_client.get_patent_claims(patent_id)
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(result)
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use ppubs_get_full_document to retrieve patent text including "
+            "claims, or ppubs_get_patent_by_number to get the document GUID "
+            "first."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use ppubs_get_patent_by_number then ppubs_get_full_document for patent claims.",
+    }
 
 
 @mcp.tool()
 async def patentsview_get_description(patent_id: str) -> Dict[str, Any]:
     """Get patent detailed description/specification text.
 
-    USE THIS TOOL WHEN: You need the full patent specification beyond
-    the abstract for detailed technical analysis.
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use ppubs_get_full_document to retrieve the full patent
+    specification.
 
     Args:
         patent_id: Patent ID/number (e.g., "7861317")
-
-    Returns:
-        Detailed description text (may be large).
     """
-    result = await patentsview_client.get_patent_description(patent_id)
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(result)
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use ppubs_get_full_document to retrieve the full patent "
+            "specification, or ppubs_get_patent_by_number to get the "
+            "document GUID first."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use ppubs_get_patent_by_number then ppubs_get_full_document for patent text.",
+    }
 
 
 @mcp.tool()
@@ -1261,38 +1309,47 @@ async def patentsview_search_by_cpc(
 ) -> Dict[str, Any]:
     """Search patents by CPC classification code.
 
-    USE THIS TOOL WHEN: You need to find patents in a specific technology
-    area defined by CPC classification.
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use ppubs_search_patents with a CPC query
+    (e.g., CPC/"G06N3/08") as a workaround.
 
     Args:
         cpc_code: CPC code (e.g., "G06N3/08" for neural networks)
         limit: Max results (default: 100, max: 1000)
-
-    Returns:
-        Patents matching the classification.
     """
-    result = await patentsview_client.search_by_cpc(cpc_code, size=limit)
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_patentsview(result, 0, limit))
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use ppubs_search_patents with a CPC classification query "
+            '(e.g., query=\'CPC/"G06N3/08"\') to search by CPC code.'
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": 'Use ppubs_search_patents(query=\'CPC/"G06N3/08"\') to search by CPC.',
+    }
 
 
 @mcp.tool()
 async def patentsview_lookup_cpc(cpc_code: str) -> Dict[str, Any]:
     """Look up CPC classification code details.
 
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use get_cpc_info for CPC code descriptions.
+
     Args:
         cpc_code: CPC code (class "G06" or group "G06N3/08")
-
-    Returns:
-        Classification title and description.
     """
-    if "/" in cpc_code:
-        return await patentsview_client.lookup_cpc_group(cpc_code)
-    else:
-        return await patentsview_client.lookup_cpc_class(cpc_code)
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use get_cpc_info for CPC classification code descriptions."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use get_cpc_info(cpc_code) for CPC classification details.",
+    }
 
 
 @mcp.tool()
@@ -1302,54 +1359,74 @@ async def patentsview_search_attorneys(
 ) -> Dict[str, Any]:
     """Search for patent attorneys/agents.
 
-    USE THIS TOOL WHEN: You need to find patents handled by specific
-    attorneys or law firms, or research attorney prosecution history.
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use odp_get_attorney with a specific application number
+    to look up attorney information per application.
 
     Args:
         name: Attorney or firm name (partial match supported)
         limit: Maximum results to return (default: 100, max: 1000)
-
-    Returns:
-        List of attorneys with their IDs for detailed lookups.
     """
-    # Support searching by last name or organization
-    query = {"_or": [
-        {"_text_any": {"attorney_name_last": name}},
-        {"_text_any": {"attorney_organization": name}},
-    ]}
-
-    result = await patentsview_client.search_attorneys(query, size=limit)
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_patentsview(result, 0, limit))
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use odp_get_attorney(app_num) to look up attorney information "
+            "for a specific application."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use odp_get_attorney(app_num) for attorney info on specific applications.",
+    }
 
 
 @mcp.tool()
 async def patentsview_get_attorney(attorney_id: str) -> Dict[str, Any]:
     """Get detailed attorney information by ID.
 
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use odp_get_attorney with a specific application number
+    to look up attorney information per application.
+
     Args:
         attorney_id: Attorney ID from search results
     """
-    return await patentsview_client.get_attorney(attorney_id)
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use odp_get_attorney(app_num) to look up attorney information "
+            "for a specific application."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use odp_get_attorney(app_num) for attorney info on specific applications.",
+    }
 
 
 @mcp.tool()
 async def patentsview_lookup_ipc(ipc_code: str) -> Dict[str, Any]:
     """Look up IPC (International Patent Classification) code details.
 
-    USE THIS TOOL WHEN: You need to understand what technology area
-    an IPC code represents, or find the IPC hierarchy.
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. No direct replacement exists for IPC lookups. Use
+    odp_search_datasets to find PatentsView bulk datasets containing IPC data.
 
     Args:
         ipc_code: IPC code (e.g., "G06F" for data processing)
-
-    Returns:
-        IPC classification title and description.
     """
-    return await patentsview_client.lookup_ipc(ipc_code)
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "No direct replacement exists for IPC code lookups. "
+            "PatentsView bulk datasets on the USPTO Open Data Portal may "
+            "contain IPC data (use odp_search_datasets to find them)."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use odp_search_datasets to find PatentsView bulk datasets with IPC data.",
+    }
 
 
 @mcp.tool()
@@ -1359,26 +1436,24 @@ async def patentsview_search_by_ipc(
 ) -> Dict[str, Any]:
     """Search patents by IPC (International Patent Classification) code.
 
-    USE THIS TOOL WHEN: You need to find patents in a specific technology
-    area using the international classification system (vs CPC which is
-    US/European focused).
+    IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
+    March 20, 2026. Use ppubs_search_patents with an IPC query as a workaround.
 
     Args:
         ipc_code: IPC code (e.g., "G06F" for data processing)
         limit: Maximum results to return (default: 100, max: 1000)
-
-    Returns:
-        List of patents with the specified IPC classification.
     """
-    # Search for patents with this IPC code
-    query = {"ipc_class": {"_begins": ipc_code}}
-
-    result = await patentsview_client.search_ipc(query, size=limit)
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_patentsview(result, 0, limit))
+    return {
+        "error": True,
+        "message": (
+            "PatentsView API is no longer available. The PatentsView API "
+            "(search.patentsview.org) was shut down on March 20, 2026. "
+            "Use ppubs_search_patents with an IPC classification query "
+            "to search by IPC code."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": "Use ppubs_search_patents with an IPC query to search by classification.",
+    }
 
 
 # =====================================================================
