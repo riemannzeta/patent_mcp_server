@@ -2,15 +2,12 @@
 USPTO Enriched Citation API Client
 
 Provides access to the USPTO Enriched Citation metadata via the DS API
-at developer.uspto.gov. This Solr-based API contains ~1.2M enriched
+at api.uspto.gov. This Solr-based API contains ~1.2M enriched
 citation records extracted from patent office actions (Oct 2017+).
 
-The API is publicly accessible (no API key required) and uses
-form-encoded POST requests with Solr query syntax.
-
-API docs: https://developer.uspto.gov/ds-api-docs/index.html?url=
-https://developer.uspto.gov/ds-api/swagger/docs/
-enriched_cited_reference_metadata.json
+Note: This API was migrated from developer.uspto.gov to api.uspto.gov in
+early 2026 and now requires an ODP API key. Uses form-encoded POST
+requests with Solr query syntax.
 """
 
 import logging
@@ -30,7 +27,7 @@ from patent_mcp_server.config import config
 logger = logging.getLogger('enriched_citation_client')
 
 DS_API_BASE = (
-    "https://developer.uspto.gov/ds-api"
+    "https://developer.uspto.gov/ds-api"  # Legacy - decommissioned early 2026
     "/enriched_cited_reference_metadata/1"
 )
 
@@ -48,6 +45,7 @@ class EnrichedCitationClient:
         self.base_url = DS_API_BASE
         self.headers = {
             "User-Agent": config.USER_AGENT,
+            "X-API-KEY": config.USPTO_API_KEY if config.USPTO_API_KEY else "",
             "Accept": "application/json",
         }
 
