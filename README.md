@@ -1,6 +1,6 @@
 # USPTO Patent MCP Server
 
-A [FastMCP server](https://github.com/modelcontextprotocol/python-sdk/tree/main/src/mcp/server/fastmcp) for accessing United States Patent and Trademark Office (USPTO) patent and patent application data through multiple APIs including the [Patent Public Search](https://www.uspto.gov/patents/search/patent-public-search) API, the [Open Data Portal (ODP) API](https://data.uspto.gov/home), [PTAB API v3](https://developer.uspto.gov/api-catalog), [PatentsView API](https://patentsview.org/apis/purpose), Office Action APIs, and Patent Litigation APIs. Using this server, Claude Desktop can pull data from USPTO APIs, search through PTAB proceedings and decisions, analyze patent litigation, research prosecution history, and more:
+A [FastMCP server](https://github.com/modelcontextprotocol/python-sdk/tree/main/src/mcp/server/fastmcp) for accessing United States Patent and Trademark Office (USPTO) patent and patent application data through multiple APIs including the [Patent Public Search](https://www.uspto.gov/patents/search/patent-public-search) API, the [Open Data Portal (ODP) API](https://data.uspto.gov/home), [PTAB API v3](https://developer.uspto.gov/api-catalog), and Patent Litigation APIs. Using this server, Claude Desktop can pull data from USPTO APIs, search through PTAB proceedings and decisions, analyze patent litigation, research prosecution history, and more:
 
 ![Screen Capture of Claude Desktop using Patents MCP Server](screencap.gif)
 
@@ -10,31 +10,29 @@ Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of 
 
 ## Features
 
-This server provides **51 tools** across 6 USPTO data sources for:
+This server provides **52 tools** across 6 USPTO data sources (31 active, 21 temporarily unavailable pending API migrations):
 
-1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS and PatentsView
+1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS
 2. **Full Text Documents** - Get complete text of patents including claims, description, and specification
 3. **PDF Downloads** - Download patents as PDF files (Claude Desktop doesn't support this as a client currently)
-4. **Prosecution History** - Access office actions, transactions, and file wrapper data
+4. **Prosecution History** - Access transactions and file wrapper data via ODP
 5. **PTAB Proceedings** - Search and retrieve Patent Trial and Appeal Board proceedings (IPR, PGR, CBM), decisions, and appeals
-6. **Office Actions** - Access full-text office actions, citations, and rejection data
-7. **Patent Litigation** - Search 74,000+ district court patent cases
-8. **Citation Analysis** - Get enriched citation data and metrics
-9. **Patent Family Data** - Continuity information, foreign priority, and related applications
-10. **Inventor/Assignee Search** - Disambiguated inventor and assignee data via PatentsView
+6. **Patent Litigation** - Search 74,000+ district court patent cases
+7. **Patent Family Data** - Continuity information, foreign priority, and related applications
+8. **Bulk Datasets** - Search and access USPTO bulk data products including PatentsView disambiguated data
+
+> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026, with ODP migration pending. All 21 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
 
 ## API Sources
 
-This server interacts with six USPTO patent data sources:
-
-| Source | Description | Auth Required |
-|--------|-------------|---------------|
-| **ppubs.uspto.gov** | Full text documents, PDF downloads, advanced search (daily updates) | No |
-| **api.uspto.gov (ODP)** | Metadata, continuity, transactions, assignments, prosecution history | Yes (ODP API Key) |
-| **PTAB API v3 (ODP)** | IPR/PGR/CBM proceedings, decisions, appeals, interferences | Yes (ODP API Key) |
-| **PatentsView API** | Disambiguated inventor/assignee data, advanced search | Yes (PatentsView Key) |
-| **Office Action APIs** | Full-text office actions, citations, rejections (12-series apps, June 2018+) | Yes (ODP API Key) |
-| **Patent Litigation API** | 74,000+ district court patent cases | Yes (ODP API Key) |
+| Source | Description | Auth Required | Status |
+|--------|-------------|---------------|--------|
+| **ppubs.uspto.gov** | Full text documents, PDF downloads, advanced search (daily updates) | No | Active |
+| **api.uspto.gov (ODP)** | Metadata, continuity, transactions, assignments, prosecution history | Yes (ODP API Key) | Active |
+| **PTAB API v3 (ODP)** | IPR/PGR/CBM proceedings, decisions, appeals, interferences | Yes (ODP API Key) | Active |
+| **Patent Litigation API** | 74,000+ district court patent cases | Yes (ODP API Key) | Active |
+| **PatentsView API** | Disambiguated inventor/assignee data, advanced search | N/A | Shut down March 2026 |
+| **Office Action APIs** | Full-text office actions, citations, rejections | N/A | Decommissioned early 2026 |
 
 ## Prerequisites
 
@@ -75,7 +73,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### USPTO ODP API Key (Required for most tools)
 
-To use the api.uspto.gov tools (ODP, PTAB, Office Actions, Litigation), you need an Open Data Portal API key. Without it, these endpoints return `403 Forbidden`.
+To use the api.uspto.gov tools (ODP, PTAB, Litigation), you need an Open Data Portal API key. Without it, these endpoints return `403 Forbidden`.
 
 1. Create a USPTO.gov account at [data.uspto.gov](https://data.uspto.gov) (requires ID.me verification)
 2. Once signed in, visit **"My ODP"** in the site navigation to get your API key
@@ -85,18 +83,7 @@ To use the api.uspto.gov tools (ODP, PTAB, Office Actions, Litigation), you need
    ```bash
    USPTO_API_KEY=your_actual_key_here
    ```
-   Note: The PPUBS and PatentsView tools will work without this API key.
-
-### PatentsView API Key (Optional)
-
-For advanced search with disambiguated inventor/assignee data:
-
-1. Request an API key at [PatentsView Support](https://patentsview-support.atlassian.net)
-
-2. Add to your `.env` file:
-   ```bash
-   PATENTSVIEW_API_KEY=your_patentsview_key
-   ```
+   Note: The PPUBS tools will work without this API key.
 
 ## Configuration
 
@@ -105,7 +92,6 @@ The server can be configured using environment variables in your `.env` file. Al
 ```bash
 # API Keys
 USPTO_API_KEY=your_key_here
-PATENTSVIEW_API_KEY=your_patentsview_key  # Optional
 
 # Logging
 LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -123,8 +109,6 @@ ENABLE_CACHING=true        # Enable/disable session caching
 # API Endpoints (usually don't need to change)
 PPUBS_BASE_URL=https://ppubs.uspto.gov
 API_BASE_URL=https://api.uspto.gov          # ODP API endpoint (NOT data.uspto.gov)
-PATENTSVIEW_BASE_URL=https://search.patentsview.org
-OFFICE_ACTION_BASE_URL=https://developer.uspto.gov  # Legacy - decommissioned early 2026, pending ODP migration
 ```
 
 ## Claude Desktop Configuration
@@ -156,10 +140,10 @@ When integrated with Claude Desktop, the server will be automatically started wh
 
 ## Claude Code Configuration
 
-To integrate this mCP server with Claude Code for a particular project, from the project root:
+To integrate this MCP server with Claude Code for a particular project, from the project root:
 
 ```shell
-claude mcp add-json patents '{"command": "uv", "args": ["--directory", "/Users/michael.frank.martin/patent_mcp_server", "run", "patent-mcp-server"]}'
+claude mcp add-json patents '{"command": "uv", "args": ["--directory", "/path/to/patent_mcp_server", "run", "patent-mcp-server"]}'
 ```
 
 If you're already running Claude Code, you'll have to /exit and restart. Then /mcp to verify that it's configured.
@@ -209,42 +193,55 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 | `ptab_search_appeals` | Search ex parte appeals |
 | `ptab_get_appeal` | Get appeal decision details |
 
-### PatentsView API
+### Patent Litigation API
 | Tool | Description |
 |------|-------------|
-| `patentsview_search_patents` | Full-text search with disambiguation |
-| `patentsview_get_patent` | Get detailed patent info |
-| `patentsview_search_assignees` | Search disambiguated assignees |
-| `patentsview_get_assignee` | Get assignee details |
-| `patentsview_search_inventors` | Search disambiguated inventors |
-| `patentsview_get_inventor` | Get inventor details |
-| `patentsview_search_attorneys` | Search patent attorneys/agents |
-| `patentsview_get_attorney` | Get attorney details |
-| `patentsview_get_claims` | Get patent claims text |
-| `patentsview_get_description` | Get patent description |
-| `patentsview_search_by_cpc` | Search by CPC classification |
-| `patentsview_lookup_cpc` | Look up CPC code info |
-| `patentsview_search_by_ipc` | Search by IPC classification |
-| `patentsview_lookup_ipc` | Look up IPC code info |
-
-### Office Action APIs
-| Tool | Description |
-|------|-------------|
-| `get_office_action_text` | Get full-text office actions |
-| `search_office_actions` | Search office actions |
-| `get_office_action_citations` | Get citations from office actions |
-| `get_office_action_rejections` | Get rejection data |
-
-### Citation & Litigation APIs
-| Tool | Description |
-|------|-------------|
-| `get_enriched_citations` | Get forward/backward citations |
-| `search_citations` | Search citation records |
-| `get_citation_metrics` | Get citation metrics |
 | `search_litigation` | Search 74,000+ patent cases |
 | `get_litigation_case` | Get case details |
 | `get_patent_litigation` | Get litigation for a patent |
 | `get_party_litigation` | Get party litigation history |
+
+### PatentsView API (Unavailable — shut down March 2026)
+
+All 14 PatentsView tools return `API_UNAVAILABLE` with workaround guidance. PatentsView data has been migrated to the USPTO Open Data Portal as bulk downloadable datasets. Use `ppubs_search_patents` for patent search, `odp_search_datasets` to find bulk datasets.
+
+| Tool | Workaround |
+|------|------------|
+| `patentsview_search_patents` | `ppubs_search_patents` |
+| `patentsview_get_patent` | `ppubs_get_patent_by_number` |
+| `patentsview_search_assignees` | `ppubs_search_patents` with `AN/"name"` query |
+| `patentsview_get_assignee` | `odp_search_datasets` (bulk data) |
+| `patentsview_search_inventors` | `ppubs_search_patents` with `IN/"name"` query |
+| `patentsview_get_inventor` | `odp_search_datasets` (bulk data) |
+| `patentsview_get_claims` | `ppubs_get_full_document` |
+| `patentsview_get_description` | `ppubs_get_full_document` |
+| `patentsview_search_by_cpc` | `ppubs_search_patents` with `CPC/"code"` query |
+| `patentsview_lookup_cpc` | `get_cpc_info` |
+| `patentsview_search_attorneys` | `odp_get_attorney` (per-application) |
+| `patentsview_get_attorney` | `odp_get_attorney` (per-application) |
+| `patentsview_search_by_ipc` | `ppubs_search_patents` with IPC query |
+| `patentsview_lookup_ipc` | `odp_search_datasets` (bulk data) |
+
+### Office Action APIs (Unavailable — decommissioned early 2026)
+
+All 4 Office Action tools return `API_UNAVAILABLE`. Use `odp_get_documents` to access office action documents from the file wrapper.
+
+| Tool | Workaround |
+|------|------------|
+| `get_office_action_text` | `odp_get_documents` |
+| `search_office_actions` | `odp_get_documents` or `odp_get_transactions` |
+| `get_office_action_citations` | `odp_get_documents` |
+| `get_office_action_rejections` | `odp_get_documents` |
+
+### Enriched Citation APIs (Unavailable — decommissioned early 2026)
+
+All 3 Enriched Citation tools return `API_UNAVAILABLE`. Use `odp_get_documents` or `ppubs` tools as workarounds.
+
+| Tool | Workaround |
+|------|------------|
+| `get_enriched_citations` | `odp_get_documents` |
+| `search_citations` | `odp_get_documents` |
+| `get_citation_metrics` | `odp_get_documents` |
 
 ### Resources and Prompts
 
@@ -292,20 +289,39 @@ To install development dependencies:
 uv sync --dev
 ```
 
+## Publishing to PyPI
+
+```bash
+# Build distribution packages
+rm -rf dist/ && uv run python -m build
+
+# Upload to PyPI
+uv run twine upload dist/*
+```
+
 ## Version History
 
-### v0.6.2 (Current)
+### v0.8.0 (Current)
+- Handle decommissioned PatentsView API (shut down March 20, 2026)
+- All 14 `patentsview_*` tools return `API_UNAVAILABLE` with workaround guidance
+- Fixed circular references in office_actions resources that pointed to unavailable PatentsView tools
+- Updated API Sources table, configuration, and documentation
+
+### v0.7.0
+- Handle decommissioned Office Action and Enriched Citation APIs (developer.uspto.gov)
+- All 7 affected tools return `API_UNAVAILABLE` with workaround guidance
+- Added `test/unit/test_unavailable_tools.py` for decommissioned tool testing
+- Code cleanup: removed dead code, improved docstrings
+
+### v0.6.2
 - Updated API key registration instructions: keys are now obtained from [data.uspto.gov](https://data.uspto.gov) ("My ODP")
 - Clarified that `api.uspto.gov` is the correct API endpoint (not `data.uspto.gov` which is the web portal)
 - Noted PTAB API v3 migration to ODP and Office Action API migration (early 2026)
-- Updated data source descriptions and auth documentation
 
 ### v0.6.1
 - Added PatentsView attorney search tools (`patentsview_search_attorneys`, `patentsview_get_attorney`)
 - Added PatentsView IPC classification tools (`patentsview_lookup_ipc`, `patentsview_search_by_ipc`)
 - Fixed bug in `search_publications` method (pagination options not being passed)
-- Added new PatentsView API endpoints (attorney, IPC, pregrant publication text, citations)
-- Updated README with complete tool documentation
 
 ### v0.6.0
 - PyPI release preparation
@@ -314,8 +330,6 @@ uv sync --dev
 - Focused on USPTO-only data sources
 - Renamed ODP tools with `odp_` prefix for clarity
 - Improved function signatures (using `query` instead of `q`)
-- Enhanced test organization with proper integration test markers
-- Updated validation with Pydantic models
 
 ### v0.3.0
 - Added 33 new tools (PTAB, PatentsView, Office Actions, Citations, Litigation)
