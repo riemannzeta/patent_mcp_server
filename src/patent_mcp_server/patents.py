@@ -25,7 +25,7 @@ from pydantic import ValidationError
 
 from patent_mcp_server.config import config
 from patent_mcp_server.constants import (
-    Sources, Fields, Defaults, PTABTrialTypes, PatentsViewEndpoints
+    Sources, Fields, Defaults, PatentsViewEndpoints
 )
 from patent_mcp_server.util.errors import ApiError, is_error
 from patent_mcp_server.util.validation import validate_patent_number, validate_app_number
@@ -41,10 +41,8 @@ from patent_mcp_server.resources import (
 from patent_mcp_server.prompts import get_prompt, list_prompts, PROMPTS
 from patent_mcp_server.uspto.ppubs_uspto_gov import PpubsClient
 from patent_mcp_server.uspto.api_uspto_gov import ApiUsptoClient
-from patent_mcp_server.uspto.ptab_client import PTABClient
 from patent_mcp_server.uspto.office_action_client import OfficeActionClient
 from patent_mcp_server.uspto.enriched_citation_client import EnrichedCitationClient
-from patent_mcp_server.uspto.litigation_client import LitigationClient
 from patent_mcp_server.patentsview.patentsview_client import PatentsViewClient
 
 # Initialize FastMCP server
@@ -64,10 +62,8 @@ config.validate()
 # Create client instances for each USPTO API
 ppubs_client = PpubsClient()
 api_client = ApiUsptoClient()
-ptab_client = PTABClient()
 office_action_client = OfficeActionClient()
 enriched_citation_client = EnrichedCitationClient()
-litigation_client = LitigationClient()
 
 # Create PatentsView client
 patentsview_client = PatentsViewClient()
@@ -80,10 +76,8 @@ async def cleanup():
     try:
         await ppubs_client.close()
         await api_client.close()
-        await ptab_client.close()
         await office_action_client.close()
         await enriched_citation_client.close()
-        await litigation_client.close()
         await patentsview_client.close()
         logger.info("Cleanup completed successfully")
     except Exception as e:
@@ -328,9 +322,17 @@ async def check_api_status() -> Dict[str, Any]:
             "requires_auth": False,
         },
         "ptab": {
-            "name": "PTAB API v3",
-            "configured": bool(config.USPTO_API_KEY),
-            "api_key_set": bool(config.USPTO_API_KEY),
+            "name": "PTAB Trial API",
+            "configured": False,
+            "status": "UNAVAILABLE",
+            "note": (
+                "The PTAB Trial API is not available on the USPTO Open Data "
+                "Portal (api.uspto.gov). The legacy PTAB API at "
+                "developer.uspto.gov was retired, and no PTAB endpoints are "
+                "listed in the ODP Swagger catalog. Use ppubs_search_patents "
+                "/ ppubs_get_full_document to locate PTAB-related documents, "
+                "or download PTAB bulk data from https://developer.uspto.gov/data."
+            ),
         },
         "patentsview": {
             "name": "PatentsView API",
@@ -356,8 +358,16 @@ async def check_api_status() -> Dict[str, Any]:
         },
         "litigation": {
             "name": "Patent Litigation API",
-            "configured": bool(config.USPTO_API_KEY),
-            "api_key_set": bool(config.USPTO_API_KEY),
+            "configured": False,
+            "status": "UNAVAILABLE",
+            "note": (
+                "The Patent Litigation API is not available on the USPTO "
+                "Open Data Portal (api.uspto.gov) and is not listed in the "
+                "ODP Swagger catalog. The OCE Patent Litigation dataset is "
+                "distributed as a bulk download at "
+                "https://www.uspto.gov/ip-policy/economic-research/research-"
+                "datasets/patent-litigation-docket-reports-data."
+            ),
         },
     }
 
@@ -910,33 +920,16 @@ async def ptab_search_proceedings(
     Returns:
         Normalized response with matching proceedings.
     """
-    if trial_type and trial_type not in PTABTrialTypes.ALL:
-        return ApiError.validation_error(
-            f"Invalid trial type. Must be one of: {', '.join(PTABTrialTypes.ALL)}",
-            "trial_type"
-        )
-
-    result = await ptab_client.search_proceedings(
-        query=query,
-        trial_type=trial_type,
-        patent_number=patent_number,
-        party_name=party_name,
-        filing_date_from=filing_date_from,
-        filing_date_to=filing_date_to,
-        status=status,
-        offset=offset,
-        limit=limit,
-    )
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_ptab(result, offset, limit))
+    return _ptab_unavailable()
 
 
 @mcp.tool()
 async def ptab_get_proceeding(proceeding_number: str) -> Dict[str, Any]:
     """Get details of a specific PTAB proceeding.
+
+    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
+    Portal (api.uspto.gov). The legacy PTAB API on developer.uspto.gov was
+    retired, and no PTAB endpoints are listed in the ODP Swagger catalog.
 
     Args:
         proceeding_number: Proceeding number (e.g., "IPR2023-00001")
@@ -944,7 +937,7 @@ async def ptab_get_proceeding(proceeding_number: str) -> Dict[str, Any]:
     Returns:
         Proceeding details including parties, patent, status, and dates.
     """
-    return await ptab_client.get_proceeding(proceeding_number)
+    return _ptab_unavailable()
 
 
 @mcp.tool()
@@ -956,8 +949,9 @@ async def ptab_get_documents(
 ) -> Dict[str, Any]:
     """Get documents filed in a PTAB proceeding.
 
-    USE THIS TOOL WHEN: You need to review petitions, responses,
-    declarations, or other documents in a PTAB case.
+    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
+    Portal (api.uspto.gov). The legacy PTAB API on developer.uspto.gov was
+    retired, and no PTAB endpoints are listed in the ODP Swagger catalog.
 
     Args:
         proceeding_number: Proceeding number (e.g., "IPR2023-00001")
@@ -965,17 +959,7 @@ async def ptab_get_documents(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    result = await ptab_client.get_proceeding_documents(
-        proceeding_number=proceeding_number,
-        document_type=document_type,
-        offset=offset,
-        limit=limit,
-    )
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_ptab(result, offset, limit))
+    return _ptab_unavailable()
 
 
 @mcp.tool()
@@ -991,8 +975,9 @@ async def ptab_search_decisions(
 ) -> Dict[str, Any]:
     """Search PTAB trial decisions.
 
-    USE THIS TOOL WHEN: You need to find institution decisions, final
-    written decisions, or termination orders.
+    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
+    Portal (api.uspto.gov). The legacy PTAB API on developer.uspto.gov was
+    retired, and no PTAB endpoints are listed in the ODP Swagger catalog.
 
     Args:
         query: Full-text search in decision text
@@ -1004,31 +989,20 @@ async def ptab_search_decisions(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    result = await ptab_client.search_decisions(
-        query=query,
-        decision_type=decision_type,
-        proceeding_number=proceeding_number,
-        patent_number=patent_number,
-        decision_date_from=decision_date_from,
-        decision_date_to=decision_date_to,
-        offset=offset,
-        limit=limit,
-    )
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_ptab(result, offset, limit))
+    return _ptab_unavailable()
 
 
 @mcp.tool()
 async def ptab_get_decision(decision_id: str) -> Dict[str, Any]:
     """Get details of a specific PTAB decision.
 
+    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
+    Portal (api.uspto.gov). See ptab_search_proceedings for details.
+
     Args:
         decision_id: Decision identifier
     """
-    return await ptab_client.get_decision(decision_id)
+    return _ptab_unavailable()
 
 
 @mcp.tool()
@@ -1043,8 +1017,9 @@ async def ptab_search_appeals(
 ) -> Dict[str, Any]:
     """Search ex parte appeal decisions.
 
-    USE THIS TOOL WHEN: You need to find appeal outcomes where applicants
-    appealed examiner rejections to the PTAB.
+    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
+    Portal (api.uspto.gov). The legacy PTAB API on developer.uspto.gov was
+    retired, and no PTAB endpoints are listed in the ODP Swagger catalog.
 
     Args:
         query: Full-text search query
@@ -1055,30 +1030,43 @@ async def ptab_search_appeals(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    result = await ptab_client.search_appeals(
-        query=query,
-        application_number=application_number,
-        patent_number=patent_number,
-        decision_date_from=decision_date_from,
-        decision_date_to=decision_date_to,
-        offset=offset,
-        limit=limit,
-    )
-
-    if is_error(result):
-        return result
-
-    return check_and_truncate(ResponseEnvelope.from_ptab(result, offset, limit))
+    return _ptab_unavailable()
 
 
 @mcp.tool()
 async def ptab_get_appeal(appeal_number: str) -> Dict[str, Any]:
     """Get details of a specific ex parte appeal decision.
 
+    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
+    Portal (api.uspto.gov). See ptab_search_proceedings for details.
+
     Args:
         appeal_number: Appeal number
     """
-    return await ptab_client.get_appeal_decision(appeal_number)
+    return _ptab_unavailable()
+
+
+def _ptab_unavailable() -> Dict[str, Any]:
+    """Shared API_UNAVAILABLE payload for all PTAB tools (see issue #16)."""
+    return {
+        "error": True,
+        "message": (
+            "The USPTO PTAB Trial API is not available on the Open Data "
+            "Portal (api.uspto.gov). The legacy PTAB API at "
+            "developer.uspto.gov was retired, and no PTAB endpoints are "
+            "listed in the ODP Swagger catalog at "
+            "https://data.uspto.gov/swagger/index.html. Use "
+            "ppubs_search_patents / ppubs_get_full_document to locate "
+            "PTAB-related documents, or download PTAB bulk data from "
+            "https://developer.uspto.gov/data."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": (
+            "Use ppubs_search_patents(query) to locate PTAB-related "
+            "documents, or download PTAB bulk data from "
+            "https://developer.uspto.gov/data."
+        ),
+    }
 
 
 # =====================================================================
@@ -1713,6 +1701,31 @@ async def get_citation_metrics(patent_number: str) -> Dict[str, Any]:
 # Litigation Tools
 # =====================================================================
 
+def _litigation_unavailable() -> Dict[str, Any]:
+    """Shared API_UNAVAILABLE payload for all litigation tools (see issue #16)."""
+    return {
+        "error": True,
+        "message": (
+            "The USPTO Patent Litigation API is not available on the Open "
+            "Data Portal (api.uspto.gov). No litigation endpoints are "
+            "listed in the ODP Swagger catalog at "
+            "https://data.uspto.gov/swagger/index.html. The OCE Patent "
+            "Litigation dataset (74,000+ district court cases) is "
+            "distributed as a bulk download rather than a live API. "
+            "Download it from https://www.uspto.gov/ip-policy/economic-"
+            "research/research-datasets/patent-litigation-docket-reports-"
+            "data, or use ppubs_search_patents as a partial workaround."
+        ),
+        "error_code": "API_UNAVAILABLE",
+        "workaround": (
+            "Download the OCE Patent Litigation bulk dataset from "
+            "https://www.uspto.gov/ip-policy/economic-research/research-"
+            "datasets/patent-litigation-docket-reports-data, or use "
+            "ppubs_search_patents(query) for patent-level lookups."
+        ),
+    }
+
+
 @mcp.tool()
 async def search_litigation(
     query: Optional[str] = None,
@@ -1727,8 +1740,10 @@ async def search_litigation(
 ) -> Dict[str, Any]:
     """Search patent litigation cases (74,000+ district court records).
 
-    USE THIS TOOL WHEN: You need to research patent enforcement history,
-    find litigation involving specific patents or parties.
+    IMPORTANT: The USPTO Patent Litigation API is not available on the Open
+    Data Portal (api.uspto.gov) and is not listed in the ODP Swagger
+    catalog. The OCE Patent Litigation dataset is distributed as bulk
+    downloadable files rather than a live API.
 
     Args:
         query: Full-text search query
@@ -1741,47 +1756,33 @@ async def search_litigation(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    result = await litigation_client.search_cases(
-        query=query,
-        patent_number=patent_number,
-        plaintiff=plaintiff,
-        defendant=defendant,
-        court=court,
-        filing_date_from=filing_date_from,
-        filing_date_to=filing_date_to,
-        offset=offset,
-        limit=limit,
-    )
-    return check_and_truncate(result)
+    return _litigation_unavailable()
 
 
 @mcp.tool()
 async def get_litigation_case(case_id: str) -> Dict[str, Any]:
     """Get details of a specific litigation case.
 
+    IMPORTANT: The USPTO Patent Litigation API is not available on the Open
+    Data Portal. See search_litigation for details and workarounds.
+
     Args:
         case_id: Case identifier
     """
-    return await litigation_client.get_case(case_id)
+    return _litigation_unavailable()
 
 
 @mcp.tool()
 async def get_patent_litigation(patent_number: str) -> Dict[str, Any]:
     """Get all litigation involving a specific patent.
 
-    USE THIS TOOL WHEN: You need to see the complete litigation history
-    of a patent including all cases where it was asserted.
+    IMPORTANT: The USPTO Patent Litigation API is not available on the Open
+    Data Portal. See search_litigation for details and workarounds.
 
     Args:
         patent_number: Patent number
     """
-    try:
-        patent_num = validate_patent_number(patent_number)
-    except ValueError as e:
-        return ApiError.validation_error(str(e), "patent_number")
-
-    result = await litigation_client.get_patent_litigation_history(patent_num)
-    return check_and_truncate(result)
+    return _litigation_unavailable()
 
 
 @mcp.tool()
@@ -1792,22 +1793,15 @@ async def get_party_litigation(
 ) -> Dict[str, Any]:
     """Get litigation history for a company or individual.
 
-    USE THIS TOOL WHEN: You need to understand a party's patent litigation
-    profile as either plaintiff (asserting) or defendant (being sued).
+    IMPORTANT: The USPTO Patent Litigation API is not available on the Open
+    Data Portal. See search_litigation for details and workarounds.
 
     Args:
         party_name: Company or individual name
         role: Filter by role - "plaintiff", "defendant", or None for both
         limit: Max results (default: 25)
     """
-    if role and role not in ["plaintiff", "defendant"]:
-        return ApiError.validation_error(
-            "Role must be 'plaintiff', 'defendant', or None",
-            "role"
-        )
-
-    result = await litigation_client.get_party_litigation_history(party_name, role, limit)
-    return check_and_truncate(result)
+    return _litigation_unavailable()
 
 
 # =====================================================================

@@ -312,23 +312,29 @@ DATA_SOURCES = {
         ],
     },
     "ptab": {
-        "name": "USPTO PTAB API v3 (via ODP)",
-        "base_url": "https://api.uspto.gov/api/v1/patent/trials",
-        "portal_url": "https://data.uspto.gov",
-        "description": "Patent Trial and Appeal Board data - IPR, PGR, CBM proceedings. Migrated to ODP; requires ODP API key.",
+        "name": "USPTO PTAB Trial API",
+        "base_url": "N/A",
+        "description": (
+            "UNAVAILABLE. The PTAB Trial API is not available on the USPTO "
+            "Open Data Portal (api.uspto.gov). The legacy PTAB API at "
+            "developer.uspto.gov was retired, and no PTAB endpoints are "
+            "listed in the ODP Swagger catalog at "
+            "https://data.uspto.gov/swagger/index.html. Use ppubs_* tools to "
+            "locate PTAB-related documents, or download PTAB bulk data from "
+            "https://developer.uspto.gov/data."
+        ),
         "coverage": {
-            "proceedings": "IPR, PGR, CBM, derivation proceedings from 2012",
-            "decisions": "Institution and final written decisions",
-            "appeals": "Ex parte appeal decisions",
-            "interferences": "Historical interference proceedings (pre-AIA)",
+            "proceedings": "Unavailable - no ODP endpoint",
+            "decisions": "Unavailable - no ODP endpoint",
+            "appeals": "Unavailable - no ODP endpoint",
         },
-        "rate_limits": "Requires ODP API key, standard rate limits apply",
-        "auth_required": True,
+        "rate_limits": "N/A",
+        "auth_required": False,
         "best_for": [
-            "IPR/PGR/CBM proceeding research",
-            "PTAB decision analysis",
-            "Appeal outcomes",
-            "Patent validity challenges",
+            "IPR/PGR/CBM proceeding research (UNAVAILABLE - use ppubs_search_patents)",
+            "PTAB decision analysis (UNAVAILABLE - download bulk data from developer.uspto.gov/data)",
+            "Appeal outcomes (UNAVAILABLE - use ppubs_search_patents)",
+            "Patent validity challenges (UNAVAILABLE - use ppubs_search_patents)",
         ],
     },
     "office_actions": {
@@ -356,18 +362,25 @@ DATA_SOURCES = {
     },
     "litigation": {
         "name": "USPTO Patent Litigation API",
-        "base_url": "https://api.uspto.gov/api/v1/patent/litigation",
-        "description": "District court patent litigation case records. Requires ODP API key.",
+        "base_url": "N/A",
+        "description": (
+            "UNAVAILABLE. The Patent Litigation API is not available on the "
+            "USPTO Open Data Portal (api.uspto.gov) and is not listed in the "
+            "ODP Swagger catalog. The OCE Patent Litigation dataset (74,000+ "
+            "district court cases) is distributed as a bulk download at "
+            "https://www.uspto.gov/ip-policy/economic-research/research-"
+            "datasets/patent-litigation-docket-reports-data."
+        ),
         "coverage": {
-            "cases": "74,000+ district court cases",
-            "date_range": "Historical litigation records",
+            "cases": "Unavailable via API - use OCE bulk dataset",
+            "date_range": "Unavailable via API - use OCE bulk dataset",
         },
-        "rate_limits": "Requires ODP API key, standard rate limits apply",
-        "auth_required": True,
+        "rate_limits": "N/A",
+        "auth_required": False,
         "best_for": [
-            "Patent litigation history",
-            "Company litigation profiles",
-            "Patent enforcement patterns",
+            "Patent litigation history (UNAVAILABLE - use OCE bulk dataset)",
+            "Company litigation profiles (UNAVAILABLE - use OCE bulk dataset)",
+            "Patent enforcement patterns (UNAVAILABLE - use OCE bulk dataset)",
         ],
     },
 }

@@ -1,12 +1,15 @@
 """
-USPTO PTAB API Client (Patent Trial and Appeal Board)
+USPTO PTAB API Client — LEGACY / UNAVAILABLE
 
-This module provides access to the PTAB API v3 at api.uspto.gov for accessing
-Patent Trial and Appeal Board data including IPR, PGR, CBM proceedings,
-trial decisions, appeal outcomes, and interference records.
+This client targets endpoints under https://api.uspto.gov/api/v1/patent/trials
+that are not actually offered on the USPTO Open Data Portal. No PTAB
+endpoints are listed in the ODP Swagger catalog at
+https://data.uspto.gov/swagger/index.html. The legacy PTAB Trial API that
+previously lived on developer.uspto.gov has been retired; PTAB bulk data is
+available at https://developer.uspto.gov/data.
 
-Note: PTAB API v3 has been migrated to the Open Data Portal (ODP).
-Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
+This module is retained for historical reference and unit tests. The
+corresponding MCP tools in patents.py return API_UNAVAILABLE (see issue #16).
 """
 
 import logging

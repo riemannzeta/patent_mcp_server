@@ -1,11 +1,15 @@
 """
-USPTO Patent Litigation API Client
+USPTO Patent Litigation API Client — LEGACY / UNAVAILABLE
 
-This module provides access to the OCE Patent Litigation Cases API
-for accessing district court case records involving patents.
+This client targets endpoints under https://api.uspto.gov/api/v1/patent/litigation
+that are not actually offered on the USPTO Open Data Portal. No litigation
+endpoints are listed in the ODP Swagger catalog at
+https://data.uspto.gov/swagger/index.html. The OCE Patent Litigation dataset
+(74,000+ district court cases) is distributed as a bulk download at
+https://www.uspto.gov/ip-policy/economic-research/research-datasets/patent-litigation-docket-reports-data.
 
-Contains 74,623+ district court case records.
-Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
+This module is retained for historical reference and unit tests. The
+corresponding MCP tools in patents.py return API_UNAVAILABLE (see issue #16).
 """
 
 import logging

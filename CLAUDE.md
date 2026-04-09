@@ -6,9 +6,9 @@ This file provides guidance for Claude Code and other AI assistants working on t
 
 This is a Model Context Protocol (MCP) server that provides access to USPTO patent data through multiple APIs. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
 
-**Current state (v0.8.0):** 52 registered tools, 31 active, 21 unavailable due to API shutdowns:
-- **Active:** PPUBS (5), ODP (12), PTAB (7), Litigation (4), Utility (3)
-- **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026)
+**Current state (v0.9.0):** 52 registered tools, 20 active, 32 unavailable due to API shutdowns:
+- **Active:** PPUBS (5), ODP (12), Utility (3)
+- **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), PTAB (7, not offered on ODP — issue #16), Litigation (4, not offered on ODP — issue #16)
 
 ## Critical Rules
 
