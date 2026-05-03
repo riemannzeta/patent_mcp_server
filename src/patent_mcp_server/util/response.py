@@ -235,12 +235,33 @@ def estimate_tokens(data: Any) -> int:
         return len(str(data)) // 4
 
 
+# Heavy nested fields stripped from ODP file-wrapper records when slicing alone
+# can't fit the token budget. Listed in priority order — earlier entries are
+# stripped first. Callers can fetch the full record via odp_get_application.
+LEAN_STRIP_FIELDS = (
+    "eventDataBag",
+    "foreignPriorityBag",
+    "assignmentBag",
+    "claims",
+    "descriptionBag",
+)
+
+
 def truncate_response(
     response: Dict[str, Any],
     max_tokens: Optional[int] = None,
     max_results: int = 20,
 ) -> Dict[str, Any]:
     """Truncate a response if it exceeds token budget.
+
+    Two-stage strategy:
+      1. Slice the results list down to ``min(max_results, envelope_limit)``.
+         Honors the user's requested ``limit`` even when fewer than the global
+         default — fixes the case where 20 fat records still bust the budget.
+      2. If still over budget, strip heavy nested fields (eventDataBag,
+         foreignPriorityBag, assignmentBag, claims, descriptionBag) from each
+         record. Records remain visible; stripped fields are replaced with a
+         marker so callers know data was elided.
 
     Args:
         response: Response dictionary to potentially truncate
@@ -257,29 +278,57 @@ def truncate_response(
     if estimated_tokens <= max_tokens:
         return response
 
-    # Need to truncate
     truncated = response.copy()
 
-    # Try to truncate results array
+    # Stage 1: slice results to the effective limit (user request capped by global default).
+    envelope_limit = response.get("limit")
+    effective_max = max_results
+    if isinstance(envelope_limit, int) and envelope_limit > 0:
+        effective_max = min(max_results, envelope_limit)
+
     if "results" in truncated and isinstance(truncated["results"], list):
         original_count = len(truncated["results"])
-        if original_count > max_results:
-            truncated["results"] = truncated["results"][:max_results]
+        if original_count > effective_max:
+            truncated["results"] = truncated["results"][:effective_max]
             truncated["_truncated"] = True
             truncated["_original_count"] = original_count
-            truncated["_truncated_to"] = max_results
+            truncated["_truncated_to"] = effective_max
             truncated["_truncation_message"] = (
-                f"Response truncated from {original_count} to {max_results} results "
+                f"Response truncated from {original_count} to {effective_max} results "
                 f"to fit within token budget. Use 'offset' parameter to paginate "
                 f"through remaining results."
             )
-
-            # Update count
-            truncated["count"] = max_results
+            truncated["count"] = effective_max
 
             logger.info(
-                f"Truncated response from {original_count} to {max_results} results "
+                f"Truncated response from {original_count} to {effective_max} results "
                 f"(estimated {estimated_tokens} tokens exceeded {max_tokens} limit)"
+            )
+
+    # Stage 2: still too big? Strip heavy nested fields per record.
+    if (
+        estimate_tokens(truncated) > max_tokens
+        and isinstance(truncated.get("results"), list)
+    ):
+        stripped_fields: set = set()
+        for record in truncated["results"]:
+            if not isinstance(record, dict):
+                continue
+            for field in LEAN_STRIP_FIELDS:
+                if field in record:
+                    record[field] = {"_stripped": True}
+                    stripped_fields.add(field)
+        if stripped_fields:
+            truncated["_lean_mode"] = True
+            truncated["_stripped_fields"] = sorted(stripped_fields)
+            truncated["_lean_message"] = (
+                "Heavy nested fields stripped to fit token budget. "
+                "Fetch a single application with odp_get_application(app_num) "
+                "to retrieve the full record."
+            )
+            logger.info(
+                f"Stripped fields {sorted(stripped_fields)} from "
+                f"{len(truncated['results'])} record(s) to fit token budget"
             )
 
     return truncated

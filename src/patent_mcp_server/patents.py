@@ -839,6 +839,15 @@ async def odp_search_applications(
     if is_error(result):
         return result
 
+    # Upstream ODP search ignores the `rows` parameter and returns a fixed
+    # page (~25 records). Enforce the caller's `limit` by post-slicing.
+    if isinstance(result, dict) and isinstance(
+        result.get("patentFileWrapperDataBag"), list
+    ):
+        result["patentFileWrapperDataBag"] = (
+            result["patentFileWrapperDataBag"][:limit]
+        )
+
     return check_and_truncate(ResponseEnvelope.from_odp(result, offset, limit))
 
 
