@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "patent-mcp-server"
-version = "0.9.1"
+version = "0.9.2"
 description = "Model Context Protocol server for USPTO patent data"
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
@@ -31,8 +31,8 @@ dependencies = [
     "httpx>=0.28.1",
     "mcp[cli]>=1.3.0",
     "pydantic>=2.0.0",
-    "python-dotenv>=1.0.1",
-    "python-multipart>=0.0.22",  # CVE-2026-24486 fix
+    "python-dotenv>=1.2.2",      # CVE-2026-28684 fix
+    "python-multipart>=0.0.27",  # CVE-2026-24486, CVE-2026-40347, CVE-2026-42561 fix
     "tenacity>=8.0.0",
 ]
 
@@ -43,8 +43,8 @@ Issues = "https://github.com/riemannzeta/patent_mcp_server/issues"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0,<0.25.0",
+    "pytest>=9.0.3",          # CVE-2025-71176 fix
+    "pytest-asyncio>=1.0.0",
     "pytest-cov>=4.0.0",
 ]
 
@@ -60,8 +60,8 @@ dev = [
     "build>=1.3.0",
     "jaraco-context>=6.1.0", # CVE-2026-23949 fix
     "pip-audit>=2.10.0",
-    "pytest>=8.4.2",
-    "pytest-asyncio>=0.24.0",
+    "pytest>=9.0.3",          # CVE-2025-71176 fix
+    "pytest-asyncio>=1.0.0",
     "pytest-cov>=7.0.0",
     "twine>=6.2.0",
     "urllib3>=2.6.3", # CVE-2026-21441, CVE-2025-66418, CVE-2025-66471 fix
