@@ -1,7 +1,7 @@
 """
 USPTO PTAB API Client — live on the Open Data Portal (ODP v3.0).
 
-PTAB data is served from https://api.uspto.gov under three search endpoints:
+PTAB data is served from https://api.uspto.gov under four search endpoints:
 
   - /api/v1/patent/trials/proceedings/search   (trial proceedings: IPR/PGR/CBM/DER)
   - /api/v1/patent/trials/documents/search     (documents filed in a proceeding)
@@ -87,14 +87,27 @@ class PTABClient:
     # ------------------------------------------------------------------ #
 
     @staticmethod
+    def _quote_value(value: str) -> str:
+        r"""Lucene-safe quoted value: escape embedded backslashes and quotes.
+
+        Mirrors the quoting in ``odp_search_applications`` so a value
+        containing ``"`` or ``\`` cannot produce a malformed ``q`` string or
+        inject extra Lucene tokens.
+        """
+        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped}"'
+
+    @classmethod
     def _build_q(
+        cls,
         free_text: Optional[str],
         clauses: List[Tuple[str, Any]],
     ) -> str:
-        """Join a free-text term and `field:value` clauses (AND = space).
+        r"""Join a free-text term and `field:value` clauses (AND = space).
 
-        Values containing whitespace are double-quoted so the value stays a
-        single token. None-valued clauses are skipped.
+        Values containing whitespace or Lucene-significant characters
+        (``"``, ``\``) are escaped and double-quoted so the value stays a
+        single, well-formed token. None-valued clauses are skipped.
 
         Range clauses (e.g. ``field:[A TO B]``) must NOT pass through here —
         their value contains spaces and would be wrongly double-quoted,
@@ -107,7 +120,9 @@ class PTABClient:
         for field, value in clauses:
             if value is None:
                 continue
-            v = f'"{value}"' if " " in str(value) else str(value)
+            sv = str(value)
+            needs_quote = (" " in sv) or ('"' in sv) or ("\\" in sv)
+            v = cls._quote_value(sv) if needs_quote else sv
             parts.append(f"{field}:{v}")
         return " ".join(parts)
 
@@ -123,14 +138,15 @@ class PTABClient:
         `_build_q`'s whitespace quoting, which would otherwise wrap the
         bracketed range in double-quotes and break it).
 
-          * both from & to -> ``field:[FROM TO TO]``
-          * only from      -> ``field:>FROM``
-          * only to        -> ``field:[* TO TO]``
+          * both from & to -> ``field:[<from> TO <to>]``
+          * only from      -> ``field:><from>``
+          * only to        -> ``field:[* TO <to>]``
           * neither        -> None
 
-        Both ``[FROM TO TO]`` and ``>FROM`` are verified live. The only-to
-        ``[* TO TO]`` form is best-effort (the ``*`` lower bound was not
-        explicitly probed in Task 2); it is validated in the live smoke.
+        ("TO" between the brackets is the literal Lucene range keyword.)
+        Both ``[<from> TO <to>]`` and ``><from>`` are verified live. The
+        only-to ``[* TO <to>]`` form is best-effort (the ``*`` lower bound
+        was not explicitly probed); it is validated in the live smoke.
         """
         if date_from and date_to:
             return f"{field}:[{date_from} TO {date_to}]"

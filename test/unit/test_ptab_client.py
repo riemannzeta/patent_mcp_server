@@ -328,6 +328,27 @@ def test_build_q_empty():
     assert PTABClient._build_q(None, []) == ""
 
 
+@pytest.mark.unit
+def test_build_q_escapes_quotes_and_backslashes():
+    # Embedded double-quote: backslash-escaped and the value quoted even with
+    # no whitespace, else the q string is malformed / Lucene-injectable.
+    assert PTABClient._build_q(None, [("n", 'Bob"s')]) == r'n:"Bob\"s"'
+    # Embedded backslash: doubled, value quoted.
+    assert PTABClient._build_q(None, [("p", "a\\b")]) == r'p:"a\\b"'
+    # Whitespace value with an embedded quote: escaped and quoted.
+    assert PTABClient._build_q(None, [("o", 'big "Co"')]) == r'o:"big \"Co\""'
+
+
+@pytest.mark.unit
+def test_build_q_leaves_plain_tokens_unquoted():
+    # Verified-live contract: simple single tokens (trial numbers, type
+    # codes) must stay unquoted.
+    assert (
+        PTABClient._build_q(None, [("trialNumber", "IPR2022-00001")])
+        == "trialNumber:IPR2022-00001"
+    )
+
+
 # ============================================================================
 # Error Handling Tests
 # ============================================================================

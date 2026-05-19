@@ -49,7 +49,15 @@ async def test_all_seven_tools_no_longer_unavailable():
 
 
 @pytest.mark.unit
-async def test_check_api_status_reports_ptab_active():
+async def test_check_api_status_reports_ptab_available():
     from patent_mcp_server.patents import check_api_status
     s = await check_api_status()
-    assert s["sources"]["ptab"]["status"] == "ACTIVE"
+    ptab = s["sources"]["ptab"]
+    odp = s["sources"]["odp"]
+    # PTAB is an active, key-gated source like ODP. The "status" key is
+    # reserved as the UNAVAILABLE marker, so active sources omit it; PTAB
+    # must mirror the ODP active-source shape rather than carry status.
+    assert "status" not in ptab
+    assert "status" not in odp
+    assert ptab["configured"] == odp["configured"]
+    assert "api_key_set" in ptab

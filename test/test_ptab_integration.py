@@ -1,9 +1,9 @@
 """
 Live PTAB integration tests.
 
-These tests make real HTTP calls to USPTO ODP v1 endpoints under
-https://api.uspto.gov/api/v1/patent/trials/... (proceedings, documents,
-decisions) and https://api.uspto.gov/api/v1/patent/appeals/... (appeals), and require
+These tests make real HTTP calls to the USPTO ODP v3.0 PTAB API
+(api.uspto.gov) under the /api/v1/patent/trials/... paths (proceedings,
+documents, decisions) and /api/v1/patent/appeals/... (appeals), and require
 network access plus a valid USPTO_API_KEY in the environment (or .env file).
 
 Run:  uv run pytest test/test_ptab_integration.py -m integration -q
