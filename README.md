@@ -187,7 +187,7 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 | `ptab_get_proceeding` | Get details for a specific proceeding by number |
 | `ptab_get_documents` | List documents filed in a proceeding |
 | `ptab_search_decisions` | Search PTAB decisions |
-| `ptab_get_decision` | Get a specific decision by ID |
+| `ptab_get_decision` | Get a specific decision by trial number |
 | `ptab_search_appeals` | Search ex parte appeals |
 | `ptab_get_appeal` | Get details for a specific appeal |
 
