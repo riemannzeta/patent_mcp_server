@@ -12,7 +12,7 @@ with multiple USPTO patent data APIs:
 
 The server uses stdio transport for Claude Code/Cursor integration.
 
-Version: 0.5.0 - USPTO-only focus
+Version: 0.10.0
 """
 import atexit
 import json

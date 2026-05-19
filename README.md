@@ -10,7 +10,7 @@ Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of 
 
 ## Features
 
-This server provides **52 tools** across 6 USPTO data sources (20 active, 32 unavailable due to API shutdowns):
+This server provides **52 tools** across 6 USPTO data sources (27 active, 25 unavailable due to API shutdowns):
 
 1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS
 2. **Full Text Documents** - Get complete text of patents including claims, description, and specification
@@ -19,7 +19,7 @@ This server provides **52 tools** across 6 USPTO data sources (20 active, 32 una
 5. **Patent Family Data** - Continuity information, foreign priority, and related applications
 6. **Bulk Datasets** - Search and access USPTO bulk data products including PatentsView disambiguated data
 
-> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. The PTAB Trial API and Patent Litigation API are not offered on the USPTO Open Data Portal at all — they are not listed in the ODP Swagger catalog and have no live endpoint (see [issue #16](https://github.com/riemannzeta/patent_mcp_server/issues/16)); PTAB and litigation data are available as bulk downloads. All 32 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
+> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. All 25 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
 
 ## API Sources
 
@@ -27,7 +27,7 @@ This server provides **52 tools** across 6 USPTO data sources (20 active, 32 una
 |--------|-------------|---------------|--------|
 | **ppubs.uspto.gov** | Full text documents, PDF downloads, advanced search (daily updates) | No | Active |
 | **api.uspto.gov (ODP)** | Metadata, continuity, transactions, assignments, prosecution history | Yes (ODP API Key) | Active |
-| **PTAB Trial API** | IPR/PGR/CBM proceedings, decisions, appeals | N/A | Not offered on ODP (issue #16) |
+| **PTAB Trial API** | IPR/PGR/CBM proceedings, decisions, appeals | Yes (ODP API Key) | Active (ODP v3.0) |
 | **Patent Litigation API** | 74,000+ district court patent cases | N/A | Not offered on ODP (issue #16) |
 | **PatentsView API** | Disambiguated inventor/assignee data, advanced search | N/A | Shut down March 2026 |
 | **Office Action APIs** | Full-text office actions, citations, rejections | N/A | Decommissioned early 2026 |
@@ -71,7 +71,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### USPTO ODP API Key (Required for most tools)
 
-To use the api.uspto.gov tools (ODP), you need an Open Data Portal API key. Without it, these endpoints return `403 Forbidden`. PTAB and Litigation tools do not require an API key — those APIs are not offered on ODP at all (see issue #16).
+To use the api.uspto.gov tools (ODP, PTAB), you need an Open Data Portal API key. Without it, these endpoints return `403 Forbidden`. The Patent Litigation API is not offered on ODP and does not require an API key.
 
 1. Create a USPTO.gov account at [data.uspto.gov](https://data.uspto.gov) (requires ID.me verification)
 2. Once signed in, visit **"My ODP"** in the site navigation to get your API key
@@ -180,19 +180,16 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 | `odp_search_datasets` | Search bulk data products |
 | `odp_get_dataset` | Get dataset product details |
 
-### PTAB Trial API (Unavailable — not offered on ODP, issue #16)
-
-All 7 PTAB tools return `API_UNAVAILABLE`. The PTAB Trial API is not listed in the ODP Swagger catalog and the legacy endpoint at `developer.uspto.gov` was retired. PTAB bulk data is available at <https://developer.uspto.gov/data>.
-
-| Tool | Workaround |
-|------|------------|
-| `ptab_search_proceedings` | `ppubs_search_patents` or PTAB bulk data |
-| `ptab_get_proceeding` | PTAB bulk data |
-| `ptab_get_documents` | `ppubs_get_full_document` or PTAB bulk data |
-| `ptab_search_decisions` | PTAB bulk data |
-| `ptab_get_decision` | PTAB bulk data |
-| `ptab_search_appeals` | PTAB bulk data |
-| `ptab_get_appeal` | PTAB bulk data |
+### PTAB Trial API (api.uspto.gov ODP v3.0)
+| Tool | Description |
+|------|-------------|
+| `ptab_search_proceedings` | Search IPR/PGR/CBM proceedings by patent number, party, status |
+| `ptab_get_proceeding` | Get details for a specific proceeding by number |
+| `ptab_get_documents` | List documents filed in a proceeding |
+| `ptab_search_decisions` | Search PTAB decisions |
+| `ptab_get_decision` | Get a specific decision by ID |
+| `ptab_search_appeals` | Search ex parte appeals |
+| `ptab_get_appeal` | Get details for a specific appeal |
 
 ### Patent Litigation API (Unavailable — not offered on ODP, issue #16)
 
@@ -309,7 +306,11 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v0.9.4 (Current)
+### v0.10.0 (Current)
+- Re-enable 7 PTAB tools on USPTO ODP v3.0: `ptab_search_proceedings`, `ptab_get_proceeding`, `ptab_get_documents`, `ptab_search_decisions`, `ptab_get_decision`, `ptab_search_appeals`, `ptab_get_appeal` ([issue #23](https://github.com/riemannzeta/patent_mcp_server/issues/23)). PTAB data relocated to ODP `/api/v1/patent/trials/*` and `/api/v1/patent/appeals/*` (paths not in the ODP Swagger UI); the standalone-API decommission ([issue #16](https://github.com/riemannzeta/patent_mcp_server/issues/16)) was correct for the Patent Litigation API, but PTAB moved rather than disappeared.
+- Active tool count: 27 (up from 20); unavailable: 25 (down from 32); total registered remains 52
+
+### v0.9.4
 - Fix `ppubs_search_patents` / `ppubs_search_applications` query semantics ([issue #21](https://github.com/riemannzeta/patent_mcp_server/issues/21)): default operator changed from `OR` to `AND`, so multi-word queries like `machine learning` no longer match the entire corpus and collapse into the latest-grants fallback under `date_publ desc` sort.
 - Fix template-mutation bug in PPUBS client (`search_query.copy()` → `copy.deepcopy(...)`), eliminating a concurrency hazard between parallel calls.
 - Fix `odp_search_applications` filters being silently ignored upstream ([issue #21](https://github.com/riemannzeta/patent_mcp_server/issues/21)): switched from GET query-string params to POST with a Lucene-style `q` body. `assignee_name`, `inventor_name`, `application_number`, `patent_number`, and filing-date ranges are now properly AND-combined into the search. Tool now returns `MISSING_FILTER` rather than dumping the full 12.8M-record corpus when called with no filters.
