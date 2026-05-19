@@ -128,6 +128,60 @@ class PatentsViewEndpoints:
     US_APPLICATION_CITATION = "/api/v1/patent/us_application_citation/"
 
 
+class PTABFields:
+    """Verified ODP PTAB `q=` filter field names (see docs/plans/ptab-field-findings.md).
+
+    Only fields confirmed against the live API are listed here. Verification method:
+    compare filtered count against unfiltered baseline for the same endpoint — a strictly
+    different (and non-zero for a known-present value) count means the field is real.
+
+    All of the flat candidate names from the original plan (trialTypeCategory,
+    proceedingStatusCategory, petitionerPartyName, etc.) were confirmed NOT to exist;
+    the real names are nested under trialMetaData.*, regularPetitionerData.*,
+    patentOwnerData.*, appellantData.*, and decisionData.*.
+
+    Probed 2026-05-18 against:
+      - https://api.uspto.gov/api/v1/patent/trials/proceedings/search (baseline 19263)
+      - https://api.uspto.gov/api/v1/patent/trials/decisions/search   (baseline 20517)
+      - https://api.uspto.gov/api/v1/patent/appeals/decisions/search  (baseline 163515)
+    """
+    # Pre-existing verified fields (carried from prior session)
+    TRIAL_NUMBER = "trialNumber"
+    APPEAL_NUMBER = "appealNumber"
+    PATENT_NUMBER = "patentOwnerData.patentNumber"
+
+    # Trial type — works on proceedings and decisions endpoints
+    TRIAL_TYPE = "trialMetaData.trialTypeCode"
+
+    # Status — proceedings only
+    STATUS = "trialMetaData.trialStatusCategory"
+
+    # Petitioner name — real-party-in-interest; works on proceedings and decisions
+    PETITIONER_NAME = "regularPetitionerData.realPartyInInterestName"
+
+    # Patent owner — proceedings and decisions; realPartyInInterestName is broader
+    # (e.g. "Apple" returns 26 on proceedings) vs patentOwnerName (exact string, returns 1)
+    PATENT_OWNER_NAME = "patentOwnerData.realPartyInInterestName"
+
+    # Application number — proceedings and decisions use patentOwnerData path
+    APPLICATION_NUMBER = "patentOwnerData.applicationNumberText"
+
+    # Application number — appeals decisions use appellantData path
+    APPEAL_APPLICATION_NUMBER = "appellantData.applicationNumberText"
+
+    # Appeal patent owner name — appeals decisions only
+    APPEAL_PATENT_OWNER_NAME = "appellantData.patentOwnerName"
+
+    # Petition/filing dates — proceedings only
+    PETITION_FILING_DATE = "trialMetaData.petitionFilingDate"
+    ACCORDED_FILING_DATE = "trialMetaData.accordedFilingDate"
+    TERMINATION_DATE = "trialMetaData.terminationDate"
+    LATEST_DECISION_DATE = "trialMetaData.latestDecisionDate"
+
+    # Decision issue date — trials/decisions and appeals/decisions
+    DECISION_ISSUE_DATE = "decisionData.decisionIssueDate"
+
+
 class OfficeActionTypes:
     """Office Action types."""
     NON_FINAL = "Non-Final Rejection"
