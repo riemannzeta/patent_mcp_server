@@ -201,8 +201,23 @@ class ResponseEnvelope:
         Returns:
             Standardized response
         """
+        _PTAB_BAGS = (
+            "patentTrialProceedingDataBag",
+            "patentTrialDocumentDataBag",
+            "patentAppealDataBag",
+        )
         results = raw_response.get("results", raw_response.get("data", []))
-        total = raw_response.get("total", raw_response.get("count", len(results) if isinstance(results, list) else 1))
+        if not results:
+            for _bag in _PTAB_BAGS:
+                if isinstance(raw_response.get(_bag), list):
+                    results = raw_response[_bag]
+                    break
+        total = raw_response.get(
+            "total",
+            raw_response.get(
+                "count", len(results) if isinstance(results, list) else 1
+            ),
+        )
 
         return ResponseEnvelope.success(
             results=results,
