@@ -306,7 +306,7 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v0.10.0 (Current)
+### v0.9.5 (Current)
 - Re-enable 7 PTAB tools on USPTO ODP v3.0: `ptab_search_proceedings`, `ptab_get_proceeding`, `ptab_get_documents`, `ptab_search_decisions`, `ptab_get_decision`, `ptab_search_appeals`, `ptab_get_appeal` ([issue #23](https://github.com/riemannzeta/patent_mcp_server/issues/23)). PTAB data relocated to ODP `/api/v1/patent/trials/*` and `/api/v1/patent/appeals/*` (paths not in the ODP Swagger UI); the standalone-API decommission ([issue #16](https://github.com/riemannzeta/patent_mcp_server/issues/16)) was correct for the Patent Litigation API, but PTAB moved rather than disappeared.
 - Active tool count: 27 (up from 20); unavailable: 25 (down from 32); total registered remains 52
 
