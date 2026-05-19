@@ -46,3 +46,10 @@ async def test_all_seven_tools_no_longer_unavailable():
     for r in results:
         assert r.get("error_code") != "API_UNAVAILABLE"
         assert r.get("success") is True
+
+
+@pytest.mark.unit
+async def test_check_api_status_reports_ptab_active():
+    from patent_mcp_server.patents import check_api_status
+    s = await check_api_status()
+    assert s["sources"]["ptab"]["status"] != "UNAVAILABLE"

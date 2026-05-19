@@ -326,15 +326,11 @@ async def check_api_status() -> Dict[str, Any]:
         },
         "ptab": {
             "name": "PTAB Trial API",
-            "configured": False,
-            "status": "UNAVAILABLE",
+            "configured": bool(config.USPTO_API_KEY),
+            "status": "ACTIVE",
             "note": (
-                "The PTAB Trial API is not available on the USPTO Open Data "
-                "Portal (api.uspto.gov). The legacy PTAB API at "
-                "developer.uspto.gov was retired, and no PTAB endpoints are "
-                "listed in the ODP Swagger catalog. Use ppubs_search_patents "
-                "/ ppubs_get_full_document to locate PTAB-related documents, "
-                "or download PTAB bulk data from https://developer.uspto.gov/data."
+                "PTAB Trial/Appeal data via USPTO ODP v3.0 (api.uspto.gov). "
+                "Requires USPTO_API_KEY."
             ),
         },
         "patentsview": {
