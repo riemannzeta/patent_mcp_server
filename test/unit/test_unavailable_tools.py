@@ -232,7 +232,7 @@ class TestUnavailableLitigationTools:
 
 @pytest.mark.unit
 class TestUnavailableToolErrorStructure:
-    """Verify all 32 unavailable tools return a consistent error structure."""
+    """Verify all 25 unavailable tools return a consistent error structure."""
 
     TOOLS_WITH_ARGS = [
         # Office Action tools (decommissioned early 2026)
