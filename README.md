@@ -303,9 +303,20 @@ rm -rf dist/ && uv run python -m build
 uv run twine upload dist/*
 ```
 
+## Contributing
+
+Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution guide, and [AGENTS.md](AGENTS.md) for guidance specific to AI agents. Use the [bug report](.github/ISSUE_TEMPLATE/bug_report.yml) or [feature request](.github/ISSUE_TEMPLATE/feature_request.yml) templates when filing an issue — they prompt for the tool call, the constructed request URL/body, and the raw API response, which is usually enough to land a fix in one turn.
+
 ## Version History
 
-### v0.9.0 (Current)
+### v0.9.4 (Current)
+- Fix `ppubs_search_patents` / `ppubs_search_applications` query semantics ([issue #21](https://github.com/riemannzeta/patent_mcp_server/issues/21)): default operator changed from `OR` to `AND`, so multi-word queries like `machine learning` no longer match the entire corpus and collapse into the latest-grants fallback under `date_publ desc` sort.
+- Fix template-mutation bug in PPUBS client (`search_query.copy()` → `copy.deepcopy(...)`), eliminating a concurrency hazard between parallel calls.
+- Fix `odp_search_applications` filters being silently ignored upstream ([issue #21](https://github.com/riemannzeta/patent_mcp_server/issues/21)): switched from GET query-string params to POST with a Lucene-style `q` body. `assignee_name`, `inventor_name`, `application_number`, `patent_number`, and filing-date ranges are now properly AND-combined into the search. Tool now returns `MISSING_FILTER` rather than dumping the full 12.8M-record corpus when called with no filters.
+- Updated `ppubs_search_patents` / `ppubs_search_applications` / `odp_search_applications` docstrings to reflect the corrected semantics and document Lucene query support on ODP.
+- Added `CONTRIBUTING.md`, `AGENTS.md`, bug-report + feature-request issue templates, and a PR template.
+
+### v0.9.0
 - Handle PTAB Trial API and Patent Litigation API unavailability on ODP ([issue #16](https://github.com/riemannzeta/patent_mcp_server/issues/16))
 - All 7 `ptab_*` tools and 4 litigation tools now return `API_UNAVAILABLE` with workaround guidance pointing to PPUBS tools and USPTO bulk datasets
 - Active tool count: 20 (down from 31); unavailable: 32 (up from 21); total registered remains 52

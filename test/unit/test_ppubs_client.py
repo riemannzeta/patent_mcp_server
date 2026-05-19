@@ -466,3 +466,58 @@ async def test_context_manager_cleanup():
             pass
 
     # Context manager should trigger cleanup
+
+
+# ============================================================================
+# Issue #21: query operator + template isolation
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_run_query_defaults_to_AND_operator(ppubs_client):
+    """Default operator is AND so multi-word queries don't OR-fan-out
+    into the latest-grants fallback (issue #21)."""
+    ppubs_client.case_id = "case-1"
+    ppubs_client.session_expires_at = datetime.now() + timedelta(minutes=30)
+
+    posted_bodies = []
+
+    async def capture_request(method, url, **kwargs):
+        posted_bodies.append(kwargs.get("json"))
+        resp = MagicMock(status_code=200)
+        resp.json.return_value = MOCK_SEARCH_RESPONSE
+        resp.get.return_value = False
+        return resp
+
+    with patch.object(ppubs_client, "make_request", side_effect=capture_request):
+        await ppubs_client.run_query(query="machine learning")
+
+    # First call posts the inner query (counts endpoint); second posts the wrapper.
+    counts_body, search_body = posted_bodies
+    assert counts_body["op"] == "AND"
+    assert search_body["query"]["op"] == "AND"
+    assert counts_body["q"] == "machine learning"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_run_query_does_not_mutate_template(ppubs_client):
+    """Two sequential calls with different queries must not see each other's
+    state — the template was previously shared via shallow copy (issue #21)."""
+    ppubs_client.case_id = "case-1"
+    ppubs_client.session_expires_at = datetime.now() + timedelta(minutes=30)
+
+    template_q_before = ppubs_client.search_query["query"]["q"]
+
+    async def fake_request(method, url, **kwargs):
+        resp = MagicMock(status_code=200)
+        resp.json.return_value = MOCK_SEARCH_RESPONSE
+        resp.get.return_value = False
+        return resp
+
+    with patch.object(ppubs_client, "make_request", side_effect=fake_request):
+        await ppubs_client.run_query(query="first query")
+        await ppubs_client.run_query(query="second query")
+
+    # Template must still hold its original q after both calls.
+    assert ppubs_client.search_query["query"]["q"] == template_q_before

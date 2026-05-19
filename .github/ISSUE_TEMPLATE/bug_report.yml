@@ -1,0 +1,110 @@
+name: Bug report
+description: Report a tool that returns incorrect or unexpected results
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. The most useful reports include the **exact tool call** and the **constructed request** (URL/body) the client built — see [CONTRIBUTING.md](../CONTRIBUTING.md) for details.
+
+        If you're an AI agent, please also read [AGENTS.md](../AGENTS.md).
+
+  - type: dropdown
+    id: tool
+    attributes:
+      label: Affected tool
+      description: Which MCP tool is misbehaving?
+      options:
+        - ppubs_search_patents
+        - ppubs_search_applications
+        - ppubs_get_full_document
+        - ppubs_get_patent_by_number
+        - ppubs_download_patent_pdf
+        - odp_search_applications
+        - odp_search_datasets
+        - odp_get_application
+        - odp_get_application_metadata
+        - odp_get_continuity
+        - odp_get_assignment
+        - odp_get_adjustment
+        - odp_get_attorney
+        - odp_get_foreign_priority
+        - odp_get_transactions
+        - odp_get_documents
+        - odp_get_dataset
+        - get_cpc_info
+        - get_status_code
+        - check_api_status
+        - Other (specify below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: call
+    attributes:
+      label: Exact tool call
+      description: Copy-paste the tool name and the arguments you passed.
+      placeholder: |
+        ppubs_search_patents(query="machine learning", limit=25)
+      render: python
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: One sentence on what you expected.
+      placeholder: Top results should mention machine learning in the title or abstract.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: One sentence on what actually happened. Include sample output if short.
+      placeholder: Results were the latest 25 grants regardless of query — same hits for "machine learning", "quantum cryptography", and "solar panel".
+    validations:
+      required: true
+
+  - type: textarea
+    id: request
+    attributes:
+      label: Constructed request (LOG_LEVEL=DEBUG)
+      description: |
+        Re-run with `LOG_LEVEL=DEBUG` and paste the URL and (for POST) the request body the client logged. This is the single highest-value field — it usually pins the bug down immediately.
+      placeholder: |
+        POST https://api.uspto.gov/api/v1/patent/applications/search
+        body: {"q": "applicationMetaData.firstApplicantName:\"IBM\"", "pagination": {"offset":0, "limit":5}}
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: response
+    attributes:
+      label: Raw upstream response (optional, but very useful)
+      description: First ~50 lines of the raw response from the USPTO API when relevant. Trim or redact as needed.
+      render: json
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `pip show patent-mcp-server` or the version you installed.
+      placeholder: "0.9.4"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: not-decommissioned
+    attributes:
+      label: Confirmation
+      description: ""
+      options:
+        - label: I checked the [README](../README.md) and the affected tool is **not** one of the APIs that was decommissioned (PatentsView, PTAB on ODP, Litigation on ODP, Office Actions, Enriched Citations). Decommissioned tools intentionally return `API_UNAVAILABLE`.
+          required: true

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/riemannzeta/patent_mcp_server/blob/main/CONTRIBUTING.md
+    about: How to file a good issue, branch + commit conventions, project rules.
+  - name: AGENTS.md (for AI agent contributors)
+    url: https://github.com/riemannzeta/patent_mcp_server/blob/main/AGENTS.md
+    about: Specific guidance for AI agents filing issues or PRs.
+  - name: API status check
+    url: https://github.com/riemannzeta/patent_mcp_server/blob/main/README.md
+    about: PatentsView, PTAB-on-ODP, Litigation-on-ODP, Office Actions, and Enriched Citations are intentionally `API_UNAVAILABLE`. Check before filing.

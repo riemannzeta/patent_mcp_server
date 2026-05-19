@@ -6,6 +6,7 @@ which provides full text patent documents, patent PDFs, and advanced search capa
 """
 
 import os
+import copy
 import json
 import asyncio
 from typing import Any, Optional, Dict, List, Union
@@ -199,7 +200,7 @@ class PpubsClient:
         start: int = Defaults.SEARCH_START,
         limit: int = Defaults.SEARCH_LIMIT,
         sort: str = "date_publ desc",
-        default_operator: str = "OR",
+        default_operator: str = "AND",
         sources: List[str] = None,
         expand_plurals: bool = True,
         british_equivalents: bool = True,
@@ -229,8 +230,9 @@ class PpubsClient:
 
         logger.info(f"Running query: {query}")
 
-        # Prepare query data
-        data = self.search_query.copy()
+        # Deep copy so nested mutations below don't bleed into self.search_query
+        # (concurrent calls would otherwise share data["query"] state).
+        data = copy.deepcopy(self.search_query)
         data["start"] = start
         data["pageCount"] = min(limit, Defaults.SEARCH_LIMIT_MAX)
         data["sort"] = sort
