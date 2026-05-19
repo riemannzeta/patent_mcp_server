@@ -24,13 +24,6 @@ from patent_mcp_server.patents import (
     patentsview_get_attorney,
     patentsview_lookup_ipc,
     patentsview_search_by_ipc,
-    ptab_search_proceedings,
-    ptab_get_proceeding,
-    ptab_get_documents,
-    ptab_search_decisions,
-    ptab_get_decision,
-    ptab_search_appeals,
-    ptab_get_appeal,
     search_litigation,
     get_litigation_case,
     get_patent_litigation,
@@ -205,60 +198,6 @@ class TestUnavailablePatentsViewTools:
 
 
 @pytest.mark.unit
-class TestUnavailablePTABTools:
-    """All 7 PTAB tools should return API_UNAVAILABLE (issue #16)."""
-
-    @pytest.mark.asyncio
-    async def test_ptab_search_proceedings(self):
-        result = await ptab_search_proceedings(query="test")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_ptab_get_proceeding(self):
-        result = await ptab_get_proceeding(proceeding_number="IPR2023-00001")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_ptab_get_documents(self):
-        result = await ptab_get_documents(proceeding_number="IPR2023-00001")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_ptab_search_decisions(self):
-        result = await ptab_search_decisions(query="test")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_ptab_get_decision(self):
-        result = await ptab_get_decision(decision_id="12345")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_ptab_search_appeals(self):
-        result = await ptab_search_appeals(query="test")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_ptab_get_appeal(self):
-        result = await ptab_get_appeal(appeal_number="2023-001234")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-
-@pytest.mark.unit
 class TestUnavailableLitigationTools:
     """All 4 Litigation tools should return API_UNAVAILABLE (issue #16)."""
 
@@ -320,14 +259,6 @@ class TestUnavailableToolErrorStructure:
         (patentsview_get_attorney, {"attorney_id": "test-id"}),
         (patentsview_lookup_ipc, {"ipc_code": "G06F"}),
         (patentsview_search_by_ipc, {"ipc_code": "G06F"}),
-        # PTAB tools (not offered on ODP - issue #16)
-        (ptab_search_proceedings, {"query": "test"}),
-        (ptab_get_proceeding, {"proceeding_number": "IPR2023-00001"}),
-        (ptab_get_documents, {"proceeding_number": "IPR2023-00001"}),
-        (ptab_search_decisions, {"query": "test"}),
-        (ptab_get_decision, {"decision_id": "12345"}),
-        (ptab_search_appeals, {"query": "test"}),
-        (ptab_get_appeal, {"appeal_number": "2023-001234"}),
         # Litigation tools (not offered on ODP - issue #16)
         (search_litigation, {"query": "test"}),
         (get_litigation_case, {"case_id": "test-case"}),
