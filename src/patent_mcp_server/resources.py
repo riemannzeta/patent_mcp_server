@@ -313,28 +313,25 @@ DATA_SOURCES = {
     },
     "ptab": {
         "name": "USPTO PTAB Trial API",
-        "base_url": "N/A",
+        "base_url": "https://api.uspto.gov",
         "description": (
-            "UNAVAILABLE. The PTAB Trial API is not available on the USPTO "
-            "Open Data Portal (api.uspto.gov). The legacy PTAB API at "
-            "developer.uspto.gov was retired, and no PTAB endpoints are "
-            "listed in the ODP Swagger catalog at "
-            "https://data.uspto.gov/swagger/index.html. Use ppubs_* tools to "
-            "locate PTAB-related documents, or download PTAB bulk data from "
-            "https://developer.uspto.gov/data."
+            "Live via USPTO ODP v3.0 (api.uspto.gov). Provides access to "
+            "Patent Trial and Appeal Board trial proceedings (IPR, PGR, CBM, "
+            "derivation), trial documents, trial decisions, and ex parte "
+            "appeal decisions. Requires a USPTO API key (register at data.uspto.gov)."
         ),
         "coverage": {
-            "proceedings": "Unavailable - no ODP endpoint",
-            "decisions": "Unavailable - no ODP endpoint",
-            "appeals": "Unavailable - no ODP endpoint",
+            "proceedings": "IPR, PGR, CBM, and derivation proceedings via ptab_search_proceedings / ptab_get_proceeding / ptab_get_documents",
+            "decisions": "Trial decisions via ptab_search_decisions / ptab_get_decision (keyed by trial number)",
+            "appeals": "Ex parte appeal decisions via ptab_search_appeals / ptab_get_appeal",
         },
-        "rate_limits": "N/A",
-        "auth_required": False,
+        "rate_limits": "Requires ODP API key (register at data.uspto.gov), standard rate limits apply",
+        "auth_required": True,
         "best_for": [
-            "IPR/PGR/CBM proceeding research (UNAVAILABLE - use ppubs_search_patents)",
-            "PTAB decision analysis (UNAVAILABLE - download bulk data from developer.uspto.gov/data)",
-            "Appeal outcomes (UNAVAILABLE - use ppubs_search_patents)",
-            "Patent validity challenges (UNAVAILABLE - use ppubs_search_patents)",
+            "IPR/PGR/CBM proceeding research",
+            "PTAB decision analysis",
+            "Appeal outcomes",
+            "Patent validity challenges",
         ],
     },
     "office_actions": {

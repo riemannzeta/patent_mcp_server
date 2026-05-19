@@ -121,3 +121,31 @@ def test_check_and_truncate_passes_through_when_under_budget(monkeypatch):
     )
     out = check_and_truncate(response)
     assert out is response
+
+
+@pytest.mark.unit
+def test_from_ptab_unwraps_proceeding_databag():
+    raw = {
+        "count": 2,
+        "patentTrialProceedingDataBag": [
+            {"trialNumber": "IPR2022-00001"},
+            {"trialNumber": "IPR2022-00002"},
+        ],
+    }
+    env = ResponseEnvelope.from_ptab(raw, offset=0, limit=25)
+    assert env["success"] is True
+    assert env["source"] == "ptab"
+    assert env["total"] == 2
+    assert len(env["results"]) == 2
+    assert env["results"][0]["trialNumber"] == "IPR2022-00001"
+
+
+@pytest.mark.unit
+def test_from_ptab_unwraps_document_and_appeal_databags():
+    for bag in ("patentTrialDocumentDataBag", "patentAppealDataBag"):
+        raw = {"count": 1, bag: [{"x": 1}]}
+        env = ResponseEnvelope.from_ptab(raw, 0, 25)
+        assert env["success"] is True
+        assert env["source"] == "ptab"
+        assert env["results"] == [{"x": 1}]
+        assert env["total"] == 1

@@ -202,7 +202,17 @@ class ResponseEnvelope:
             Standardized response
         """
         results = raw_response.get("results", raw_response.get("data", []))
-        total = raw_response.get("total", raw_response.get("count", len(results) if isinstance(results, list) else 1))
+        if not results:
+            for _bag in _PTAB_BAGS:
+                if isinstance(raw_response.get(_bag), list):
+                    results = raw_response[_bag]
+                    break
+        total = raw_response.get(
+            "total",
+            raw_response.get(
+                "count", len(results) if isinstance(results, list) else 1
+            ),
+        )
 
         return ResponseEnvelope.success(
             results=results,
@@ -234,6 +244,14 @@ def estimate_tokens(data: Any) -> int:
     except (TypeError, ValueError):
         return len(str(data)) // 4
 
+
+# PTAB response bag keys, tried in order when the response has no top-level
+# "results" or "data" key. Listed in preference order.
+_PTAB_BAGS = (
+    "patentTrialProceedingDataBag",
+    "patentTrialDocumentDataBag",
+    "patentAppealDataBag",
+)
 
 # Heavy nested fields stripped from ODP file-wrapper records when slicing alone
 # can't fit the token budget. Listed in priority order — earlier entries are

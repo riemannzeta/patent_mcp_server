@@ -12,7 +12,7 @@ with multiple USPTO patent data APIs:
 
 The server uses stdio transport for Claude Code/Cursor integration.
 
-Version: 0.5.0 - USPTO-only focus
+Version: 0.9.5
 """
 import atexit
 import json
@@ -41,6 +41,7 @@ from patent_mcp_server.resources import (
 from patent_mcp_server.prompts import get_prompt, list_prompts, PROMPTS
 from patent_mcp_server.uspto.ppubs_uspto_gov import PpubsClient
 from patent_mcp_server.uspto.api_uspto_gov import ApiUsptoClient
+from patent_mcp_server.uspto.ptab_client import PTABClient
 from patent_mcp_server.uspto.office_action_client import OfficeActionClient
 from patent_mcp_server.uspto.enriched_citation_client import EnrichedCitationClient
 from patent_mcp_server.patentsview.patentsview_client import PatentsViewClient
@@ -62,6 +63,7 @@ config.validate()
 # Create client instances for each USPTO API
 ppubs_client = PpubsClient()
 api_client = ApiUsptoClient()
+ptab_client = PTABClient()
 office_action_client = OfficeActionClient()
 enriched_citation_client = EnrichedCitationClient()
 
@@ -76,6 +78,7 @@ async def cleanup():
     try:
         await ppubs_client.close()
         await api_client.close()
+        await ptab_client.close()
         await office_action_client.close()
         await enriched_citation_client.close()
         await patentsview_client.close()
@@ -323,15 +326,11 @@ async def check_api_status() -> Dict[str, Any]:
         },
         "ptab": {
             "name": "PTAB Trial API",
-            "configured": False,
-            "status": "UNAVAILABLE",
+            "configured": bool(config.USPTO_API_KEY),
+            "api_key_set": bool(config.USPTO_API_KEY),
             "note": (
-                "The PTAB Trial API is not available on the USPTO Open Data "
-                "Portal (api.uspto.gov). The legacy PTAB API at "
-                "developer.uspto.gov was retired, and no PTAB endpoints are "
-                "listed in the ODP Swagger catalog. Use ppubs_search_patents "
-                "/ ppubs_get_full_document to locate PTAB-related documents, "
-                "or download PTAB bulk data from https://developer.uspto.gov/data."
+                "PTAB Trial/Appeal data via USPTO ODP v3.0 (api.uspto.gov). "
+                "Requires USPTO_API_KEY."
             ),
         },
         "patentsview": {
@@ -944,7 +943,7 @@ async def ptab_search_proceedings(
     """Search PTAB trial proceedings (IPR, PGR, CBM, derivation).
 
     USE THIS TOOL WHEN: You need to find patent validity challenges at
-    the Patent Trial and Appeal Board.
+    the Patent Trial and Appeal Board. Live via USPTO ODP v3.0.
 
     Trial types:
     - IPR: Inter Partes Review (most common, based on patents/publications)
@@ -966,16 +965,20 @@ async def ptab_search_proceedings(
     Returns:
         Normalized response with matching proceedings.
     """
-    return _ptab_unavailable()
+    result = await ptab_client.search_proceedings(
+        query=query, trial_type=trial_type, patent_number=patent_number,
+        party_name=party_name, filing_date_from=filing_date_from,
+        filing_date_to=filing_date_to, status=status,
+        offset=offset, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_ptab(result, offset, limit))
 
 
 @mcp.tool()
 async def ptab_get_proceeding(proceeding_number: str) -> Dict[str, Any]:
-    """Get details of a specific PTAB proceeding.
-
-    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
-    Portal (api.uspto.gov). The legacy PTAB API on developer.uspto.gov was
-    retired, and no PTAB endpoints are listed in the ODP Swagger catalog.
+    """Get details of a specific PTAB proceeding. Live via USPTO ODP v3.0.
 
     Args:
         proceeding_number: Proceeding number (e.g., "IPR2023-00001")
@@ -983,7 +986,10 @@ async def ptab_get_proceeding(proceeding_number: str) -> Dict[str, Any]:
     Returns:
         Proceeding details including parties, patent, status, and dates.
     """
-    return _ptab_unavailable()
+    result = await ptab_client.get_proceeding(proceeding_number)
+    if is_error(result):
+        return result
+    return check_and_truncate(ResponseEnvelope.from_ptab(result))
 
 
 @mcp.tool()
@@ -993,11 +999,7 @@ async def ptab_get_documents(
     offset: int = 0,
     limit: int = 25,
 ) -> Dict[str, Any]:
-    """Get documents filed in a PTAB proceeding.
-
-    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
-    Portal (api.uspto.gov). The legacy PTAB API on developer.uspto.gov was
-    retired, and no PTAB endpoints are listed in the ODP Swagger catalog.
+    """Get documents filed in a PTAB proceeding. Live via USPTO ODP v3.0.
 
     Args:
         proceeding_number: Proceeding number (e.g., "IPR2023-00001")
@@ -1005,7 +1007,13 @@ async def ptab_get_documents(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    return _ptab_unavailable()
+    result = await ptab_client.get_proceeding_documents(
+        proceeding_number, document_type=document_type,
+        offset=offset, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_ptab(result, offset, limit))
 
 
 @mcp.tool()
@@ -1019,11 +1027,7 @@ async def ptab_search_decisions(
     offset: int = 0,
     limit: int = 25,
 ) -> Dict[str, Any]:
-    """Search PTAB trial decisions.
-
-    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
-    Portal (api.uspto.gov). The legacy PTAB API on developer.uspto.gov was
-    retired, and no PTAB endpoints are listed in the ODP Swagger catalog.
+    """Search PTAB trial decisions. Live via USPTO ODP v3.0.
 
     Args:
         query: Full-text search in decision text
@@ -1035,20 +1039,28 @@ async def ptab_search_decisions(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    return _ptab_unavailable()
+    result = await ptab_client.search_decisions(
+        query=query, decision_type=decision_type,
+        proceeding_number=proceeding_number, patent_number=patent_number,
+        decision_date_from=decision_date_from,
+        decision_date_to=decision_date_to, offset=offset, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_ptab(result, offset, limit))
 
 
 @mcp.tool()
 async def ptab_get_decision(decision_id: str) -> Dict[str, Any]:
-    """Get details of a specific PTAB decision.
-
-    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
-    Portal (api.uspto.gov). See ptab_search_proceedings for details.
+    """Get details of a specific PTAB decision. Live via USPTO ODP v3.0.
 
     Args:
-        decision_id: Decision identifier
+        decision_id: Decision identifier (trial number, e.g. IPR2022-00001)
     """
-    return _ptab_unavailable()
+    result = await ptab_client.get_decision(decision_id)
+    if is_error(result):
+        return result
+    return check_and_truncate(ResponseEnvelope.from_ptab(result))
 
 
 @mcp.tool()
@@ -1061,11 +1073,7 @@ async def ptab_search_appeals(
     offset: int = 0,
     limit: int = 25,
 ) -> Dict[str, Any]:
-    """Search ex parte appeal decisions.
-
-    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
-    Portal (api.uspto.gov). The legacy PTAB API on developer.uspto.gov was
-    retired, and no PTAB endpoints are listed in the ODP Swagger catalog.
+    """Search ex parte appeal decisions. Live via USPTO ODP v3.0.
 
     Args:
         query: Full-text search query
@@ -1076,43 +1084,28 @@ async def ptab_search_appeals(
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
     """
-    return _ptab_unavailable()
+    result = await ptab_client.search_appeals(
+        query=query, application_number=application_number,
+        patent_number=patent_number,
+        decision_date_from=decision_date_from,
+        decision_date_to=decision_date_to, offset=offset, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_ptab(result, offset, limit))
 
 
 @mcp.tool()
 async def ptab_get_appeal(appeal_number: str) -> Dict[str, Any]:
-    """Get details of a specific ex parte appeal decision.
-
-    IMPORTANT: The PTAB Trial API is not available on the USPTO Open Data
-    Portal (api.uspto.gov). See ptab_search_proceedings for details.
+    """Get details of a specific ex parte appeal decision. Live via USPTO ODP v3.0.
 
     Args:
         appeal_number: Appeal number
     """
-    return _ptab_unavailable()
-
-
-def _ptab_unavailable() -> Dict[str, Any]:
-    """Shared API_UNAVAILABLE payload for all PTAB tools (see issue #16)."""
-    return {
-        "error": True,
-        "message": (
-            "The USPTO PTAB Trial API is not available on the Open Data "
-            "Portal (api.uspto.gov). The legacy PTAB API at "
-            "developer.uspto.gov was retired, and no PTAB endpoints are "
-            "listed in the ODP Swagger catalog at "
-            "https://data.uspto.gov/swagger/index.html. Use "
-            "ppubs_search_patents / ppubs_get_full_document to locate "
-            "PTAB-related documents, or download PTAB bulk data from "
-            "https://developer.uspto.gov/data."
-        ),
-        "error_code": "API_UNAVAILABLE",
-        "workaround": (
-            "Use ppubs_search_patents(query) to locate PTAB-related "
-            "documents, or download PTAB bulk data from "
-            "https://developer.uspto.gov/data."
-        ),
-    }
+    result = await ptab_client.get_appeal_decision(appeal_number)
+    if is_error(result):
+        return result
+    return check_and_truncate(ResponseEnvelope.from_ptab(result))
 
 
 # =====================================================================
