@@ -180,6 +180,35 @@ async def test_get_proceeding_documents_document_type_free_text(ptab_client):
 
 
 @pytest.mark.unit
+async def test_get_proceeding_documents_multiword_type_not_phrase_quoted(ptab_client):
+    """Multi-word document_type is intentionally folded as loose free text.
+
+    The document_type field name is unverified, so a multi-word value is NOT
+    phrase-quoted — it ships as bare tokens (best-effort) until probed.
+    """
+    with patch.object(ptab_client, "_make_request", new_callable=AsyncMock) as m:
+        m.return_value = {"count": 0, "patentTrialDocumentDataBag": []}
+        await ptab_client.get_proceeding_documents(
+            "IPR2022-00001", document_type="Final Written Decision"
+        )
+    q = m.call_args.kwargs["params"]["q"]
+    assert "trialNumber:IPR2022-00001" in q
+    assert "Final Written Decision" in q
+    assert '"' not in q  # multi-word unverified term must NOT be phrase-quoted
+
+
+@pytest.mark.unit
+async def test_search_decisions_multiword_type_not_phrase_quoted(ptab_client):
+    """Multi-word decision_type is intentionally folded as loose free text."""
+    with patch.object(ptab_client, "_make_request", new_callable=AsyncMock) as m:
+        m.return_value = {"count": 0, "patentTrialDocumentDataBag": []}
+        await ptab_client.search_decisions(decision_type="Final Written Decision")
+    q = m.call_args.kwargs["params"]["q"]
+    assert "Final Written Decision" in q
+    assert '"' not in q  # multi-word unverified term must NOT be phrase-quoted
+
+
+@pytest.mark.unit
 async def test_search_decisions_clauses_and_free_text(ptab_client):
     """proceeding_number/patent_number are clauses; decision_type free text."""
     with patch.object(ptab_client, "_make_request", new_callable=AsyncMock) as m:

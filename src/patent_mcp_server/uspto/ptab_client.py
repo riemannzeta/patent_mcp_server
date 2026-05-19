@@ -35,7 +35,7 @@ from tenacity import (
 from patent_mcp_server.util.logging import LoggingTransport
 from patent_mcp_server.util.errors import ApiError
 from patent_mcp_server.config import config
-from patent_mcp_server.constants import HTTPMethods, Defaults, PTABFields
+from patent_mcp_server.constants import Defaults, PTABFields
 
 logger = logging.getLogger('ptab_client')
 
@@ -59,6 +59,9 @@ class PTABClient:
         self.headers = {
             "User-Agent": config.USER_AGENT,
             "X-API-KEY": config.USPTO_API_KEY if config.USPTO_API_KEY else "",
+            # Explicit Accept (sibling api_uspto_gov.py omits it): PTAB ODP
+            # endpoints return JSON regardless, but we state the contract
+            # explicitly to pin it against future content-negotiation changes.
             "Accept": "application/json",
         }
 
@@ -172,31 +175,26 @@ class PTABClient:
     async def _make_request(
         self,
         path: str,
-        method: str = HTTPMethods.GET,
         params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Make a request to the PTAB API.
+        """Make a GET request to the PTAB API.
+
+        PTAB ODP endpoints are GET-only (see module docstring), so this is
+        deliberately GET-only — there is no POST/body path.
 
         Args:
             path: Full API path after the host (e.g.
                 ``/api/v1/patent/trials/proceedings/search``)
-            method: HTTP method
-            params: Query parameters for GET requests
-            data: JSON body for POST requests
+            params: Query parameters
 
         Returns:
             Response JSON dictionary or error dictionary
         """
         url = f"{self.api_base}{path}"
-        logger.info(f"Making {method} request to {url}")
+        logger.info(f"Making GET request to {url}")
 
         try:
-            if method == HTTPMethods.GET:
-                response = await self.client.get(url, params=params)
-            else:
-                response = await self.client.post(url, json=data)
-
+            response = await self.client.get(url, params=params)
             response.raise_for_status()
             return response.json()
 
@@ -223,7 +221,7 @@ class PTABClient:
 
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
-            return ApiError.from_exception(e, f"PTAB API request failed")
+            return ApiError.from_exception(e, "PTAB API request failed")
 
     # ------------------------------------------------------------------ #
     # Trial proceedings
@@ -295,7 +293,11 @@ class PTABClient:
         Returns:
             Dictionary containing the matching proceeding(s)
         """
-        params = {"q": f"{PTABFields.TRIAL_NUMBER}:{proceeding_number}"}
+        params = {
+            "q": self._build_q(
+                None, [(PTABFields.TRIAL_NUMBER, proceeding_number)]
+            )
+        }
         return await self._make_request(
             "/api/v1/patent/trials/proceedings/search", params=params
         )
@@ -322,6 +324,9 @@ class PTABClient:
         Returns:
             Dictionary containing the document list
         """
+        # document_type is passed as free text, not phrase-quoted: multi-word
+        # unverified terms are deliberately left un-quoted (best-effort loose
+        # match until the field name is probed).
         q = self._compose_q(
             document_type,
             [(PTABFields.TRIAL_NUMBER, proceeding_number)],
@@ -367,6 +372,9 @@ class PTABClient:
         Returns:
             Dictionary containing decision search results
         """
+        # decision_type folds into free text, not phrase-quoted: multi-word
+        # unverified terms are deliberately left un-quoted (best-effort loose
+        # match until the field name is probed).
         free_text = " ".join(t for t in (query, decision_type) if t) or None
         q = self._compose_q(
             free_text,
@@ -402,7 +410,11 @@ class PTABClient:
         Returns:
             Dictionary containing the matching decision(s)
         """
-        params = {"q": f"{PTABFields.TRIAL_NUMBER}:{decision_id}"}
+        params = {
+            "q": self._build_q(
+                None, [(PTABFields.TRIAL_NUMBER, decision_id)]
+            )
+        }
         return await self._make_request(
             "/api/v1/patent/trials/decisions/search", params=params
         )
@@ -476,7 +488,11 @@ class PTABClient:
         Returns:
             Dictionary containing the matching appeal decision(s)
         """
-        params = {"q": f"{PTABFields.APPEAL_NUMBER}:{appeal_number}"}
+        params = {
+            "q": self._build_q(
+                None, [(PTABFields.APPEAL_NUMBER, appeal_number)]
+            )
+        }
         return await self._make_request(
             "/api/v1/patent/appeals/decisions/search", params=params
         )
