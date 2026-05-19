@@ -129,7 +129,7 @@ class PatentsViewEndpoints:
 
 
 class PTABFields:
-    """Verified ODP PTAB `q=` filter field names (see docs/plans/ptab-field-findings.md).
+    """Verified ODP PTAB `q=` filter field names.
 
     Only fields confirmed against the live API are listed here. Verification method:
     compare filtered count against unfiltered baseline for the same endpoint — a strictly

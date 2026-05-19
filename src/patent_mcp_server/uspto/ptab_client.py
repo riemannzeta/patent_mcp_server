@@ -8,7 +8,7 @@ PTAB data is served from https://api.uspto.gov under three search endpoints:
   - /api/v1/patent/trials/decisions/search     (trial decisions)
   - /api/v1/patent/appeals/decisions/search    (ex parte appeal decisions)
 
-Key contract facts (verified live 2026-05-18, see docs/plans/ptab-field-findings.md):
+Key contract facts (verified live against the ODP API, 2026-05-18):
 
   * Appeals are NOT under /trials — they have their own /appeals base path.
   * There are no single-record /{id} routes. A specific proceeding/decision/
@@ -241,8 +241,8 @@ class PTABClient:
     ) -> Dict[str, Any]:
         """Search PTAB trial proceedings.
 
-        Maps logical filters to verified ODP `q=` field clauses
-        (see docs/plans/ptab-field-findings.md). `query` is free text.
+        Maps logical filters to verified ODP `q=` field clauses.
+        `query` is free text.
 
         Args:
             query: Free-text search term
