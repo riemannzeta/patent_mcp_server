@@ -317,13 +317,13 @@ DATA_SOURCES = {
         "description": (
             "Live via USPTO ODP v3.0 (api.uspto.gov). Provides access to "
             "Patent Trial and Appeal Board trial proceedings (IPR, PGR, CBM, "
-            "derivation), trial documents, trial decisions, and appeal "
-            "decisions. Requires a USPTO API key (register at data.uspto.gov)."
+            "derivation), trial documents, trial decisions, and ex parte "
+            "appeal decisions. Requires a USPTO API key (register at data.uspto.gov)."
         ),
         "coverage": {
-            "proceedings": "IPR, PGR, CBM, and derivation proceedings via ptab_search_proceedings / ptab_get_proceeding",
-            "decisions": "Trial decisions via ptab_search_decisions / ptab_get_decision",
-            "appeals": "Appeal decisions via ptab_search_appeals / ptab_get_appeal",
+            "proceedings": "IPR, PGR, CBM, and derivation proceedings via ptab_search_proceedings / ptab_get_proceeding / ptab_get_documents",
+            "decisions": "Trial decisions via ptab_search_decisions / ptab_get_decision (keyed by trial number)",
+            "appeals": "Ex parte appeal decisions via ptab_search_appeals / ptab_get_appeal",
         },
         "rate_limits": "Requires ODP API key (register at data.uspto.gov), standard rate limits apply",
         "auth_required": True,

@@ -327,6 +327,7 @@ async def check_api_status() -> Dict[str, Any]:
         "ptab": {
             "name": "PTAB Trial API",
             "configured": bool(config.USPTO_API_KEY),
+            "api_key_set": bool(config.USPTO_API_KEY),
             "status": "ACTIVE",
             "note": (
                 "PTAB Trial/Appeal data via USPTO ODP v3.0 (api.uspto.gov). "

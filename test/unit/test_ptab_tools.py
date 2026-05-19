@@ -52,4 +52,4 @@ async def test_all_seven_tools_no_longer_unavailable():
 async def test_check_api_status_reports_ptab_active():
     from patent_mcp_server.patents import check_api_status
     s = await check_api_status()
-    assert s["sources"]["ptab"]["status"] != "UNAVAILABLE"
+    assert s["sources"]["ptab"]["status"] == "ACTIVE"
