@@ -145,5 +145,7 @@ def test_from_ptab_unwraps_document_and_appeal_databags():
     for bag in ("patentTrialDocumentDataBag", "patentAppealDataBag"):
         raw = {"count": 1, bag: [{"x": 1}]}
         env = ResponseEnvelope.from_ptab(raw, 0, 25)
+        assert env["success"] is True
+        assert env["source"] == "ptab"
         assert env["results"] == [{"x": 1}]
         assert env["total"] == 1
