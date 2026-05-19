@@ -162,6 +162,8 @@ class PTABFields:
     # Patent owner — proceedings and decisions; realPartyInInterestName is broader
     # (e.g. "Apple" returns 26 on proceedings) vs patentOwnerName (exact string, returns 1)
     PATENT_OWNER_NAME = "patentOwnerData.realPartyInInterestName"
+    # Exact-match alternative; narrower than realPartyInInterestName
+    PATENT_OWNER_NAME_EXACT = "patentOwnerData.patentOwnerName"
 
     # Application number — proceedings and decisions use patentOwnerData path
     APPLICATION_NUMBER = "patentOwnerData.applicationNumberText"
@@ -176,6 +178,7 @@ class PTABFields:
     PETITION_FILING_DATE = "trialMetaData.petitionFilingDate"
     ACCORDED_FILING_DATE = "trialMetaData.accordedFilingDate"
     TERMINATION_DATE = "trialMetaData.terminationDate"
+    # Proceedings and decisions (verified on both endpoints)
     LATEST_DECISION_DATE = "trialMetaData.latestDecisionDate"
 
     # Decision issue date — trials/decisions and appeals/decisions

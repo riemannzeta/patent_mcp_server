@@ -129,6 +129,7 @@ raw in a query string produces an empty response body (not a JSON error).
 | Status | proceedings | `trialMetaData.trialStatusCategory` |
 | Petitioner name | proceedings, decisions | `regularPetitionerData.realPartyInInterestName` |
 | Patent owner name | proceedings | `patentOwnerData.realPartyInInterestName` |
+| Patent owner name (exact) | proceedings | `patentOwnerData.patentOwnerName` |
 | Patent number | proceedings, decisions | `patentOwnerData.patentNumber` |
 | Application number | proceedings, decisions | `patentOwnerData.applicationNumberText` |
 | Application number (appeals) | appeals decisions | `appellantData.applicationNumberText` |
@@ -137,7 +138,7 @@ raw in a query string produces an empty response body (not a JSON error).
 | Trial number | proceedings, decisions | `trialNumber` |
 | Appeal number | appeals decisions | `appealNumber` |
 
-## Fields That Cannot Be Verified (fall back to free-text `q` in Task 3)
+## Unverified Fields (none — all parameters confirmed)
 
 None — all logical filter parameters were verified. The original candidate names from the plan
 (flat names like `trialTypeCategory`, `proceedingStatusCategory`, `petitionerPartyName`) do not
