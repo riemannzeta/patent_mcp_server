@@ -1,0 +1,51 @@
+name: Feature request
+description: Suggest a new tool, parameter, or capability
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. Please be specific about which USPTO data source backs the feature — we can only build what an upstream API actually exposes.
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: Data source
+      description: Which USPTO data source would back this feature?
+      options:
+        - PPUBS (ppubs.uspto.gov, full text + PDFs)
+        - ODP (api.uspto.gov, metadata + prosecution)
+        - USPTO bulk datasets
+        - Not sure / multiple
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What are you trying to do with patent data, and where does the current tool set fall short?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed tool / parameter shape
+      description: If you have a specific tool signature in mind, sketch it here. Otherwise just describe the desired behavior.
+      placeholder: |
+        odp_search_applications(..., assignee_name_fuzzy=True, ...)
+        # Returns approximate-match results instead of exact term-match on firstApplicantName.
+      render: python
+    validations:
+      required: false
+
+  - type: textarea
+    id: upstream
+    attributes:
+      label: Relevant upstream API endpoint (if known)
+      description: Link to the USPTO API docs or Swagger entry that would back this.
+      placeholder: https://data.uspto.gov/...
+    validations:
+      required: false

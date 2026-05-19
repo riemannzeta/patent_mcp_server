@@ -437,11 +437,17 @@ async def ppubs_search_patents(
     (PPUBS updates daily vs PatentsView periodic updates).
 
     Args:
-        query: Search query using USPTO syntax. Examples:
-               - "machine learning" - searches all fields
+        query: Search query using USPTO BRS syntax. Multi-word terms are
+               AND-ed across all fields by default — quote phrases that
+               must appear together. Examples:
+               - '"machine learning"' - exact phrase, all fields
+               - machine learning - both terms anywhere (AND)
                - TTL/"neural network" - title contains phrase
                - IN/Smith AND AN/IBM - inventor Smith, assignee IBM
                - CPC/G06N3/08 - CPC classification
+               Default `sort="date_publ desc"` means broad queries return
+               the latest grants first — narrow with field qualifiers
+               (TTL/, AB/, IN/, AN/, CPC/) to get relevant matches.
         offset: Starting position for pagination (default: 0)
         limit: Maximum results to return (default: 100, max: 500)
         sort: Sort order (default: "date_publ desc")
@@ -478,7 +484,10 @@ async def ppubs_search_applications(
     (applications publish 18 months after filing, before grant).
 
     Args:
-        query: Search query using USPTO syntax (same as ppubs_search_patents)
+        query: Search query using USPTO BRS syntax (same as
+               ppubs_search_patents). Multi-word terms are AND-ed —
+               quote phrases that must appear together (e.g.
+               '"machine learning"').
         offset: Starting position for pagination (default: 0)
         limit: Maximum results to return (default: 100, max: 500)
         sort: Sort order (default: "date_publ desc")
@@ -799,14 +808,18 @@ async def odp_search_applications(
     USE THIS TOOL WHEN: You need to search applications with filtering
     by applicant metadata, dates, or other criteria not available in PPUBS.
 
-    Supports both simple queries and complex multi-field filtering.
+    Supports both free-text queries and structured multi-field filtering.
+    Typed filters are AND-ed together; pass a Lucene-style string in
+    `query` for OR or more complex expressions.
 
     Args:
-        query: General search query string
-        application_number: Filter by application number
-        patent_number: Filter by patent number
-        inventor_name: Filter by inventor name
-        assignee_name: Filter by assignee/applicant name
+        query: Free-text or Lucene-style query (e.g. 'neural network',
+               'applicationMetaData.firstInventorName:Smith OR
+               applicationMetaData.firstInventorName:Jones')
+        application_number: Filter by application number (exact match)
+        patent_number: Filter by patent number (exact match)
+        inventor_name: Filter by inventor name (matches first inventor)
+        assignee_name: Filter by applicant/assignee name (matches first applicant)
         filing_date_from: Filing date range start (YYYY-MM-DD)
         filing_date_to: Filing date range end (YYYY-MM-DD)
         offset: Starting position (default: 0)
@@ -815,32 +828,56 @@ async def odp_search_applications(
     Returns:
         Normalized response with matching applications.
     """
-    params = {"start": offset, "rows": limit}
+    clauses: List[str] = []
+
+    def _quote(value: str) -> str:
+        # Lucene-safe quoted value: escape embedded quotes and backslashes.
+        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped}"'
 
     if query:
-        params["q"] = query
+        # Pass user query through verbatim — supports Lucene operators.
+        clauses.append(f"({query})")
     if application_number:
-        params["applicationNumberText"] = application_number
+        clauses.append(f"applicationNumberText:{_quote(application_number)}")
     if patent_number:
-        params["patentNumber"] = patent_number
+        clauses.append(f"applicationMetaData.patentNumber:{_quote(patent_number)}")
     if inventor_name:
-        params["inventorName"] = inventor_name
+        clauses.append(
+            f"applicationMetaData.firstInventorName:{_quote(inventor_name)}"
+        )
     if assignee_name:
-        params["assigneeName"] = assignee_name
+        clauses.append(
+            f"applicationMetaData.firstApplicantName:{_quote(assignee_name)}"
+        )
     if filing_date_from or filing_date_to:
-        date_range = f"{filing_date_from or '*'},{filing_date_to or '*'}"
-        params["appFilingDate"] = date_range
+        start = filing_date_from or "*"
+        end = filing_date_to or "*"
+        clauses.append(f"applicationMetaData.filingDate:[{start} TO {end}]")
 
-    query_string = api_client.build_query_string(params)
-    url = f"{config.API_BASE_URL}/api/v1/patent/applications/search?{query_string}"
+    if not clauses:
+        return ApiError.create(
+            message=(
+                "At least one filter is required. Provide query, "
+                "application_number, patent_number, inventor_name, "
+                "assignee_name, or a filing_date range."
+            ),
+            error_code="MISSING_FILTER",
+        )
 
-    result = await api_client.make_request(url)
+    lucene_query = " AND ".join(clauses)
+    body = {
+        "q": lucene_query,
+        "pagination": {"offset": offset, "limit": limit},
+    }
+
+    url = f"{config.API_BASE_URL}/api/v1/patent/applications/search"
+    result = await api_client.make_request(url, method="POST", data=body)
 
     if is_error(result):
         return result
 
-    # Upstream ODP search ignores the `rows` parameter and returns a fixed
-    # page (~25 records). Enforce the caller's `limit` by post-slicing.
+    # Defensive slice in case upstream returns more than requested.
     if isinstance(result, dict) and isinstance(
         result.get("patentFileWrapperDataBag"), list
     ):
