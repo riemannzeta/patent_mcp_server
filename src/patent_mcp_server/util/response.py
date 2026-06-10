@@ -224,6 +224,95 @@ class ResponseEnvelope:
         )
 
 
+    @staticmethod
+    def from_tsdr(
+        raw_response: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Normalize a TSDR API response (single trademark record).
+
+        Args:
+            raw_response: Raw response from TSDR API
+
+        Returns:
+            Standardized response
+        """
+        # TSDR info.json format: {"trademarks": [{...}]} with one record
+        trademarks = raw_response.get("trademarks")
+        if isinstance(trademarks, list) and trademarks:
+            results = trademarks[0] if len(trademarks) == 1 else trademarks
+        else:
+            results = raw_response
+
+        return ResponseEnvelope.success(
+            results=results,
+            source="tsdr",
+            offset=0,
+            limit=1,
+        )
+
+    @staticmethod
+    def from_tmsearch(
+        parsed_response: Dict[str, Any],
+        offset: int = 0,
+        limit: int = 25,
+    ) -> Dict[str, Any]:
+        """Normalize a parsed tmsearch.uspto.gov response.
+
+        Args:
+            parsed_response: Output of TmSearchClient.parse_search_response,
+                shaped {"results": [...], "total": N}
+            offset: Requested offset
+            limit: Requested limit
+
+        Returns:
+            Standardized response
+        """
+        results = parsed_response.get("results", [])
+        total = parsed_response.get("total", len(results))
+
+        return ResponseEnvelope.success(
+            results=results,
+            source="tmsearch",
+            count=len(results) if isinstance(results, list) else 1,
+            total=total,
+            offset=offset,
+            limit=limit,
+        )
+
+    @staticmethod
+    def from_tm_assignment(
+        parsed_response: Dict[str, Any],
+        offset: int = 0,
+        limit: int = 25,
+    ) -> Dict[str, Any]:
+        """Normalize a trademark assignment search response.
+
+        Args:
+            parsed_response: Parsed response shaped {"results": [...], "total": N},
+                optionally with a "backend" key ("odp" or "legacy")
+            offset: Requested offset
+            limit: Requested limit
+
+        Returns:
+            Standardized response
+        """
+        results = parsed_response.get("results", [])
+        total = parsed_response.get("total", len(results))
+        metadata = None
+        if parsed_response.get("backend"):
+            metadata = {"backend": parsed_response["backend"]}
+
+        return ResponseEnvelope.success(
+            results=results,
+            source="tm_assignments",
+            count=len(results) if isinstance(results, list) else 1,
+            total=total,
+            offset=offset,
+            limit=limit,
+            metadata=metadata,
+        )
+
+
 def estimate_tokens(data: Any) -> int:
     """Estimate token count for a data structure.
 

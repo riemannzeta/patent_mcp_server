@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "patent-mcp-server"
-version = "0.9.5"
-description = "Model Context Protocol server for USPTO patent data"
+version = "1.0.0"
+description = "Model Context Protocol server for USPTO patent and trademark data"
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 license = "MIT"
 authors = [
     {name = "riemannzeta", email = "noreply@github.com"}
 ]
-keywords = ["mcp", "model-context-protocol", "uspto", "patent", "patent-search", "api"]
+keywords = ["mcp", "model-context-protocol", "uspto", "patent", "patent-search", "trademark", "trademark-search", "tsdr", "api"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

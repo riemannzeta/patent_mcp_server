@@ -185,6 +185,37 @@ class PTABFields:
     DECISION_ISSUE_DATE = "decisionData.decisionIssueDate"
 
 
+class TrademarkDefaults:
+    """Default values for trademark operations."""
+    SEARCH_LIMIT = 25
+    SEARCH_LIMIT_MAX = 100
+    # TSDR enforced limits (per API key): 60 req/min general, 4 req/min PDF/ZIP
+    TSDR_RATE_LIMIT_PER_MIN = 60
+    TSDR_PDF_RATE_LIMIT_PER_MIN = 4
+
+
+class TmSearchFields:
+    """Field names for the tmsearch.uspto.gov internal search index.
+
+    BEST-EFFORT SHAPE — NOT verified live. tmsearch.uspto.gov is the
+    undocumented internal API behind the USPTO trademark search web app
+    (TESS replacement). These names are drawn from public observations of
+    the web app's network calls and may change without notice. Confirm
+    against live traffic (browser dev tools on tmsearch.uspto.gov) before
+    relying on them; this class is the single place to fix names.
+    """
+    WORDMARK = "wordmark"
+    OWNER = "ownerFullText"
+    SERIAL_NUMBER = "id"
+    REGISTRATION_NUMBER = "registrationId"
+    INTERNATIONAL_CLASS = "internationalClasses"
+    ALIVE = "alive"
+    GOODS_AND_SERVICES = "goodsAndServices"
+    MARK_TYPE = "markType"
+    REGISTRATION_DATE = "registrationDate"
+    ABANDON_DATE = "abandonDate"
+
+
 class OfficeActionTypes:
     """Office Action types."""
     NON_FINAL = "Non-Final Rejection"

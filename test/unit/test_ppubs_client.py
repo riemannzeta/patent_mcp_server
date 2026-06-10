@@ -521,3 +521,30 @@ async def test_run_query_does_not_mutate_template(ppubs_client):
 
     # Template must still hold its original q after both calls.
     assert ppubs_client.search_query["query"]["q"] == template_q_before
+
+
+@pytest.mark.unit
+async def test_ppubs_download_patent_pdf_tool_passes_full_signature():
+    """Regression: the tool must call download_image with all four arguments
+    (guid, image_location, page_count, document_type) — it previously passed
+    only (guid, type), raising TypeError at runtime."""
+    from patent_mcp_server import patents
+
+    patent_doc = MOCK_SEARCH_RESPONSE["docs"][0]
+    search_result = {"success": True, "patent": patent_doc}
+
+    with patch("patent_mcp_server.patents._search_patent_by_number",
+               new_callable=AsyncMock, return_value=search_result), \
+         patch.object(patents.ppubs_client, "download_image",
+                      new_callable=AsyncMock) as dl:
+        dl.return_value = {"success": True, "filename": "x.pdf",
+                           "content_type": "application/pdf", "content": ""}
+        result = await patents.ppubs_download_patent_pdf("9876543")
+
+    assert result["success"] is True
+    dl.assert_awaited_once_with(
+        patent_doc["guid"],
+        patent_doc["imageLocation"],
+        patent_doc["pageCount"],
+        patent_doc["type"],
+    )

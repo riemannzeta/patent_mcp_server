@@ -32,11 +32,18 @@ class Config:
     # Office Action API
     OFFICE_ACTION_BASE_URL: str = os.getenv("OFFICE_ACTION_BASE_URL", "https://developer.uspto.gov")  # Legacy - decommissioned early 2026, pending ODP migration
 
+    # Trademark APIs (v1.0.0)
+    TSDR_BASE_URL: str = os.getenv("TSDR_BASE_URL", "https://tsdrapi.uspto.gov/ts/cd")
+    TMSEARCH_BASE_URL: str = os.getenv("TMSEARCH_BASE_URL", "https://tmsearch.uspto.gov")
+    TM_ASSIGNMENT_BASE_URL: str = os.getenv("TM_ASSIGNMENT_BASE_URL", "https://assignment-api.uspto.gov")  # Legacy fallback host
+    # TSDR accepts its own key; defaults to the ODP key (both issued via USPTO accounts)
+    TSDR_API_KEY: Optional[str] = os.getenv("TSDR_API_KEY") or os.getenv("USPTO_API_KEY")
+
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/0.9.5")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.0.0")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry
@@ -79,6 +86,13 @@ class Config:
                 "Register at https://data.uspto.gov and visit 'My ODP' to get your API key. "
                 "Note: PTAB and Litigation tools do not require an API key — they are "
                 "unavailable on ODP entirely (see issue #16)."
+            )
+
+        if not cls.TSDR_API_KEY:
+            logger.warning(
+                "TSDR_API_KEY not set (and no USPTO_API_KEY fallback). TSDR trademark "
+                "tools (tsdrapi.uspto.gov) will return 401. Request an API key via "
+                "your USPTO.gov account, or set USPTO_API_KEY."
             )
 
         # PatentsView API was shut down March 20, 2026 - no longer warn about missing key

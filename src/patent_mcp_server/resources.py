@@ -246,6 +246,92 @@ STATUS_CODES = {
     "82": {"description": "Continuation-in-Part Application Filed", "stage": "continuity"},
 }
 
+# Nice Classification - International trademark classes (goods 1-34, services 35-45)
+NICE_CLASSES = {
+    "1": {"title": "Chemicals", "type": "goods", "description": "Chemicals for industry, science, photography, agriculture; unprocessed plastics; fertilizers; adhesives for industry"},
+    "2": {"title": "Paints", "type": "goods", "description": "Paints, varnishes, lacquers; preservatives against rust; colorants, dyes; raw natural resins; printing inks"},
+    "3": {"title": "Cosmetics and Cleaning Preparations", "type": "goods", "description": "Cleaning, polishing and abrasive preparations; soaps; perfumery, essential oils, cosmetics, hair lotions; dentifrices"},
+    "4": {"title": "Lubricants and Fuels", "type": "goods", "description": "Industrial oils and greases; lubricants; fuels and illuminants; candles and wicks"},
+    "5": {"title": "Pharmaceuticals", "type": "goods", "description": "Pharmaceutical and veterinary preparations; sanitary preparations; dietetic food and supplements; plasters; disinfectants"},
+    "6": {"title": "Metal Goods", "type": "goods", "description": "Common metals and their alloys; metal building materials; pipes and tubes of metal; small items of metal hardware"},
+    "7": {"title": "Machinery", "type": "goods", "description": "Machines and machine tools; motors and engines (except for land vehicles); agricultural implements; vending machines"},
+    "8": {"title": "Hand Tools", "type": "goods", "description": "Hand tools and implements (hand-operated); cutlery; side arms; razors"},
+    "9": {"title": "Electrical and Scientific Apparatus", "type": "goods", "description": "Scientific, measuring, signalling apparatus; computers and computer software; data processing equipment; recorded media"},
+    "10": {"title": "Medical Apparatus", "type": "goods", "description": "Surgical, medical, dental and veterinary apparatus and instruments; artificial limbs; orthopedic articles; suture materials"},
+    "11": {"title": "Environmental Control Apparatus", "type": "goods", "description": "Apparatus for lighting, heating, steam generating, cooking, refrigerating, drying, ventilating, water supply and sanitary purposes"},
+    "12": {"title": "Vehicles", "type": "goods", "description": "Vehicles; apparatus for locomotion by land, air or water"},
+    "13": {"title": "Firearms", "type": "goods", "description": "Firearms; ammunition and projectiles; explosives; fireworks"},
+    "14": {"title": "Jewelry", "type": "goods", "description": "Precious metals and their alloys; jewelry, precious and semi-precious stones; horological and chronometric instruments"},
+    "15": {"title": "Musical Instruments", "type": "goods", "description": "Musical instruments; music stands and stands for musical instruments; conductors' batons"},
+    "16": {"title": "Paper Goods and Printed Matter", "type": "goods", "description": "Paper and cardboard; printed matter; bookbinding material; photographs; stationery; office requisites; instructional materials"},
+    "17": {"title": "Rubber Goods", "type": "goods", "description": "Unprocessed rubber, gutta-percha, gum, asbestos, mica; plastics in extruded form; packing and insulating materials; flexible pipes"},
+    "18": {"title": "Leather Goods", "type": "goods", "description": "Leather and imitations of leather; animal skins; luggage and carrying bags; umbrellas and parasols; saddlery"},
+    "19": {"title": "Non-metallic Building Materials", "type": "goods", "description": "Building materials (non-metallic); non-metallic rigid pipes; asphalt, pitch and bitumen; non-metallic transportable buildings; monuments"},
+    "20": {"title": "Furniture and Articles Not Otherwise Classified", "type": "goods", "description": "Furniture, mirrors, picture frames; containers (not of metal) for storage or transport; bone, horn, shell articles"},
+    "21": {"title": "Housewares and Glass", "type": "goods", "description": "Household or kitchen utensils and containers; cookware and tableware; combs and sponges; brushes; glassware, porcelain and earthenware"},
+    "22": {"title": "Cordage and Fibers", "type": "goods", "description": "Ropes and string; nets; tents and tarpaulins; awnings; sails; sacks; padding and stuffing materials; raw fibrous textile materials"},
+    "23": {"title": "Yarns and Threads", "type": "goods", "description": "Yarns and threads for textile use"},
+    "24": {"title": "Fabrics", "type": "goods", "description": "Textiles and substitutes for textiles; household linen; curtains of textile or plastic"},
+    "25": {"title": "Clothing", "type": "goods", "description": "Clothing, footwear, headwear"},
+    "26": {"title": "Fancy Goods", "type": "goods", "description": "Lace, braid and embroidery; buttons, hooks and eyes, pins and needles; artificial flowers; hair decorations; false hair"},
+    "27": {"title": "Floor Coverings", "type": "goods", "description": "Carpets, rugs, mats and matting; linoleum and other materials for covering floors; wall hangings (non-textile)"},
+    "28": {"title": "Toys and Sporting Goods", "type": "goods", "description": "Games, toys and playthings; video game apparatus; gymnastic and sporting articles; decorations for Christmas trees"},
+    "29": {"title": "Meats and Processed Foods", "type": "goods", "description": "Meat, fish, poultry and game; preserved, frozen, dried and cooked fruits and vegetables; jellies, jams; eggs; milk and milk products; edible oils"},
+    "30": {"title": "Staple Foods", "type": "goods", "description": "Coffee, tea, cocoa; rice, pasta and noodles; flour and preparations made from cereals; bread, pastries and confectionery; salt; spices"},
+    "31": {"title": "Natural Agricultural Products", "type": "goods", "description": "Raw and unprocessed agricultural, aquacultural, horticultural and forestry products; fresh fruits and vegetables; live animals; seeds"},
+    "32": {"title": "Light Beverages", "type": "goods", "description": "Beers; non-alcoholic beverages; mineral and aerated waters; fruit beverages and fruit juices; syrups for making beverages"},
+    "33": {"title": "Wines and Spirits", "type": "goods", "description": "Alcoholic beverages (except beers); alcoholic preparations for making beverages"},
+    "34": {"title": "Smokers' Articles", "type": "goods", "description": "Tobacco and tobacco substitutes; cigarettes and cigars; electronic cigarettes and oral vaporizers; smokers' articles; matches"},
+    "35": {"title": "Advertising and Business", "type": "services", "description": "Advertising; business management, organization and administration; office functions; retail and online store services"},
+    "36": {"title": "Insurance and Financial", "type": "services", "description": "Financial, monetary and banking services; insurance services; real estate services"},
+    "37": {"title": "Building Construction and Repair", "type": "services", "description": "Construction services; installation and repair services; mining extraction, oil and gas drilling"},
+    "38": {"title": "Telecommunications", "type": "services", "description": "Telecommunications services; broadcasting; providing internet chatrooms and forums"},
+    "39": {"title": "Transportation and Storage", "type": "services", "description": "Transport; packaging and storage of goods; travel arrangement"},
+    "40": {"title": "Treatment of Materials", "type": "services", "description": "Treatment of materials; recycling of waste and trash; air purification; custom manufacturing; 3D printing services"},
+    "41": {"title": "Education and Entertainment", "type": "services", "description": "Education; providing of training; entertainment; sporting and cultural activities"},
+    "42": {"title": "Computer and Scientific", "type": "services", "description": "Scientific and technological services; industrial research; design and development of computer hardware and software; SaaS; IT services"},
+    "43": {"title": "Hotels and Restaurants", "type": "services", "description": "Services for providing food and drink; temporary accommodation; restaurant, bar and catering services"},
+    "44": {"title": "Medical, Beauty and Agricultural", "type": "services", "description": "Medical services; veterinary services; hygienic and beauty care; agriculture, horticulture and forestry services"},
+    "45": {"title": "Personal and Legal", "type": "services", "description": "Legal services; security services; personal and social services rendered by others to meet the needs of individuals"},
+}
+
+# USPTO Trademark Status Codes (commonly encountered subset).
+# TSDR responses include the status description inline; this reference covers
+# the codes most often seen in search results and portfolio reviews.
+TM_STATUS_CODES = {
+    # New applications / examination
+    "630": {"description": "New application - record initialized, not assigned to examiner", "stage": "pre-examination"},
+    "638": {"description": "New application - assigned to examiner", "stage": "examination"},
+    "640": {"description": "Non-final action - mailed", "stage": "examination"},
+    "644": {"description": "Final refusal - mailed", "stage": "examination"},
+    "650": {"description": "Suspension letter - mailed", "stage": "suspension"},
+    "660": {"description": "Examiner's amendment - mailed", "stage": "examination"},
+    "661": {"description": "Response after non-final action - entered", "stage": "examination"},
+    "681": {"description": "Publication/issue review complete", "stage": "publication"},
+
+    # Publication / allowance
+    "686": {"description": "Published for opposition", "stage": "publication"},
+    "688": {"description": "Notice of allowance - issued", "stage": "allowance"},
+    "730": {"description": "First extension of time to file statement of use - granted", "stage": "allowance"},
+
+    # Registration
+    "700": {"description": "Registered", "stage": "registered"},
+    "701": {"description": "Section 8 declaration - accepted", "stage": "registered"},
+    "702": {"description": "Section 8 & 15 declarations - accepted and acknowledged", "stage": "registered"},
+    "800": {"description": "Registered and renewed", "stage": "registered"},
+
+    # Abandonment
+    "602": {"description": "Abandoned - failure to respond or late response", "stage": "abandoned"},
+    "604": {"description": "Abandoned - express abandonment", "stage": "abandoned"},
+    "606": {"description": "Abandoned - after ex parte appeal", "stage": "abandoned"},
+    "608": {"description": "Abandoned - no statement of use filed", "stage": "abandoned"},
+
+    # Cancellation / expiration
+    "710": {"description": "Cancelled - Section 8 (failure to file declaration of use)", "stage": "cancelled"},
+    "712": {"description": "Cancelled by court order", "stage": "cancelled"},
+    "900": {"description": "Expired - registration not renewed", "stage": "expired"},
+}
+
 # Data Sources Information
 DATA_SOURCES = {
     "ppubs": {
@@ -380,6 +466,92 @@ DATA_SOURCES = {
             "Patent enforcement patterns (UNAVAILABLE - use OCE bulk dataset)",
         ],
     },
+    "tsdr": {
+        "name": "USPTO Trademark Status and Document Retrieval (TSDR)",
+        "base_url": "https://tsdrapi.uspto.gov/ts/cd",
+        "description": (
+            "Official API for live trademark case status, prosecution "
+            "documents, and mark images, keyed by serial or registration "
+            "number. Requires an API key sent as the USPTO-API-KEY header "
+            "(TSDR_API_KEY env var, falls back to USPTO_API_KEY)."
+        ),
+        "coverage": {
+            "status": "Live status for all US trademark applications and registrations",
+            "documents": "Prosecution history document bundles (PDF)",
+            "images": "Mark drawings/images",
+        },
+        "rate_limits": "60 requests/min general; 4 requests/min for PDF/ZIP downloads (per API key)",
+        "auth_required": True,
+        "best_for": [
+            "Authoritative live status of a specific trademark",
+            "Office actions, specimens, and other file-wrapper documents",
+            "Mark images for design marks",
+            "Renewal deadline data (Section 8/9 dates)",
+        ],
+    },
+    "tmsearch": {
+        "name": "USPTO Trademark Search (tmsearch.uspto.gov)",
+        "base_url": "https://tmsearch.uspto.gov",
+        "description": (
+            "Full-text trademark search via the undocumented internal API "
+            "behind the USPTO trademark search web app (the TESS "
+            "replacement). Same risk profile as PPUBS: not an official "
+            "public API and may change without notice. USPTO offers no "
+            "official REST API for full-text trademark search."
+        ),
+        "coverage": {
+            "trademarks": "US federal trademark applications and registrations, searchable by mark text, owner, and class",
+        },
+        "rate_limits": "Undocumented, but throttled for heavy usage",
+        "auth_required": False,
+        "best_for": [
+            "Clearance/knockout searches for a proposed mark",
+            "Finding marks by owner name",
+            "Filtering by Nice international class and live/dead status",
+        ],
+    },
+    "tm_assignments": {
+        "name": "USPTO Trademark Assignment Search",
+        "base_url": "https://api.uspto.gov (legacy fallback: https://assignment-api.uspto.gov)",
+        "description": (
+            "Recorded trademark assignment (ownership transfer) records, "
+            "1955-present. The legacy assignment-api.uspto.gov service was "
+            "migrated to the Open Data Portal around April 2026; the client "
+            "tries ODP first and falls back to the legacy XML API."
+        ),
+        "coverage": {
+            "assignments": "Recorded trademark assignments from 1955 to present",
+        },
+        "rate_limits": "Standard ODP rate limits on the ODP backend",
+        "auth_required": True,
+        "best_for": [
+            "Tracing trademark ownership history",
+            "Finding marks assigned to or from a company",
+            "Due diligence on trademark transfers",
+        ],
+    },
+    "ttab": {
+        "name": "Trademark Trial and Appeal Board (TTAB)",
+        "base_url": "N/A",
+        "description": (
+            "NOT AVAILABLE AS API. TTAB proceedings (oppositions, "
+            "cancellations, ex parte appeals) have no public REST API. Case "
+            "status and documents are available via the TTABVUE web "
+            "interface, and daily TTAB XML data is published as bulk "
+            "datasets on the Open Data Portal (find products via "
+            "odp_search_datasets, e.g. the Trademark Daily XML File TTAB "
+            "product)."
+        ),
+        "coverage": {
+            "proceedings": "Bulk XML only - use odp_search_datasets",
+        },
+        "rate_limits": "N/A",
+        "auth_required": False,
+        "best_for": [
+            "Opposition/cancellation research (bulk XML via odp_search_datasets)",
+            "TTAB decisions (bulk XML via odp_search_datasets)",
+        ],
+    },
 }
 
 # Search Query Syntax Guide
@@ -411,6 +583,9 @@ PPUBS uses a field-based search syntax:
 ---
 
 ## PatentsView
+
+NOTE: The PatentsView API was shut down March 20, 2026. This syntax is
+retained for reference only; use PPUBS or ODP search instead.
 
 PatentsView uses JSON query syntax:
 
@@ -452,6 +627,25 @@ PatentsView uses JSON query syntax:
 
 ### Example:
 `q=machine learning&appFilingDate=2020-01-01,2023-12-31`
+
+---
+
+## Trademark Search (tm_search_trademarks)
+
+Search US federal trademarks by one or more filters:
+
+- `mark_text` - Word mark text (e.g., "ACME")
+- `owner_name` - Owner/applicant name (e.g., "Acme Corporation")
+- `international_class` - Nice class number 1-45 (e.g., "9" for software, "25" for clothing)
+- `status_filter` - "live" (active marks only), "dead" (abandoned/cancelled/expired), or omit for both
+- `query` - Raw query string for advanced searches
+
+### Clearance search tips:
+1. Start broad: search the exact proposed mark with status_filter="live"
+2. Search phonetic and spelling variants separately (e.g., "KWIK" for "QUICK")
+3. Narrow by international_class once you know the relevant classes (use get_trademark_class_info)
+4. Check authoritative status of any close hits with tsdr_get_trademark_status
+5. Federal search only - common-law and state marks are not covered
 
 ---
 
@@ -514,6 +708,40 @@ def get_status_code_info(code: str) -> dict:
 def get_all_status_codes() -> dict:
     """Get all USPTO status codes."""
     return STATUS_CODES
+
+
+def get_trademark_class_info(class_number: str) -> dict:
+    """Get information about a Nice/international trademark class."""
+    cleaned = str(class_number).strip().lstrip("0") or "0"
+    if cleaned in NICE_CLASSES:
+        info = NICE_CLASSES[cleaned].copy()
+        info["class"] = cleaned
+        return info
+    return {"error": f"Unknown trademark class: {class_number}. Valid classes are 1-45 (goods 1-34, services 35-45)."}
+
+
+def get_all_trademark_classes() -> dict:
+    """Get all Nice/international trademark classes."""
+    return NICE_CLASSES
+
+
+def get_trademark_status_code_info(code: str) -> dict:
+    """Get information about a USPTO trademark status code."""
+    code = str(code).strip()
+    if code in TM_STATUS_CODES:
+        info = TM_STATUS_CODES[code].copy()
+        info["code"] = code
+        return info
+    return {
+        "error": f"Unknown trademark status code: {code}. This reference covers "
+                 "commonly encountered codes only; TSDR status responses include "
+                 "the full status description inline (tsdr_get_trademark_status)."
+    }
+
+
+def get_all_trademark_status_codes() -> dict:
+    """Get all known USPTO trademark status codes."""
+    return TM_STATUS_CODES
 
 
 def get_data_source_info(source: str) -> dict:

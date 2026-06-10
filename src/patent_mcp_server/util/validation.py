@@ -43,6 +43,41 @@ class ApplicationNumberInput(BaseModel):
         return cleaned
 
 
+class TrademarkSerialInput(BaseModel):
+    """Validation model for trademark application serial numbers."""
+
+    serial_number: str = Field(..., min_length=1, description="Trademark serial number")
+
+    @field_validator('serial_number')
+    @classmethod
+    def validate_serial_number(cls, v: str) -> str:
+        """Validate and clean trademark serial number."""
+        # Remove slashes, commas, and spaces
+        cleaned = ''.join(c for c in str(v) if c.isdigit())
+        if not cleaned:
+            raise ValueError("Serial number must contain at least one digit")
+        if len(cleaned) != 8:
+            raise ValueError("Trademark serial number must be exactly 8 digits")
+        return cleaned
+
+
+class TrademarkRegistrationInput(BaseModel):
+    """Validation model for trademark registration numbers."""
+
+    registration_number: str = Field(..., min_length=1, description="Trademark registration number")
+
+    @field_validator('registration_number')
+    @classmethod
+    def validate_registration_number(cls, v: str) -> str:
+        """Validate and clean trademark registration number."""
+        cleaned = ''.join(c for c in str(v) if c.isdigit())
+        if not cleaned:
+            raise ValueError("Registration number must contain at least one digit")
+        if len(cleaned) > 8:
+            raise ValueError("Trademark registration number must be at most 8 digits")
+        return cleaned
+
+
 class SearchQueryInput(BaseModel):
     """Validation model for search queries."""
 
@@ -131,3 +166,43 @@ def validate_app_number(app_num: str) -> str:
         return validated.app_num
     except Exception as e:
         raise ValueError(f"Invalid application number: {str(e)}")
+
+
+def validate_serial_number(serial_number: str) -> str:
+    """
+    Validate and clean a trademark serial number.
+
+    Args:
+        serial_number: Raw serial number input
+
+    Returns:
+        Cleaned 8-digit serial number string
+
+    Raises:
+        ValueError: If serial number is invalid
+    """
+    try:
+        validated = TrademarkSerialInput(serial_number=serial_number)
+        return validated.serial_number
+    except Exception as e:
+        raise ValueError(f"Invalid trademark serial number: {str(e)}")
+
+
+def validate_registration_number(registration_number: str) -> str:
+    """
+    Validate and clean a trademark registration number.
+
+    Args:
+        registration_number: Raw registration number input
+
+    Returns:
+        Cleaned registration number string
+
+    Raises:
+        ValueError: If registration number is invalid
+    """
+    try:
+        validated = TrademarkRegistrationInput(registration_number=registration_number)
+        return validated.registration_number
+    except Exception as e:
+        raise ValueError(f"Invalid trademark registration number: {str(e)}")

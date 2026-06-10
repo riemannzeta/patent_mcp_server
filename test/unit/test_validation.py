@@ -1,7 +1,10 @@
 """Unit tests for validation functions."""
 import pytest
 
-from patent_mcp_server.util.validation import validate_patent_number, validate_app_number
+from patent_mcp_server.util.validation import (
+    validate_patent_number, validate_app_number,
+    validate_serial_number, validate_registration_number
+)
 
 
 # ============================================================================
@@ -275,3 +278,62 @@ def test_validate_app_number_typical_lengths():
 
     # Series code + number (14/412,875)
     assert validate_app_number("14/412875") == "14412875"
+
+
+# ============================================================================
+# Trademark Serial Number Validation Tests
+# ============================================================================
+
+@pytest.mark.unit
+def test_validate_serial_number_valid():
+    """Test trademark serial number validation with valid inputs."""
+    assert validate_serial_number("78787878") == "78787878"
+
+    # Separators are stripped
+    assert validate_serial_number("78/787,878") == "78787878"
+    assert validate_serial_number(" 78787878 ") == "78787878"
+
+
+@pytest.mark.unit
+def test_validate_serial_number_wrong_length():
+    """Trademark serial numbers must be exactly 8 digits."""
+    with pytest.raises(ValueError, match="exactly 8 digits"):
+        validate_serial_number("1234567")
+
+    with pytest.raises(ValueError, match="exactly 8 digits"):
+        validate_serial_number("123456789")
+
+
+@pytest.mark.unit
+def test_validate_serial_number_no_digits():
+    """Serial number with no digits is rejected."""
+    with pytest.raises(ValueError):
+        validate_serial_number("abcdefgh")
+
+
+# ============================================================================
+# Trademark Registration Number Validation Tests
+# ============================================================================
+
+@pytest.mark.unit
+def test_validate_registration_number_valid():
+    """Test trademark registration number validation with valid inputs."""
+    assert validate_registration_number("3500027") == "3500027"
+
+    # Separators are stripped, short numbers allowed
+    assert validate_registration_number("3,500,027") == "3500027"
+    assert validate_registration_number("123") == "123"
+
+
+@pytest.mark.unit
+def test_validate_registration_number_too_long():
+    """Registration numbers over 8 digits are rejected."""
+    with pytest.raises(ValueError, match="at most 8 digits"):
+        validate_registration_number("123456789")
+
+
+@pytest.mark.unit
+def test_validate_registration_number_no_digits():
+    """Registration number with no digits is rejected."""
+    with pytest.raises(ValueError):
+        validate_registration_number("abc")
