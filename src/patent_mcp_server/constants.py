@@ -192,28 +192,39 @@ class TrademarkDefaults:
     # TSDR enforced limits (per API key): 60 req/min general, 4 req/min PDF/ZIP
     TSDR_RATE_LIMIT_PER_MIN = 60
     TSDR_PDF_RATE_LIMIT_PER_MIN = 4
+    # Cap on binary (PDF/image) payloads returned through MCP. Full file
+    # wrappers can exceed 10 MB (NIKE's is 13 MB); base64 of that would
+    # overwhelm the response. Filtered bundles stay well under this.
+    MAX_BINARY_BYTES = 4_000_000
 
 
 class TmSearchFields:
     """Field names for the tmsearch.uspto.gov internal search index.
 
-    BEST-EFFORT SHAPE — NOT verified live. tmsearch.uspto.gov is the
-    undocumented internal API behind the USPTO trademark search web app
-    (TESS replacement). These names are drawn from public observations of
-    the web app's network calls and may change without notice. Confirm
-    against live traffic (browser dev tools on tmsearch.uspto.gov) before
-    relying on them; this class is the single place to fix names.
+    VERIFIED LIVE 2026-06-10 against POST /prod-stage-v1-0-0/tmsearch.
+    tmsearch.uspto.gov is the undocumented internal API behind the USPTO
+    trademark search web app (TESS replacement); it may still change
+    without notice. This class is the single place to fix names.
+
+    Notes from live verification:
+      - The index stores serial numbers in "id" (also echoed as the hit id).
+      - internationalClass values are stored as "IC 025"-style tokens, so
+        term filters must use zero-padded 3-digit class numbers ("025").
+      - Responses use {"hits": {"totalValue": N, "hits": [{"source": ...}]}}
+        (not the standard Elasticsearch total.value/_source envelope).
     """
     WORDMARK = "wordmark"
     OWNER = "ownerFullText"
     SERIAL_NUMBER = "id"
     REGISTRATION_NUMBER = "registrationId"
-    INTERNATIONAL_CLASS = "internationalClasses"
+    INTERNATIONAL_CLASS = "internationalClass"
     ALIVE = "alive"
     GOODS_AND_SERVICES = "goodsAndServices"
     MARK_TYPE = "markType"
     REGISTRATION_DATE = "registrationDate"
     ABANDON_DATE = "abandonDate"
+    STATUS_CODE = "statusCode"
+    STATUS_DESCRIPTION = "statusDescription"
 
 
 class OfficeActionTypes:

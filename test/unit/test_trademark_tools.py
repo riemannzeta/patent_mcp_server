@@ -86,6 +86,33 @@ async def test_tsdr_get_trademark_image_invalid_serial():
     assert result["error_code"] == "VALIDATION_ERROR"
 
 
+@pytest.mark.unit
+async def test_tsdr_list_trademark_documents():
+    """Document metadata listing normalizes into the standard envelope."""
+    parsed = {
+        "results": [{"DocumentTypeCode": "OOA", "MailRoomDate": "2020-01-15-05:00"}],
+        "total": 1,
+    }
+    with patch.object(patents.tsdr_client, "list_case_documents",
+                      new_callable=AsyncMock) as m:
+        m.return_value = parsed
+        result = await patents.tsdr_list_trademark_documents("78787878")
+
+    assert result["success"] is True
+    assert result["source"] == "tsdr"
+    assert result["total"] == 1
+    assert result["results"][0]["DocumentTypeCode"] == "OOA"
+    m.assert_awaited_once_with("78787878")
+
+
+@pytest.mark.unit
+async def test_tsdr_list_trademark_documents_invalid_serial():
+    result = await patents.tsdr_list_trademark_documents("xyz")
+
+    assert result["error"] is True
+    assert result["error_code"] == "VALIDATION_ERROR"
+
+
 # ============================================================================
 # Trademark Search Tools
 # ============================================================================
@@ -113,6 +140,25 @@ async def test_tm_search_trademarks_normalizes_envelope():
     assert result["total"] == 42
     assert result["count"] == 1
     assert result["has_more"] is True
+
+
+@pytest.mark.unit
+async def test_tm_search_trademarks_goods_services_filter():
+    """goods_services alone satisfies the filter requirement and is passed on."""
+    with patch.object(patents.tmsearch_client, "search",
+                      new_callable=AsyncMock) as m:
+        m.return_value = {"results": [], "total": 0}
+        await patents.tm_search_trademarks(goods_services="athletic footwear")
+
+    assert m.call_args.kwargs["goods_services"] == "athletic footwear"
+
+
+@pytest.mark.unit
+async def test_tm_search_trademarks_validates_registration_number():
+    result = await patents.tm_search_trademarks(registration_number="not-a-number")
+
+    assert result["error"] is True
+    assert result["error_code"] == "VALIDATION_ERROR"
 
 
 @pytest.mark.unit
@@ -165,13 +211,23 @@ async def test_tm_search_assignments_reports_backend():
         m.return_value = {
             "results": [{"reelNumber": "1234"}],
             "total": 1,
-            "backend": "odp",
+            "backend": "assignment-center",
         }
         result = await patents.tm_search_assignments(registration_number="3500027")
 
     assert result["success"] is True
     assert result["source"] == "tm_assignments"
-    assert result["metadata"]["backend"] == "odp"
+    assert result["metadata"]["backend"] == "assignment-center"
+
+
+@pytest.mark.unit
+async def test_tm_search_assignments_passes_reel_frame():
+    with patch.object(patents.tm_assignment_client, "search_assignments",
+                      new_callable=AsyncMock) as m:
+        m.return_value = {"results": [], "total": 0, "backend": "assignment-center"}
+        await patents.tm_search_assignments(reel_frame="9006/0093")
+
+    assert m.call_args.kwargs["reel_frame"] == "9006/0093"
 
 
 # ============================================================================

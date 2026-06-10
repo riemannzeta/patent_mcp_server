@@ -4,33 +4,37 @@ Skipped by default; run with: uv run pytest -m integration -k trademark
 
 Requirements:
   - Network access to uspto.gov hosts
-  - TSDR_API_KEY or USPTO_API_KEY in .env for TSDR and assignment tests
+  - TSDR_API_KEY in .env for the TSDR tests. NOTE: TSDR requires its own
+    key from account.uspto.gov/profile/api-manager ("TSDR API" product);
+    an ODP key passes the gateway but every request 404s.
 
-These tests double as live-contract verification for the two backends that
-could not be probed during development:
-  - tmsearch.uspto.gov (undocumented internal API — see tmsearch_client.py)
-  - trademark assignment search (ODP migration target vs legacy XML API)
-If the tmsearch tests fail with 400/404, inspect the web app's network
-calls and adjust SEARCH_PATH / TmSearchFields / build_search_body.
+tmsearch and Assignment Center contracts were verified live on 2026-06-10
+and need no API key. If the tmsearch tests start failing with 403/202, AWS
+WAF has been tightened — set TMSEARCH_WAF_TOKEN from a browser cookie.
 """
 import base64
+import os
 import pytest
 
 from patent_mcp_server import patents
-from patent_mcp_server.config import config
 
 # Long-registered, stable marks for lookups
-KNOWN_SERIAL = "78787878"          # TSDR's own documentation example
+KNOWN_SERIAL = "74612654"          # NIKE (word mark), registered 1996, live
+KNOWN_WORDMARK = "NIKE"
 
 
-requires_key = pytest.mark.skipif(
-    not config.TSDR_API_KEY,
-    reason="TSDR_API_KEY / USPTO_API_KEY not configured",
+# Keyed off the env var directly, NOT config.TSDR_API_KEY: the config falls
+# back to USPTO_API_KEY, but an ODP key cannot reach the TSDR backend (every
+# request 404s), so the fallback would make these tests fail, not run.
+requires_tsdr_key = pytest.mark.skipif(
+    not os.getenv("TSDR_API_KEY"),
+    reason="TSDR_API_KEY not configured (TSDR-specific key required; "
+           "the ODP key does not work for TSDR)",
 )
 
 
 @pytest.mark.integration
-@requires_key
+@requires_tsdr_key
 async def test_tsdr_status_by_serial_live():
     """TSDR returns a status record for a known serial number."""
     result = await patents.tsdr_get_trademark_status(serial_number=KNOWN_SERIAL)
@@ -44,11 +48,30 @@ async def test_tsdr_status_by_serial_live():
 
 
 @pytest.mark.integration
+@requires_tsdr_key
+async def test_tsdr_list_documents_live():
+    """TSDR lists prosecution document metadata (XML-only endpoint)."""
+    result = await patents.tsdr_list_trademark_documents(KNOWN_SERIAL)
+
+    assert result.get("error") is not True, result
+    assert result["success"] is True
+    assert result["total"] > 0
+    assert result["results"][0].get("DocumentTypeCode"), result["results"][0]
+
+
+@pytest.mark.integration
 @pytest.mark.slow
-@requires_key
+@requires_tsdr_key
 async def test_tsdr_document_bundle_live():
-    """TSDR document bundle downloads and decodes to a PDF."""
-    result = await patents.tsdr_download_trademark_documents(KNOWN_SERIAL)
+    """A filtered TSDR document bundle downloads and decodes to a PDF.
+
+    Filtered by document type because NIKE's full wrapper is ~13 MB —
+    over the MAX_BINARY_BYTES guard and a needless 4-req/min PDF spend.
+    ACR (Notice-Acceptance-Renewal) is a single-page document.
+    """
+    result = await patents.tsdr_download_trademark_documents(
+        KNOWN_SERIAL, document_type="ACR"
+    )
 
     assert result.get("error") is not True, result
     assert result["content_type"].startswith("application/pdf")
@@ -57,10 +80,9 @@ async def test_tsdr_document_bundle_live():
 
 @pytest.mark.integration
 async def test_tm_search_trademarks_live():
-    """tmsearch returns hits for a famous live mark (validates the probed
-    request body against the real internal API)."""
+    """tmsearch returns hits for a famous live mark."""
     result = await patents.tm_search_trademarks(
-        mark_text="NIKE", status_filter="live", limit=5
+        mark_text=KNOWN_WORDMARK, status_filter="live", limit=5
     )
 
     assert result.get("error") is not True, result
@@ -69,12 +91,33 @@ async def test_tm_search_trademarks_live():
 
 
 @pytest.mark.integration
-@requires_key
-async def test_tm_search_assignments_live():
-    """Assignment search answers from one of the two backends."""
-    result = await patents.tm_search_assignments(
-        assignee_name="Nike", limit=5
+async def test_tm_search_trademarks_class_filter_live():
+    """The international class filter narrows results (zero-padded term)."""
+    result = await patents.tm_search_trademarks(
+        owner_name="Nike", international_class="25", status_filter="live",
+        limit=5,
     )
 
     assert result.get("error") is not True, result
-    assert result["metadata"]["backend"] in ("odp", "legacy")
+    assert result["total"] > 0
+
+
+@pytest.mark.integration
+async def test_tm_get_trademark_live():
+    """Single-record lookup by serial number hits the live index."""
+    result = await patents.tm_get_trademark(KNOWN_SERIAL)
+
+    assert result.get("error") is not True, result
+    assert result["results"][0]["wordmark"] == KNOWN_WORDMARK
+
+
+@pytest.mark.integration
+async def test_tm_search_assignments_live():
+    """Assignment Center answers without an API key."""
+    result = await patents.tm_search_assignments(
+        assignee_name="Nike, Inc.", limit=5
+    )
+
+    assert result.get("error") is not True, result
+    assert result["metadata"]["backend"] == "assignment-center"
+    assert len(result["results"]) > 0

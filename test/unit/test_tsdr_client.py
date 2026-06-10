@@ -4,13 +4,15 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 import httpx
 
-from patent_mcp_server.uspto.tsdr_client import TSDRClient
+from patent_mcp_server.uspto.tsdr_client import TSDRClient, DOCUMENT_LIST_NS
+from patent_mcp_server.constants import TrademarkDefaults
 from patent_mcp_server.config import config
 
 from test.fixtures.tsdr_responses import (
     MOCK_TSDR_STATUS_RESPONSE,
     MOCK_TSDR_PDF_BYTES,
     MOCK_TSDR_IMAGE_BYTES,
+    MOCK_TSDR_DOCUMENT_LIST_XML,
 )
 
 
@@ -69,16 +71,16 @@ async def test_client_context_manager():
 
 @pytest.mark.unit
 async def test_status_url_serial_number(tsdr_client):
-    """Serial number builds the sn{N}/info.json URL."""
+    """Serial number builds the sn{N}/info URL."""
     url = tsdr_client._status_url("78787878", None)
-    assert url == f"{config.TSDR_BASE_URL}/casestatus/sn78787878/info.json"
+    assert url == f"{config.TSDR_BASE_URL}/casestatus/sn78787878/info"
 
 
 @pytest.mark.unit
 async def test_status_url_registration_number(tsdr_client):
-    """Registration number builds the rn{N}/info.json URL."""
+    """Registration number builds the rn{N}/info URL."""
     url = tsdr_client._status_url(None, "3500027")
-    assert url == f"{config.TSDR_BASE_URL}/casestatus/rn3500027/info.json"
+    assert url == f"{config.TSDR_BASE_URL}/casestatus/rn3500027/info"
 
 
 @pytest.mark.unit
@@ -106,7 +108,7 @@ async def test_get_case_status_returns_json(tsdr_client):
 
     assert result == MOCK_TSDR_STATUS_RESPONSE
     called_url = m.call_args[0][0]
-    assert called_url.endswith("/casestatus/sn78787878/info.json")
+    assert called_url.endswith("/casestatus/sn78787878/info")
 
 
 @pytest.mark.unit
@@ -128,6 +130,87 @@ async def test_get_case_status_non_json_response(tsdr_client):
         result = await tsdr_client.get_case_status(serial_number="78787878")
 
     assert result["error"] is True
+
+
+@pytest.mark.unit
+async def test_get_case_status_odp_key_hint(tsdr_client):
+    """The gateway's ODP-key 404 signature gets an actionable hint."""
+    with patch.object(tsdr_client, "_get", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(
+            404, content=b" BACKEND RESPONSE STATUS: 404"
+        )
+        result = await tsdr_client.get_case_status(serial_number="78787878")
+
+    assert result["error"] is True
+    assert "TSDR" in result["hint"]
+    assert "api-manager" in result["hint"]
+
+
+@pytest.mark.unit
+async def test_get_case_status_401_hint(tsdr_client):
+    """A 401 (missing key) gets a key-registration hint."""
+    with patch.object(tsdr_client, "_get", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(401, content=b"Unauthorized")
+        result = await tsdr_client.get_case_status(serial_number="78787878")
+
+    assert result["error"] is True
+    assert "api-manager" in result["hint"]
+
+
+@pytest.mark.unit
+async def test_json_requests_send_accept_header(tsdr_client):
+    """JSON requests negotiate content type via the Accept header."""
+    with patch.object(tsdr_client, "_get", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(200, json_data=MOCK_TSDR_STATUS_RESPONSE)
+        await tsdr_client.get_case_status(serial_number="78787878")
+
+    assert m.call_args.kwargs.get("headers") == {"Accept": "application/json"}
+
+
+@pytest.mark.unit
+async def test_list_case_documents(tsdr_client):
+    """Document metadata list hits /casedocs/sn{N}/info and parses the XML."""
+    with patch.object(tsdr_client, "_get", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(
+            200, content=MOCK_TSDR_DOCUMENT_LIST_XML.encode("utf-8")
+        )
+        result = await tsdr_client.list_case_documents("78787878")
+
+    assert result["total"] == 2
+    first = result["results"][0]
+    assert first["DocumentTypeCode"] == "OOA"
+    assert first["MailRoomDate"] == "2020-01-15-05:00"
+    assert first["PageMediaTypeList"] == ["image/tiff"]
+    called_url = m.call_args[0][0]
+    assert called_url.endswith("/casedocs/sn78787878/info")
+
+
+@pytest.mark.unit
+async def test_list_case_documents_does_not_request_json(tsdr_client):
+    """The casedocs endpoint 406es on Accept: application/json — the
+    request must NOT negotiate JSON (verified live 2026-06-10)."""
+    with patch.object(tsdr_client, "_get", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(
+            200, content=MOCK_TSDR_DOCUMENT_LIST_XML.encode("utf-8")
+        )
+        await tsdr_client.list_case_documents("78787878")
+
+    assert m.call_args.kwargs.get("headers") is None
+
+
+@pytest.mark.unit
+def test_parse_document_list_xml_invalid():
+    """Invalid XML returns an error dict."""
+    result = TSDRClient._parse_document_list_xml("not xml <<<")
+    assert result["error"] is True
+
+
+@pytest.mark.unit
+def test_parse_document_list_xml_empty():
+    """An empty DocumentList parses to zero results."""
+    xml = f'<?xml version="1.0"?><DocumentList xmlns="{DOCUMENT_LIST_NS}"/>'
+    result = TSDRClient._parse_document_list_xml(xml)
+    assert result == {"results": [], "total": 0}
 
 
 # ============================================================================
@@ -189,6 +272,21 @@ async def test_get_mark_image_returns_base64(tsdr_client):
 
     called_url = m.call_args[0][0]
     assert called_url.endswith("/rawImage/78787878")
+
+
+@pytest.mark.unit
+async def test_binary_request_size_guard(tsdr_client):
+    """Oversized bundles are rejected with filter guidance, not base64'd."""
+    huge = b"%PDF" + b"\x00" * (TrademarkDefaults.MAX_BINARY_BYTES + 1)
+    with patch.object(tsdr_client, "_get", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(
+            200, content=huge, headers={"content-type": "application/pdf"}
+        )
+        result = await tsdr_client.download_case_documents("78787878")
+
+    assert result["error"] is True
+    assert result["error_code"] == "RESPONSE_TOO_LARGE"
+    assert "tsdr_list_trademark_documents" in result["message"]
 
 
 @pytest.mark.unit

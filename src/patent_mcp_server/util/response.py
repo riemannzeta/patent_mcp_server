@@ -289,7 +289,7 @@ class ResponseEnvelope:
 
         Args:
             parsed_response: Parsed response shaped {"results": [...], "total": N},
-                optionally with a "backend" key ("odp" or "legacy")
+                optionally with a "backend" key (e.g. "assignment-center")
             offset: Requested offset
             limit: Requested limit
 

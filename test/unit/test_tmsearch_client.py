@@ -8,6 +8,7 @@ from patent_mcp_server.config import config
 
 from test.fixtures.tmsearch_responses import (
     MOCK_TMSEARCH_RESPONSE,
+    MOCK_TMSEARCH_ES7_RESPONSE,
     MOCK_TMSEARCH_RESPONSE_INT_TOTAL,
     MOCK_TMSEARCH_EMPTY_RESPONSE,
 )
@@ -30,7 +31,7 @@ async def test_client_initialization():
     """Client sends browser-like headers and no API key."""
     client = TmSearchClient()
 
-    assert client.headers["X-Requested-With"] == "XMLHttpRequest"
+    assert client.headers["Accept"] == "application/json, text/plain, */*"
     assert client.headers["Origin"] == config.TMSEARCH_BASE_URL
     assert "X-API-KEY" not in client.headers
     assert "USPTO-API-KEY" not in client.headers
@@ -86,13 +87,29 @@ def test_build_body_class_and_status_filters():
         mark_text="ACME", international_class="9", status_filter="live"
     )
     filters = body["query"]["bool"]["filter"]
-    assert {"term": {TmSearchFields.INTERNATIONAL_CLASS: "9"}} in filters
+    # Class numbers are zero-padded to 3 digits ("IC 009"-style index tokens)
+    assert {"term": {TmSearchFields.INTERNATIONAL_CLASS: "009"}} in filters
     assert {"term": {TmSearchFields.ALIVE: True}} in filters
 
     body_dead = TmSearchClient.build_search_body(
         mark_text="ACME", status_filter="dead"
     )
     assert {"term": {TmSearchFields.ALIVE: False}} in body_dead["query"]["bool"]["filter"]
+
+
+@pytest.mark.unit
+def test_build_body_goods_services():
+    body = TmSearchClient.build_search_body(goods_services="athletic footwear")
+    must = body["query"]["bool"]["must"]
+    assert {"match": {TmSearchFields.GOODS_AND_SERVICES: "athletic footwear"}} in must
+
+
+@pytest.mark.unit
+def test_build_body_class_not_padded_when_non_numeric():
+    """Pre-formatted class terms pass through unchanged."""
+    body = TmSearchClient.build_search_body(international_class="IC 009")
+    filters = body["query"]["bool"]["filter"]
+    assert {"term": {TmSearchFields.INTERNATIONAL_CLASS: "IC 009"}} in filters
 
 
 @pytest.mark.unit
@@ -119,10 +136,20 @@ def test_build_body_no_filters_is_match_all():
 # ============================================================================
 
 @pytest.mark.unit
-def test_parse_response_es7_total():
+def test_parse_response_live_shape():
+    """The live envelope (totalValue + source) parses correctly."""
     parsed = TmSearchClient.parse_search_response(MOCK_TMSEARCH_RESPONSE)
     assert parsed["total"] == 2
     assert len(parsed["results"]) == 2
+    assert parsed["results"][0]["wordmark"] == "TESTMARK"
+    assert parsed["results"][0]["id"] == "78787878"
+
+
+@pytest.mark.unit
+def test_parse_response_es7_fallback():
+    """A standard ES7 envelope (total object + _source) still parses."""
+    parsed = TmSearchClient.parse_search_response(MOCK_TMSEARCH_ES7_RESPONSE)
+    assert parsed["total"] == 1
     assert parsed["results"][0]["wordmark"] == "TESTMARK"
 
 
@@ -186,6 +213,49 @@ async def test_get_by_serial(tmsearch_client):
     assert {"term": {TmSearchFields.SERIAL_NUMBER: "78787878"}} in body["query"]["bool"]["must"]
     assert body["size"] == 1
     assert result["total"] == 1
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("waf_status", [202, 403])
+async def test_waf_rejection_returns_actionable_error(tmsearch_client, waf_status):
+    """AWS WAF rejections (403 blocked / 202 challenge) get a hint."""
+    from unittest.mock import MagicMock
+    import httpx
+
+    waf_response = MagicMock(spec=httpx.Response)
+    waf_response.status_code = waf_status
+    waf_response.text = "<html>challenge</html>"
+
+    with patch.object(
+        tmsearch_client.client, "post", new_callable=AsyncMock
+    ) as m:
+        m.return_value = waf_response
+        result = await tmsearch_client.make_request({"query": {}})
+
+    assert result["error"] is True
+    assert "TMSEARCH_WAF_TOKEN" in result["hint"]
+
+
+@pytest.mark.unit
+async def test_non_json_200_is_waf_challenge(tmsearch_client):
+    """A 200 with non-JSON content is reported as a WAF challenge."""
+    from unittest.mock import MagicMock
+    import httpx
+
+    challenge = MagicMock(spec=httpx.Response)
+    challenge.status_code = 200
+    challenge.text = "<html>verify you are human</html>"
+    challenge.raise_for_status.return_value = None
+    challenge.json.side_effect = ValueError("not json")
+
+    with patch.object(
+        tmsearch_client.client, "post", new_callable=AsyncMock
+    ) as m:
+        m.return_value = challenge
+        result = await tmsearch_client.make_request({"query": {}})
+
+    assert result["error"] is True
+    assert result["error_code"] == "WAF_CHALLENGE"
 
 
 @pytest.mark.unit

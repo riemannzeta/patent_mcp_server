@@ -10,7 +10,7 @@ Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of 
 
 ## Features
 
-This server provides **60 tools** across 9 USPTO data sources (35 active, 25 unavailable due to API shutdowns):
+This server provides **61 tools** across 9 USPTO data sources (36 active, 25 unavailable due to API shutdowns):
 
 1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS
 2. **Full Text Documents** - Get complete text of patents including claims, description, and specification
@@ -18,9 +18,9 @@ This server provides **60 tools** across 9 USPTO data sources (35 active, 25 una
 4. **Prosecution History** - Access transactions and file wrapper data via ODP
 5. **Patent Family Data** - Continuity information, foreign priority, and related applications
 6. **Bulk Datasets** - Search and access USPTO bulk data products including PatentsView disambiguated data
-7. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, and class (clearance/knockout searches)
+7. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, goods/services, and class (clearance/knockout searches)
 8. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
-9. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present
+9. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
 
 > **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. All 25 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
 
@@ -31,9 +31,9 @@ This server provides **60 tools** across 9 USPTO data sources (35 active, 25 una
 | **ppubs.uspto.gov** | Full text documents, PDF downloads, advanced search (daily updates) | No | Active |
 | **api.uspto.gov (ODP)** | Metadata, continuity, transactions, assignments, prosecution history | Yes (ODP API Key) | Active |
 | **PTAB Trial API** | IPR/PGR/CBM proceedings, decisions, appeals | Yes (ODP API Key) | Active (ODP v3.0) |
-| **tsdrapi.uspto.gov (TSDR)** | Trademark status, prosecution documents, mark images | Yes (API Key) | Active |
+| **tsdrapi.uspto.gov (TSDR)** | Trademark status, prosecution documents, mark images | Yes (TSDR API Key — separate from ODP) | Active |
 | **tmsearch.uspto.gov** | Full-text trademark search (internal API behind the TESS replacement) | No | Active (unofficial) |
-| **Trademark Assignment Search** | Trademark ownership transfer records (1955-present) | Yes (ODP API Key) | Active (ODP, legacy fallback) |
+| **assignmentcenter.uspto.gov** | Trademark ownership transfer records (1955-present) | No | Active |
 | **Patent Litigation API** | 74,000+ district court patent cases | N/A | Not offered on ODP (issue #16) |
 | **PatentsView API** | Disambiguated inventor/assignee data, advanced search | N/A | Shut down March 2026 |
 | **Office Action APIs** | Full-text office actions, citations, rejections | N/A | Decommissioned early 2026 |
@@ -77,7 +77,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### USPTO ODP API Key (Required for most tools)
 
-To use the api.uspto.gov tools (ODP, PTAB) and trademark assignment search, you need an Open Data Portal API key. Without it, these endpoints return `403 Forbidden`. The Patent Litigation API is not offered on ODP and does not require an API key.
+To use the api.uspto.gov tools (ODP, PTAB), you need an Open Data Portal API key. Without it, these endpoints return `403 Forbidden`. The Patent Litigation API is not offered on ODP and does not require an API key.
 
 1. Create a USPTO.gov account at [data.uspto.gov](https://data.uspto.gov) (requires ID.me verification)
 2. Once signed in, visit **"My ODP"** in the site navigation to get your API key
@@ -87,17 +87,28 @@ To use the api.uspto.gov tools (ODP, PTAB) and trademark assignment search, you 
    ```bash
    USPTO_API_KEY=your_actual_key_here
    ```
-   Note: The PPUBS and trademark search (`tm_search_trademarks`) tools will work without this API key.
+   Note: The PPUBS patent tools, trademark search (`tm_*` search tools), and trademark assignment search work without any API key.
 
 ### TSDR API Key (Trademark status/document tools)
 
-The TSDR tools (`tsdr_*`) send an API key as the `USPTO-API-KEY` header. By default they reuse `USPTO_API_KEY`; if your TSDR key differs, set it separately:
+The TSDR tools (`tsdr_*`) require a **TSDR-specific API key** sent as the `USPTO-API-KEY` header. **The ODP key does not work for TSDR** — it passes the gateway's auth check, but every request then fails with `BACKEND RESPONSE STATUS: 404`.
+
+1. Sign in to the [USPTO API Key Manager](https://account.uspto.gov/profile/api-manager) with a free MyUSPTO account
+2. Select the **TSDR API** product and click "Request API key" (the key is emailed and stored under your account)
+3. Add it to your `.env`:
+   ```bash
+   TSDR_API_KEY=your_tsdr_key_here
+   ```
+
+TSDR rate limits (peak hours 5am-10pm ET): 60 requests/minute general, 4 requests/minute for PDF document bundles (120/12 off-peak). Use `tsdr_list_trademark_documents` (metadata only, not rate-limited like PDFs) before downloading bundles.
+
+### Trademark search and AWS WAF (no key needed)
+
+`tm_search_trademarks` / `tm_get_trademark` use the internal API behind [tmsearch.uspto.gov](https://tmsearch.uspto.gov), which sits behind AWS WAF. It currently answers plain requests, but if USPTO tightens the WAF and searches start failing with 403/202 errors, copy the `aws-waf-token` cookie from a browser session on tmsearch.uspto.gov (valid ~4 days) and set:
 
 ```bash
-TSDR_API_KEY=your_tsdr_key_here   # optional, falls back to USPTO_API_KEY
+TMSEARCH_WAF_TOKEN=your_cookie_value_here
 ```
-
-TSDR rate limits: 60 requests/minute general, 4 requests/minute for PDF document bundles.
 
 ## Configuration
 
@@ -105,8 +116,9 @@ The server can be configured using environment variables in your `.env` file. Al
 
 ```bash
 # API Keys
-USPTO_API_KEY=your_key_here
-TSDR_API_KEY=your_tsdr_key_here  # Optional - falls back to USPTO_API_KEY
+USPTO_API_KEY=your_key_here      # ODP/PTAB tools
+TSDR_API_KEY=your_tsdr_key_here  # TSDR trademark tools (separate key — see above)
+TMSEARCH_WAF_TOKEN=...           # Optional - only if trademark search hits the WAF
 
 # Logging
 LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -126,7 +138,7 @@ PPUBS_BASE_URL=https://ppubs.uspto.gov
 API_BASE_URL=https://api.uspto.gov          # ODP API endpoint (NOT data.uspto.gov)
 TSDR_BASE_URL=https://tsdrapi.uspto.gov/ts/cd
 TMSEARCH_BASE_URL=https://tmsearch.uspto.gov
-TM_ASSIGNMENT_BASE_URL=https://assignment-api.uspto.gov  # Legacy fallback
+TM_ASSIGNMENT_BASE_URL=https://assignmentcenter.uspto.gov
 ```
 
 ## Claude Desktop Configuration
@@ -217,17 +229,18 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 | Tool | Description |
 |------|-------------|
 | `tsdr_get_trademark_status` | Get authoritative live status by serial or registration number |
+| `tsdr_list_trademark_documents` | List prosecution document metadata (no rate limit, no downloads) |
 | `tsdr_download_trademark_documents` | Download prosecution document bundle as PDF (4/min rate limit) |
 | `tsdr_get_trademark_image` | Get the mark image (drawing) as base64 |
 
 ### Trademark Search & Assignments
 | Tool | Description |
 |------|-------------|
-| `tm_search_trademarks` | Full-text search by mark text, owner, class, live/dead status |
+| `tm_search_trademarks` | Full-text search by mark text, owner, goods/services, class, live/dead status |
 | `tm_get_trademark` | Get a trademark's search-index record by serial number |
-| `tm_search_assignments` | Search recorded ownership transfers (1955-present) |
+| `tm_search_assignments` | Search recorded ownership transfers, 1955-present (Assignment Center, no key) |
 
-> **Note:** `tm_search_trademarks` and `tm_get_trademark` use the undocumented internal API behind [tmsearch.uspto.gov](https://tmsearch.uspto.gov) (the TESS replacement) — the same situation as the PPUBS patent search API. USPTO offers no official REST API for full-text trademark search. These tools may break without notice if USPTO changes the internal API. TTAB proceedings (oppositions/cancellations) have no REST API; daily TTAB XML is available as bulk datasets via `odp_search_datasets`.
+> **Note:** `tm_search_trademarks` and `tm_get_trademark` use the undocumented internal API behind [tmsearch.uspto.gov](https://tmsearch.uspto.gov) (the TESS replacement) — the same situation as the PPUBS patent search API. USPTO offers no official REST API for full-text trademark search. The request/response contract was verified live on 2026-06-10, but these tools may break without notice if USPTO changes the internal API. TTAB proceedings (oppositions/cancellations) have no REST API; daily TTAB XML is available as bulk datasets via `odp_search_datasets`.
 
 ### Patent Litigation API (Unavailable — not offered on ODP, issue #16)
 
@@ -350,16 +363,16 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 ## Version History
 
 ### v1.0.0 (Current)
-- **Trademark support**: 8 new trademark tools across three new clients
-  - TSDR (`tsdr_get_trademark_status`, `tsdr_download_trademark_documents`, `tsdr_get_trademark_image`) — official trademark status/document API with `USPTO-API-KEY` auth and 429 rate-limit handling
-  - Trademark search (`tm_search_trademarks`, `tm_get_trademark`) — full-text search via the internal API behind tmsearch.uspto.gov (no official REST API exists)
-  - Trademark assignments (`tm_search_assignments`) — ODP-first with automatic fallback to the legacy assignment-api.uspto.gov XML API
+- **Trademark support**: 9 new trademark tools across three new clients, all verified against the live USPTO services on 2026-06-10
+  - TSDR (`tsdr_get_trademark_status`, `tsdr_list_trademark_documents`, `tsdr_download_trademark_documents`, `tsdr_get_trademark_image`) — official trademark status/document API. Requires a TSDR-specific key (the ODP key does not work); error responses detect the wrong-key signature and explain how to get the right one. Document bundles above 4 MB are rejected with filter guidance (full wrappers can exceed 10 MB)
+  - Trademark search (`tm_search_trademarks`, `tm_get_trademark`) — full-text search by mark text, owner, goods/services, and Nice class via the internal Elasticsearch API behind tmsearch.uspto.gov (no official REST API exists). Verified live; handles AWS WAF rejections with `TMSEARCH_WAF_TOKEN` support
+  - Trademark assignments (`tm_search_assignments`) — USPTO Assignment Center public API (assignmentcenter.uspto.gov, no key required), searchable by serial/registration number, assignee, assignor, and reel/frame. Replaced the legacy assignment-api.uspto.gov XML API decommissioned June 5, 2026
 - New reference tools and resources: `get_trademark_class_info`, `get_trademark_status_code`, `trademarks://classes`, `trademarks://status-codes` (all 45 Nice classes, common trademark status codes)
 - 3 new workflow prompts: `trademark_clearance_search`, `trademark_portfolio_review`, `trademark_status_monitoring`
 - Fixed `ppubs_download_patent_pdf` (called `download_image` with the wrong signature, raising `TypeError`)
 - Rewrote patent workflow prompts to reference live tools (the old prompts still pointed at decommissioned PatentsView/Office Action/citation tools)
-- New env vars: `TSDR_API_KEY` (falls back to `USPTO_API_KEY`), `TSDR_BASE_URL`, `TMSEARCH_BASE_URL`, `TM_ASSIGNMENT_BASE_URL`
-- Tool count: 60 registered (35 active, 25 unavailable)
+- New env vars: `TSDR_API_KEY`, `TMSEARCH_WAF_TOKEN`, `TSDR_BASE_URL`, `TMSEARCH_BASE_URL`, `TM_ASSIGNMENT_BASE_URL`
+- Tool count: 61 registered (36 active, 25 unavailable)
 
 ### v0.9.5
 - Re-enable 7 PTAB tools on USPTO ODP v3.0: `ptab_search_proceedings`, `ptab_get_proceeding`, `ptab_get_documents`, `ptab_search_decisions`, `ptab_get_decision`, `ptab_search_appeals`, `ptab_get_appeal` ([issue #23](https://github.com/riemannzeta/patent_mcp_server/issues/23)). PTAB data relocated to ODP `/api/v1/patent/trials/*` and `/api/v1/patent/appeals/*` (paths not in the ODP Swagger UI); the standalone-API decommission ([issue #16](https://github.com/riemannzeta/patent_mcp_server/issues/16)) was correct for the Patent Litigation API, but PTAB moved rather than disappeared.

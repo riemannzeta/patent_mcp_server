@@ -479,12 +479,15 @@ Likelihood of confusion extends beyond exact matches. Search separately for:
 - Translations of foreign-word marks (doctrine of foreign equivalents)
 - The dominant word in compound marks
 
-## Step 4: Narrow by Class
+## Step 4: Narrow by Class and Goods/Services
 ```
 Use tm_search_trademarks with international_class:
 - Focus on the classes identified in Step 1
 - Also check related/complementary classes (e.g., class 9 software
   vs class 42 software services)
+Use tm_search_trademarks with goods_services:
+- Search the actual goods/services wording (e.g., "athletic footwear")
+  to catch marks classified differently than expected
 ```
 
 ## Step 5: Verify Status of Close Hits
@@ -504,10 +507,12 @@ Use tm_search_trademarks with owner_name:
 
 ## Step 7: Review Documents if Needed
 ```
-Use tsdr_download_trademark_documents:
+Use tsdr_list_trademark_documents first:
+- See what file-wrapper documents exist (metadata only, no rate limit)
+Then tsdr_download_trademark_documents for the ones you need:
 - Examine specimens to see how a mark is actually used
 - Review office actions for examiner views on similar marks
-(Rate limited to 4 PDF downloads/minute.)
+(PDF downloads rate limited to 4/minute.)
 ```
 
 ## Important Caveats:
@@ -601,10 +606,12 @@ Key transitions to watch for:
 
 ## Step 4: Pull New Documents
 ```
-Use tsdr_download_trademark_documents when status changes:
+Use tsdr_list_trademark_documents when status changes:
+- Check what new documents arrived (metadata only, no PDF rate limit)
+Then tsdr_download_trademark_documents for the documents you need:
 - Filter by date_from to get only new documents
 - Office actions, examiner amendments, suspension notices
-(Rate limited to 4 PDF downloads/minute.)
+(PDF downloads rate limited to 4/minute.)
 ```
 
 ## Step 5: Watch for Oppositions

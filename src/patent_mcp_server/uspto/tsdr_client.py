@@ -5,17 +5,21 @@ This module provides access to the official TSDR API for trademark case status,
 prosecution documents, and mark images.
 
 Base URL: https://tsdrapi.uspto.gov/ts/cd
-Authentication: USPTO-API-KEY header (key issued via USPTO.gov account; the ODP
-key is used as a fallback — see config.TSDR_API_KEY).
+Authentication: USPTO-API-KEY header. IMPORTANT: TSDR issues its OWN API key
+(https://account.uspto.gov/profile/api-manager, "TSDR API" product). The ODP
+key passes the gateway's auth check but the backend returns 404 for every
+request ("BACKEND RESPONSE STATUS: 404") — if you see that, you need a TSDR
+key, not an ODP key.
 
-Rate limits (per API key, enforced by USPTO):
-  - 60 requests/minute for general (JSON/XML) requests
-  - 4 requests/minute for PDF/ZIP document bundle downloads
+Rate limits (per API key, enforced by USPTO), peak hours 5am-10pm ET:
+  - 60 requests/minute for general (JSON/XML) requests (120/min off-peak)
+  - 4 requests/minute for PDF/ZIP document bundle downloads (12/min off-peak)
 """
 
 import asyncio
 import base64
-from typing import Any, Optional, Dict, Union
+import xml.etree.ElementTree as ET
+from typing import Any, Optional, Dict, List, Union
 import httpx
 import logging
 from tenacity import (
@@ -28,10 +32,13 @@ from tenacity import (
 from patent_mcp_server.util.logging import LoggingTransport
 from patent_mcp_server.util.errors import ApiError
 from patent_mcp_server.config import config
-from patent_mcp_server.constants import Defaults
+from patent_mcp_server.constants import Defaults, TrademarkDefaults
 
 # Set up logging
 logger = logging.getLogger('tsdr_client')
+
+# Namespace of the TSDR document-list XML (verified live 2026-06-10)
+DOCUMENT_LIST_NS = "urn:us:gov:doc:uspto:trademark"
 
 
 class TSDRClient:
@@ -79,18 +86,28 @@ class TSDRClient:
         retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
         reraise=True
     )
-    async def _get(self, url: str) -> Union[httpx.Response, Dict[str, Any]]:
+    async def _get(
+        self,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> Union[httpx.Response, Dict[str, Any]]:
         """Perform a GET with retry and 429 (rate limit) handling.
 
         TSDR enforces 60 req/min generally and 4 req/min for PDF/ZIP, so the
         429 path here will fire under normal document-heavy usage.
+
+        Args:
+            url: Request URL
+            headers: Optional extra headers (merged over the client defaults)
 
         Returns:
             httpx.Response on success/HTTP error, or an ApiError dict on
             unexpected failure.
         """
         try:
-            response = await self.client.get(url, timeout=config.REQUEST_TIMEOUT)
+            response = await self.client.get(
+                url, headers=headers, timeout=config.REQUEST_TIMEOUT
+            )
 
             if response.status_code == 429:
                 wait_time = int(
@@ -101,7 +118,9 @@ class TSDRClient:
                 ) + 1
                 logger.info(f"TSDR rate limited, waiting {wait_time} seconds")
                 await asyncio.sleep(wait_time)
-                response = await self.client.get(url, timeout=config.REQUEST_TIMEOUT)
+                response = await self.client.get(
+                    url, headers=headers, timeout=config.REQUEST_TIMEOUT
+                )
 
             return response
 
@@ -112,8 +131,31 @@ class TSDRClient:
             logger.error(f"Request error: {str(e)}")
             return ApiError.from_exception(e, f"Request to {url} failed")
 
+    @staticmethod
+    def _auth_hint(status_code: int, response_text: str) -> Optional[str]:
+        """Map TSDR auth failures to an actionable hint, or None."""
+        if status_code == 401:
+            return (
+                "TSDR requires an API key in the USPTO-API-KEY header. Request "
+                "one at https://account.uspto.gov/profile/api-manager (select "
+                "the 'TSDR API' product) and set TSDR_API_KEY."
+            )
+        if status_code == 404 and "BACKEND RESPONSE STATUS" in (response_text or ""):
+            return (
+                "TSDR accepted the API key at its gateway but the backend "
+                "returned 404 for the request. This is the signature of using "
+                "an ODP API key — TSDR issues its own key. Request a TSDR key "
+                "at https://account.uspto.gov/profile/api-manager (select the "
+                "'TSDR API' product) and set TSDR_API_KEY. If you already use "
+                "a TSDR key, the case may not exist."
+            )
+        return None
+
     async def _make_json_request(self, url: str) -> Dict[str, Any]:
         """Make a GET request expecting a JSON response.
+
+        TSDR's /info endpoints return XML by default and JSON via content
+        negotiation, so the Accept header is set explicitly.
 
         Args:
             url: Request URL
@@ -123,23 +165,27 @@ class TSDRClient:
         """
         logger.info(f"Making TSDR JSON request to {url}")
 
-        response = await self._get(url)
+        response = await self._get(url, headers={"Accept": "application/json"})
         if isinstance(response, dict):
             return response  # Already an error dict
 
         if response.status_code != 200:
             try:
                 error_json = response.json()
-                return ApiError.from_http_error(
+                error = ApiError.from_http_error(
                     status_code=response.status_code,
                     response_text=response.text,
                     response_json=error_json
                 )
             except Exception:
-                return ApiError.from_http_error(
+                error = ApiError.from_http_error(
                     status_code=response.status_code,
                     response_text=response.text
                 )
+            hint = self._auth_hint(response.status_code, response.text)
+            if hint:
+                error["hint"] = hint
+            return error
 
         try:
             return response.json()
@@ -165,12 +211,30 @@ class TSDRClient:
             return response  # Already an error dict
 
         if response.status_code != 200:
-            return ApiError.from_http_error(
+            error = ApiError.from_http_error(
                 status_code=response.status_code,
                 response_text=response.text
             )
+            hint = self._auth_hint(response.status_code, response.text)
+            if hint:
+                error["hint"] = hint
+            return error
 
         content = response.content
+        if len(content) > TrademarkDefaults.MAX_BINARY_BYTES:
+            # Full file wrappers run to tens of MB; base64 of that would
+            # overwhelm the MCP response (and any LLM context window)
+            return ApiError.create(
+                message=(
+                    f"Document bundle is {len(content):,} bytes, above the "
+                    f"{TrademarkDefaults.MAX_BINARY_BYTES:,}-byte response "
+                    "limit. Narrow the request with document_type and/or "
+                    "date_from/date_to — use tsdr_list_trademark_documents "
+                    "first to see what exists and pick a filter."
+                ),
+                status_code=413,
+                error_code="RESPONSE_TOO_LARGE",
+            )
         b64_content = base64.b64encode(content).decode('utf-8')
 
         return {
@@ -195,9 +259,10 @@ class TSDRClient:
                 "Provide exactly one of serial_number or registration_number",
                 "serial_number"
             )
+        # /info returns XML by default; JSON comes via the Accept header
         if serial_number:
-            return f"{config.TSDR_BASE_URL}/casestatus/sn{serial_number}/info.json"
-        return f"{config.TSDR_BASE_URL}/casestatus/rn{registration_number}/info.json"
+            return f"{config.TSDR_BASE_URL}/casestatus/sn{serial_number}/info"
+        return f"{config.TSDR_BASE_URL}/casestatus/rn{registration_number}/info"
 
     async def get_case_status(
         self,
@@ -217,6 +282,73 @@ class TSDRClient:
         if isinstance(url, dict):
             return url
         return await self._make_json_request(url)
+
+    @staticmethod
+    def _parse_document_list_xml(xml_text: str) -> Dict[str, Any]:
+        """Parse the TSDR document-list XML into a list of dicts.
+
+        The /casedocs/{caseid}/info endpoint serves XML only (it answers
+        406 to Accept: application/json — verified live 2026-06-10). The
+        response is a flat <DocumentList><Document>...</Document>... tree
+        in the urn:us:gov:doc:uspto:trademark namespace; each Document's
+        child elements become dict keys (PageMediaTypeList collapses to a
+        list of media type names).
+
+        Args:
+            xml_text: Raw XML response body
+
+        Returns:
+            {"results": [...], "total": N} or error dictionary
+        """
+        try:
+            root = ET.fromstring(xml_text)
+        except ET.ParseError as e:
+            return ApiError.from_exception(e, "Failed to parse TSDR document list XML")
+
+        ns = {"tm": DOCUMENT_LIST_NS}
+        results: List[Dict[str, Any]] = []
+        for doc in root.findall("tm:Document", ns):
+            record: Dict[str, Any] = {}
+            for child in doc:
+                tag = child.tag.split("}", 1)[-1]  # strip namespace
+                if tag == "PageMediaTypeList":
+                    record[tag] = [el.text for el in child]
+                else:
+                    record[tag] = child.text
+            results.append(record)
+
+        return {"results": results, "total": len(results)}
+
+    async def list_case_documents(self, serial_number: str) -> Dict[str, Any]:
+        """List prosecution document metadata for a trademark case.
+
+        Returns document descriptions, types, and dates WITHOUT downloading
+        content, so it is not subject to the 4 req/min PDF rate limit. Use
+        this to find what exists before downloading a filtered bundle.
+
+        Args:
+            serial_number: 8-digit application serial number
+
+        Returns:
+            {"results": [...], "total": N} or error dictionary
+        """
+        url = f"{config.TSDR_BASE_URL}/casedocs/sn{serial_number}/info"
+
+        response = await self._get(url)
+        if isinstance(response, dict):
+            return response  # Already an error dict
+
+        if response.status_code != 200:
+            error = ApiError.from_http_error(
+                status_code=response.status_code,
+                response_text=response.text
+            )
+            hint = self._auth_hint(response.status_code, response.text)
+            if hint:
+                error["hint"] = hint
+            return error
+
+        return self._parse_document_list_xml(response.text)
 
     async def download_case_documents(
         self,

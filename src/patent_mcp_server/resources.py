@@ -472,15 +472,17 @@ DATA_SOURCES = {
         "description": (
             "Official API for live trademark case status, prosecution "
             "documents, and mark images, keyed by serial or registration "
-            "number. Requires an API key sent as the USPTO-API-KEY header "
-            "(TSDR_API_KEY env var, falls back to USPTO_API_KEY)."
+            "number. Requires a TSDR-specific API key sent as the "
+            "USPTO-API-KEY header (TSDR_API_KEY env var). The ODP key does "
+            "NOT work — request a TSDR key at "
+            "account.uspto.gov/profile/api-manager ('TSDR API' product)."
         ),
         "coverage": {
             "status": "Live status for all US trademark applications and registrations",
-            "documents": "Prosecution history document bundles (PDF)",
+            "documents": "Prosecution document metadata and PDF bundles",
             "images": "Mark drawings/images",
         },
-        "rate_limits": "60 requests/min general; 4 requests/min for PDF/ZIP downloads (per API key)",
+        "rate_limits": "Peak (5am-10pm ET): 60 requests/min general, 4 requests/min PDF/ZIP; off-peak: 120/12 (per API key)",
         "auth_required": True,
         "best_for": [
             "Authoritative live status of a specific trademark",
@@ -496,38 +498,43 @@ DATA_SOURCES = {
             "Full-text trademark search via the undocumented internal API "
             "behind the USPTO trademark search web app (the TESS "
             "replacement). Same risk profile as PPUBS: not an official "
-            "public API and may change without notice. USPTO offers no "
-            "official REST API for full-text trademark search."
+            "public API and may change without notice (contract verified "
+            "live 2026-06-10). Sits behind AWS WAF — if requests start "
+            "failing with 403/202, set TMSEARCH_WAF_TOKEN from a browser "
+            "session cookie. USPTO offers no official REST API for "
+            "full-text trademark search."
         ),
         "coverage": {
-            "trademarks": "US federal trademark applications and registrations, searchable by mark text, owner, and class",
+            "trademarks": "US federal trademark applications and registrations, searchable by mark text, owner, goods/services, and class",
         },
         "rate_limits": "Undocumented, but throttled for heavy usage",
         "auth_required": False,
         "best_for": [
             "Clearance/knockout searches for a proposed mark",
-            "Finding marks by owner name",
+            "Finding marks by owner name or goods/services wording",
             "Filtering by Nice international class and live/dead status",
         ],
     },
     "tm_assignments": {
-        "name": "USPTO Trademark Assignment Search",
-        "base_url": "https://api.uspto.gov (legacy fallback: https://assignment-api.uspto.gov)",
+        "name": "USPTO Trademark Assignment Search (Assignment Center)",
+        "base_url": "https://assignmentcenter.uspto.gov",
         "description": (
             "Recorded trademark assignment (ownership transfer) records, "
-            "1955-present. The legacy assignment-api.uspto.gov service was "
-            "migrated to the Open Data Portal around April 2026; the client "
-            "tries ODP first and falls back to the legacy XML API."
+            "1955-present, via the USPTO Assignment Center public API "
+            "(verified live 2026-06-10; no API key required). Replaced the "
+            "legacy assignment-api.uspto.gov XML API, decommissioned with "
+            "the Developer Hub on June 5, 2026."
         ),
         "coverage": {
             "assignments": "Recorded trademark assignments from 1955 to present",
         },
-        "rate_limits": "Standard ODP rate limits on the ODP backend",
-        "auth_required": True,
+        "rate_limits": "Not published",
+        "auth_required": False,
         "best_for": [
             "Tracing trademark ownership history",
             "Finding marks assigned to or from a company",
             "Due diligence on trademark transfers",
+            "Looking up a recordation by reel/frame",
         ],
     },
     "ttab": {

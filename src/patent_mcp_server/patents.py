@@ -9,7 +9,7 @@ with multiple USPTO patent and trademark data APIs:
 3. PTAB API v3 - Patent Trial and Appeal Board proceedings and decisions
 4. tsdrapi.uspto.gov - Trademark status, prosecution documents, and mark images (TSDR)
 5. tmsearch.uspto.gov - Full-text trademark search (internal API, TESS replacement)
-6. Trademark Assignment Search - ownership transfer records (ODP with legacy fallback)
+6. assignmentcenter.uspto.gov - Trademark assignment (ownership transfer) records
 7. PatentsView API - UNAVAILABLE (shut down March 2026; data migrated to ODP bulk datasets)
 8. Office Action APIs - UNAVAILABLE (decommissioned early 2026, pending ODP migration)
 
@@ -456,9 +456,11 @@ async def check_api_status() -> Dict[str, Any]:
             "api_key_set": bool(config.TSDR_API_KEY),
             "note": (
                 "Official trademark status/document API at tsdrapi.uspto.gov. "
-                "Requires an API key sent as the USPTO-API-KEY header "
-                "(TSDR_API_KEY env var, falls back to USPTO_API_KEY). Rate "
-                "limits: 60 req/min general, 4 req/min for PDF downloads."
+                "Requires a TSDR-specific API key sent as the USPTO-API-KEY "
+                "header (TSDR_API_KEY env var). NOTE: the ODP key does NOT "
+                "work — it passes the gateway but every request 404s. Request "
+                "a TSDR key at account.uspto.gov/profile/api-manager. Rate "
+                "limits (peak): 60 req/min general, 4 req/min PDF downloads."
             ),
         },
         "tmsearch": {
@@ -468,18 +470,21 @@ async def check_api_status() -> Dict[str, Any]:
             "note": (
                 "Undocumented internal API behind the USPTO trademark search "
                 "web app (TESS replacement) — same risk profile as PPUBS; "
-                "may change without notice. USPTO offers no official REST "
-                "API for full-text trademark search."
+                "may change without notice. Contract verified live 2026-06-10. "
+                "Sits behind AWS WAF: if requests start failing with 403/202, "
+                "set TMSEARCH_WAF_TOKEN from a browser session cookie. USPTO "
+                "offers no official REST API for full-text trademark search."
             ),
         },
         "tm_assignments": {
-            "name": "Trademark Assignment Search",
-            "configured": bool(config.USPTO_API_KEY),
-            "api_key_set": bool(config.USPTO_API_KEY),
+            "name": "Trademark Assignment Search (Assignment Center)",
+            "configured": True,
+            "requires_auth": False,
             "note": (
-                "Tries the ODP endpoint (api.uspto.gov) first, falls back to "
-                "the legacy XML API at assignment-api.uspto.gov. Search "
-                "results report which backend answered."
+                "USPTO Assignment Center public API at "
+                "assignmentcenter.uspto.gov — no API key required. Verified "
+                "live 2026-06-10. Replaced the legacy assignment-api.uspto.gov "
+                "XML API, which was decommissioned June 5, 2026."
             ),
         },
         "ttab": {
@@ -1298,6 +1303,41 @@ async def tsdr_get_trademark_status(
 
 
 @mcp.tool()
+async def tsdr_list_trademark_documents(serial_number: str) -> Dict[str, Any]:
+    """List prosecution document metadata for a trademark (no downloads).
+
+    USE THIS TOOL WHEN: You want to see what file-wrapper documents exist
+    for a trademark application (office actions, responses, specimens,
+    registration certificates) before downloading anything. Unlike
+    tsdr_download_trademark_documents, this returns metadata only and is
+    NOT subject to the 4 req/min PDF rate limit. Use the DocumentTypeCode
+    values it returns (e.g. "OOA", "SPE") as the document_type filter when
+    downloading.
+
+    Args:
+        serial_number: 8-digit application serial number (e.g., "78787878")
+
+    Returns:
+        Document metadata records (type, description, dates).
+    """
+    try:
+        serial_number = validate_serial_number(str(serial_number))
+    except ValueError as e:
+        return ApiError.validation_error(str(e), "serial_number")
+
+    result = await tsdr_client.list_case_documents(serial_number)
+
+    if is_error(result):
+        return result
+
+    return check_and_truncate(ResponseEnvelope.success(
+        results=result.get("results", []),
+        source="tsdr",
+        total=result.get("total"),
+    ))
+
+
+@mcp.tool()
 async def tsdr_download_trademark_documents(
     serial_number: str,
     document_type: Optional[str] = None,
@@ -1309,8 +1349,10 @@ async def tsdr_download_trademark_documents(
     USE THIS TOOL WHEN: You need office actions, responses, specimens, or
     other file-wrapper documents for a trademark application.
 
-    NOTE: TSDR limits PDF downloads to 4 requests per minute per API key.
-    Filter by document_type and date range to keep bundles small.
+    NOTE: TSDR limits PDF downloads to 4 requests per minute per API key,
+    and unfiltered full wrappers can exceed 10 MB (rejected with
+    RESPONSE_TOO_LARGE above 4 MB). Call tsdr_list_trademark_documents
+    first, then filter by document_type and/or date range.
 
     Args:
         serial_number: 8-digit application serial number (e.g., "78787878")
@@ -1365,6 +1407,8 @@ async def tm_search_trademarks(
     query: Optional[str] = None,
     mark_text: Optional[str] = None,
     owner_name: Optional[str] = None,
+    goods_services: Optional[str] = None,
+    registration_number: Optional[str] = None,
     international_class: Optional[str] = None,
     status_filter: Optional[str] = None,
     offset: int = 0,
@@ -1372,9 +1416,10 @@ async def tm_search_trademarks(
 ) -> Dict[str, Any]:
     """Search US federal trademark applications and registrations.
 
-    USE THIS TOOL WHEN: You need to find trademarks by mark text, owner, or
-    Nice/international class — e.g. clearance/knockout searches for a
-    proposed mark, or mapping a company's trademark portfolio.
+    USE THIS TOOL WHEN: You need to find trademarks by mark text, owner,
+    goods/services description, or Nice/international class — e.g.
+    clearance/knockout searches for a proposed mark, or mapping a company's
+    trademark portfolio.
 
     NOTE: Backed by the undocumented internal API behind tmsearch.uspto.gov
     (the TESS replacement) — same risk profile as PPUBS; may break without
@@ -1385,6 +1430,9 @@ async def tm_search_trademarks(
         query: Raw query string for advanced searches
         mark_text: Word mark text to search (e.g., "ACME")
         owner_name: Owner/applicant name to search
+        goods_services: Goods/services description terms (e.g., "athletic
+            footwear") — useful for clearance searches across wording
+        registration_number: Exact registration number to look up
         international_class: Nice class number 1-45 (e.g., "9" for software;
             use get_trademark_class_info to look up classes)
         status_filter: "live" (active marks), "dead" (abandoned/cancelled/
@@ -1395,19 +1443,29 @@ async def tm_search_trademarks(
     Returns:
         Normalized response with matching trademark records.
     """
-    if not any([query, mark_text, owner_name, international_class]):
+    if not any([query, mark_text, owner_name, goods_services,
+                registration_number, international_class]):
         return ApiError.create(
             message=(
                 "At least one search filter is required. Provide query, "
-                "mark_text, owner_name, or international_class."
+                "mark_text, owner_name, goods_services, registration_number, "
+                "or international_class."
             ),
             error_code="MISSING_FILTER",
         )
+
+    if registration_number:
+        try:
+            registration_number = validate_registration_number(str(registration_number))
+        except ValueError as e:
+            return ApiError.validation_error(str(e), "registration_number")
 
     result = await tmsearch_client.search(
         query=query,
         mark_text=mark_text,
         owner_name=owner_name,
+        goods_services=goods_services,
+        registration_number=registration_number,
         international_class=international_class,
         status_filter=status_filter,
         offset=offset,
@@ -1460,6 +1518,7 @@ async def tm_search_assignments(
     registration_number: Optional[str] = None,
     assignee_name: Optional[str] = None,
     assignor_name: Optional[str] = None,
+    reel_frame: Optional[str] = None,
     offset: int = 0,
     limit: int = 25,
 ) -> Dict[str, Any]:
@@ -1467,21 +1526,23 @@ async def tm_search_assignments(
 
     USE THIS TOOL WHEN: You need to trace ownership history of a trademark,
     find the current owner, or find marks transferred to/from a company.
-    Covers recorded assignments from 1955 to present.
+    Covers recorded assignments from 1955 to present, via the USPTO
+    Assignment Center public API (no API key required).
 
-    At least one filter is required.
+    At least one filter is required; multiple filters combine (AND).
 
     Args:
         serial_number: Trademark application serial number
         registration_number: Trademark registration number
         assignee_name: Assignee (new owner) name
         assignor_name: Assignor (previous owner) name
+        reel_frame: Recordation reel/frame identifier (e.g., "9006/0093")
         offset: Starting position for pagination (default: 0)
         limit: Maximum results to return (default: 25)
 
     Returns:
-        Normalized response with assignment records. The metadata reports
-        which backend answered ("odp" or "legacy").
+        Normalized response with assignment records (reel/frame, assignors,
+        assignees, conveyance, and affected properties).
     """
     if serial_number:
         try:
@@ -1499,6 +1560,7 @@ async def tm_search_assignments(
         registration_number=registration_number,
         assignee_name=assignee_name,
         assignor_name=assignor_name,
+        reel_frame=reel_frame,
         offset=offset,
         limit=limit,
     )

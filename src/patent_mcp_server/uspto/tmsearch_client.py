@@ -7,17 +7,18 @@ replacement at https://tmsearch.uspto.gov). This is the same risk profile as
 the PPUBS internal API used by ppubs_uspto_gov.py: it is not an official
 public API and may change or break without notice.
 
-CONTRACT STATUS (2026-06-10): BEST-EFFORT — NOT verified against the live
-service (this environment has no network access to uspto.gov hosts). The
-request body is an Elasticsearch-style query POSTed to SEARCH_PATH, based on
-public observations of the web app's network calls. Before relying on this
-client, confirm the request/response shape via browser dev tools on
-tmsearch.uspto.gov and adjust ONLY these three seams:
+CONTRACT STATUS (2026-06-10): VERIFIED LIVE. POST {TMSEARCH_BASE_URL}
+/prod-stage-v1-0-0/tmsearch with an Elasticsearch-style query body returns
+JSON. Response envelope (non-standard ES): {"took": N, "hits": {"totalValue":
+N, "hits": [{"id": "<serial>", "source": {...}}]}}. If the shape drifts
+again, the seams to fix are:
   - SEARCH_PATH (module constant below)
   - constants.TmSearchFields (index field names)
   - TmSearchClient.build_search_body / parse_search_response
 
-No API key is required.
+No API key is required. The service sits behind AWS WAF, which currently
+answers plain requests; if USPTO tightens it (403/202 challenge responses),
+set TMSEARCH_WAF_TOKEN to a browser session's "aws-waf-token" cookie value.
 """
 
 from typing import Any, Optional, Dict
@@ -39,8 +40,8 @@ from patent_mcp_server.constants import TmSearchFields, TrademarkDefaults
 logger = logging.getLogger('tmsearch_client')
 
 # POST target for the internal search API, relative to config.TMSEARCH_BASE_URL.
-# Single place to fix if the web app's endpoint moves.
-SEARCH_PATH = "/api-v1-0-0/tmsearch"
+# Single place to fix if the web app's endpoint moves. Verified live 2026-06-10.
+SEARCH_PATH = "/prod-stage-v1-0-0/tmsearch"
 
 
 class TmSearchClient:
@@ -56,11 +57,16 @@ class TmSearchClient:
     def __init__(self):
         self.headers = {
             "User-Agent": config.USER_AGENT,
-            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "application/json, text/plain, */*",
             "Origin": config.TMSEARCH_BASE_URL,
-            "Referer": f"{config.TMSEARCH_BASE_URL}/search/search-information",
+            "Referer": f"{config.TMSEARCH_BASE_URL}/",
             "Content-Type": "application/json",
         }
+
+        # AWS WAF token cookie, if the user supplied one (see module docstring)
+        cookies = {}
+        if config.TMSEARCH_WAF_TOKEN:
+            cookies["aws-waf-token"] = config.TMSEARCH_WAF_TOKEN
 
         # Create a custom transport that logs all requests and responses
         transport = httpx.AsyncHTTPTransport()
@@ -68,6 +74,7 @@ class TmSearchClient:
 
         self.client = httpx.AsyncClient(
             headers=self.headers,
+            cookies=cookies,
             http2=True,
             follow_redirects=True,
             transport=logging_transport,
@@ -89,6 +96,7 @@ class TmSearchClient:
         owner_name: Optional[str] = None,
         serial_number: Optional[str] = None,
         registration_number: Optional[str] = None,
+        goods_services: Optional[str] = None,
         international_class: Optional[str] = None,
         status_filter: Optional[str] = None,
         offset: int = 0,
@@ -96,9 +104,8 @@ class TmSearchClient:
     ) -> Dict[str, Any]:
         """Construct the Elasticsearch-style request body.
 
-        BEST-EFFORT SHAPE — confirm against live tmsearch.uspto.gov network
-        calls before release (see module docstring). Pure function; fully
-        unit-testable offline.
+        Shape verified live 2026-06-10 (see module docstring). Pure function;
+        fully unit-testable offline.
 
         Args:
             query: Raw query string (Elasticsearch query_string syntax)
@@ -106,7 +113,9 @@ class TmSearchClient:
             owner_name: Owner name to match
             serial_number: Exact serial number
             registration_number: Exact registration number
-            international_class: Nice international class number (e.g. "9")
+            goods_services: Goods/services description terms to match
+            international_class: Nice international class number (e.g. "9");
+                zero-padded to 3 digits because the index stores "IC 009"
             status_filter: "live", "dead", or None for both
             offset: Pagination offset
             limit: Maximum results
@@ -132,9 +141,15 @@ class TmSearchClient:
             must.append({"term": {TmSearchFields.SERIAL_NUMBER: serial_number}})
         if registration_number:
             must.append({"term": {TmSearchFields.REGISTRATION_NUMBER: registration_number}})
+        if goods_services:
+            must.append({"match": {TmSearchFields.GOODS_AND_SERVICES: goods_services}})
 
         if international_class:
-            filters.append({"term": {TmSearchFields.INTERNATIONAL_CLASS: international_class}})
+            # Index values look like "IC 025"; the term must be zero-padded
+            class_term = str(international_class).strip()
+            if class_term.isdigit():
+                class_term = class_term.zfill(3)
+            filters.append({"term": {TmSearchFields.INTERNATIONAL_CLASS: class_term}})
         if status_filter:
             status = status_filter.strip().lower()
             if status == "live":
@@ -159,10 +174,12 @@ class TmSearchClient:
 
     @staticmethod
     def parse_search_response(raw: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract results and total from the Elasticsearch-style envelope.
+        """Extract results and total from the search response envelope.
 
-        Handles both ES7-style {"hits": {"total": {"value": N}, "hits": [...]}}
-        and older {"hits": {"total": N, "hits": [...]}} envelopes.
+        The live service (verified 2026-06-10) returns a non-standard
+        Elasticsearch envelope: {"hits": {"totalValue": N, "hits": [{"id":
+        "<serial>", "source": {...}}]}}. Standard ES envelopes
+        ({"total": {"value": N}}, "_source") are handled as fallbacks.
 
         Args:
             raw: Raw JSON response from the search endpoint
@@ -177,10 +194,17 @@ class TmSearchClient:
         hits = hits_obj.get("hits", [])
         results = []
         for hit in hits:
-            if isinstance(hit, dict):
-                results.append(hit.get("_source", hit))
+            if not isinstance(hit, dict):
+                continue
+            record = hit.get("source") or hit.get("_source") or hit
+            # The serial number lives in the hit id; make sure it's on the record
+            if isinstance(record, dict) and not record.get("id") and hit.get("id"):
+                record = {**record, "id": hit["id"]}
+            results.append(record)
 
-        total = hits_obj.get("total", len(results))
+        total = hits_obj.get("totalValue")
+        if total is None:
+            total = hits_obj.get("total", len(results))
         if isinstance(total, dict):
             total = total.get("value", len(results))
 
@@ -214,8 +238,39 @@ class TmSearchClient:
                 json=body,
                 timeout=config.REQUEST_TIMEOUT
             )
+
+            # AWS WAF rejections surface as 403 (blocked) or 202 (challenge)
+            if response.status_code in (202, 403):
+                logger.error(f"AWS WAF rejection: {response.status_code}")
+                error = ApiError.from_http_error(
+                    status_code=response.status_code,
+                    response_text=response.text[:500]
+                )
+                error["hint"] = (
+                    "tmsearch.uspto.gov rejected the request at its AWS WAF "
+                    "layer. Open https://tmsearch.uspto.gov in a browser, copy "
+                    "the 'aws-waf-token' cookie value, and set the "
+                    "TMSEARCH_WAF_TOKEN environment variable (token lasts ~4 "
+                    "days). For authoritative status of a known mark, "
+                    "tsdr_get_trademark_status does not use this service."
+                )
+                return error
+
             response.raise_for_status()
-            return response.json()
+
+            try:
+                return response.json()
+            except Exception:
+                # A 200 with non-JSON content is also a WAF challenge page
+                return ApiError.create(
+                    message=(
+                        "tmsearch.uspto.gov returned a non-JSON response "
+                        "(likely an AWS WAF challenge page). Set "
+                        "TMSEARCH_WAF_TOKEN from a browser session and retry."
+                    ),
+                    status_code=response.status_code,
+                    error_code="WAF_CHALLENGE",
+                )
 
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -247,6 +302,7 @@ class TmSearchClient:
         owner_name: Optional[str] = None,
         serial_number: Optional[str] = None,
         registration_number: Optional[str] = None,
+        goods_services: Optional[str] = None,
         international_class: Optional[str] = None,
         status_filter: Optional[str] = None,
         offset: int = 0,
@@ -263,6 +319,7 @@ class TmSearchClient:
             owner_name=owner_name,
             serial_number=serial_number,
             registration_number=registration_number,
+            goods_services=goods_services,
             international_class=international_class,
             status_filter=status_filter,
             offset=offset,

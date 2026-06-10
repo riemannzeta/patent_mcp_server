@@ -1,16 +1,16 @@
-"""Unit tests for TmAssignmentClient (ODP-first with legacy XML fallback)."""
+"""Unit tests for TmAssignmentClient (USPTO Assignment Center backend)."""
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 import httpx
 
 from patent_mcp_server.uspto.tm_assignment_client import (
-    TmAssignmentClient, ODP_SEARCH_PATH, LEGACY_SEARCH_PATH
+    TmAssignmentClient, SEARCH_PATH, MAX_ROWS_PER_REQUEST
 )
 from patent_mcp_server.config import config
 
 from test.fixtures.tm_assignment_responses import (
-    MOCK_TM_ASSIGNMENT_ODP_RESPONSE,
-    MOCK_TM_ASSIGNMENT_LEGACY_XML,
+    MOCK_TM_ASSIGNMENT_RESPONSE,
+    MOCK_TM_ASSIGNMENT_EMPTY_RESPONSE,
 )
 
 
@@ -41,11 +41,11 @@ def _mock_response(status_code=200, json_data=None, text=""):
 
 @pytest.mark.unit
 async def test_client_initialization():
-    """Client sends the X-API-KEY header for the ODP backend."""
+    """Assignment Center is a public API — no API key header is sent."""
     client = TmAssignmentClient()
 
-    assert "X-API-KEY" in client.headers
-    assert client._backend is None
+    assert "X-API-KEY" not in client.headers
+    assert client.headers["Content-Type"] == "application/json"
 
     await client.close()
 
@@ -70,115 +70,159 @@ async def test_at_least_one_filter_required(tm_client):
 
 
 # ============================================================================
-# Backend Selection Tests
+# Search Criteria Building Tests (pure function)
 # ============================================================================
 
 @pytest.mark.unit
-async def test_odp_tried_first_and_used_on_success(tm_client):
-    """A working ODP endpoint is used and cached as the backend."""
-    with patch.object(tm_client, "_get", new_callable=AsyncMock) as m:
-        m.return_value = _mock_response(200, json_data=MOCK_TM_ASSIGNMENT_ODP_RESPONSE)
-        result = await tm_client.search_assignments(registration_number="3500027")
+def test_build_search_criteria_single_filter():
+    """A single filter maps to its Assignment Center searchBy name."""
+    criteria = TmAssignmentClient.build_search_criteria(
+        {"assignee_name": "New Owner LLC"}, offset=0, limit=25
+    )
 
-    assert result["backend"] == "odp"
-    assert tm_client._backend == "odp"
-    assert result["total"] == 1
-    assert result["results"][0]["reelNumber"] == "1234"
-
-    called_url = m.call_args[0][0]
-    assert called_url.startswith(f"{config.API_BASE_URL}{ODP_SEARCH_PATH}")
+    assert {"property": "New Owner LLC", "searchBy": "assigneeName"} in criteria
+    assert {"property": "25", "searchBy": "rowsNeeded"} in criteria
+    # No startRow/endRow when offset is 0
+    assert not any(c["searchBy"] in ("startRow", "endRow") for c in criteria)
 
 
 @pytest.mark.unit
-async def test_404_triggers_legacy_fallback(tm_client):
-    """ODP 404 falls back to the legacy XML API."""
-    odp_404 = _mock_response(404, text="Not found")
-    legacy_ok = _mock_response(200, text=MOCK_TM_ASSIGNMENT_LEGACY_XML)
+def test_build_search_criteria_all_filters():
+    """All filters land in the criteria list with correct field names."""
+    criteria = TmAssignmentClient.build_search_criteria(
+        {
+            "serial_number": "78787878",
+            "registration_number": "3500027",
+            "assignee_name": "New Owner LLC",
+            "assignor_name": "Old Owner Corp",
+            "reel_frame": "1234/0567",
+        },
+        offset=0,
+        limit=10,
+    )
 
-    with patch.object(tm_client, "_get", new_callable=AsyncMock) as m:
-        m.side_effect = [odp_404, legacy_ok]
-        result = await tm_client.search_assignments(assignee_name="New Owner LLC")
-
-    assert result["backend"] == "legacy"
-    assert tm_client._backend == "legacy"
-    assert result["total"] == 2
-    assert m.call_count == 2
-
-    legacy_url = m.call_args_list[1][0][0]
-    assert legacy_url.startswith(f"{config.TM_ASSIGNMENT_BASE_URL}{LEGACY_SEARCH_PATH}")
-
-
-@pytest.mark.unit
-async def test_legacy_backend_cached_skips_odp(tm_client):
-    """Once legacy is cached, ODP is not probed again."""
-    tm_client._backend = "legacy"
-
-    with patch.object(tm_client, "_get", new_callable=AsyncMock) as m:
-        m.return_value = _mock_response(200, text=MOCK_TM_ASSIGNMENT_LEGACY_XML)
-        result = await tm_client.search_assignments(assignor_name="Old Owner Corp")
-
-    assert m.call_count == 1
-    assert result["backend"] == "legacy"
-    called_url = m.call_args[0][0]
-    assert called_url.startswith(config.TM_ASSIGNMENT_BASE_URL)
+    search_bys = {c["searchBy"] for c in criteria}
+    assert {"serialNumber", "registrationNumber", "assigneeName",
+            "assignorName", "reelFrame", "rowsNeeded"} <= search_bys
 
 
 @pytest.mark.unit
-async def test_odp_non_404_error_does_not_fall_back(tm_client):
-    """A real ODP error (e.g. 403) is surfaced, not masked by fallback."""
-    with patch.object(tm_client, "_get", new_callable=AsyncMock) as m:
-        m.return_value = _mock_response(403, text="Forbidden")
-        result = await tm_client.search_assignments(registration_number="3500027")
+def test_build_search_criteria_pagination():
+    """Offset converts to 1-based startRow/endRow criteria."""
+    criteria = TmAssignmentClient.build_search_criteria(
+        {"assignee_name": "X"}, offset=50, limit=25
+    )
 
-    assert result["error"] is True
-    assert result["status_code"] == 403
-    assert m.call_count == 1
+    assert {"property": "51", "searchBy": "startRow"} in criteria
+    assert {"property": "75", "searchBy": "endRow"} in criteria
+    assert {"property": "25", "searchBy": "rowsNeeded"} in criteria
+
+
+@pytest.mark.unit
+def test_build_search_criteria_caps_limit():
+    """Limits above the API maximum are capped."""
+    criteria = TmAssignmentClient.build_search_criteria(
+        {"assignee_name": "X"}, offset=0, limit=99999
+    )
+
+    assert {"property": str(MAX_ROWS_PER_REQUEST), "searchBy": "rowsNeeded"} in criteria
 
 
 # ============================================================================
-# Legacy XML Parsing Tests
+# Response Parsing Tests (pure function)
 # ============================================================================
 
 @pytest.mark.unit
-async def test_parse_legacy_xml(tm_client):
-    """Solr-style XML docs are converted into dicts with arrays."""
-    parsed = tm_client._parse_legacy_xml(MOCK_TM_ASSIGNMENT_LEGACY_XML)
+def test_parse_search_response():
+    """The list-wrapped envelope is unwrapped into results/total."""
+    parsed = TmAssignmentClient.parse_search_response(MOCK_TM_ASSIGNMENT_RESPONSE)
 
     assert parsed["total"] == 2
-    first = parsed["results"][0]
-    assert first["reelNo"] == "1234"
-    assert first["assignorName"] == ["Old Owner Corp"]
-    assert first["assigneeName"] == ["New Owner LLC"]
+    assert parsed["results"][0]["reelNumber"] == 1234
+    assert parsed["results"][0]["assignees"] == ["New Owner LLC"]
 
 
 @pytest.mark.unit
-async def test_parse_legacy_xml_invalid(tm_client):
-    """Invalid XML returns an error dict."""
-    parsed = tm_client._parse_legacy_xml("this is not xml <<<")
-    assert parsed["error"] is True
+def test_parse_search_response_empty():
+    """Empty data list parses to zero results."""
+    parsed = TmAssignmentClient.parse_search_response(MOCK_TM_ASSIGNMENT_EMPTY_RESPONSE)
 
-
-@pytest.mark.unit
-async def test_parse_legacy_xml_no_results(tm_client):
-    """XML without a result element returns empty results."""
-    parsed = tm_client._parse_legacy_xml("<response></response>")
     assert parsed == {"results": [], "total": 0}
 
 
+@pytest.mark.unit
+def test_parse_search_response_unexpected_shape():
+    """Garbage input degrades to empty results, not an exception."""
+    assert TmAssignmentClient.parse_search_response(None) == {"results": [], "total": 0}
+    assert TmAssignmentClient.parse_search_response([]) == {"results": [], "total": 0}
+    assert TmAssignmentClient.parse_search_response("nope") == {"results": [], "total": 0}
+
+
 # ============================================================================
-# ODP Query Building Tests
+# Search Flow Tests
 # ============================================================================
 
 @pytest.mark.unit
-async def test_odp_query_clauses(tm_client):
-    """All filters land in the Lucene q= parameter."""
-    with patch.object(tm_client, "_get", new_callable=AsyncMock) as m:
-        m.return_value = _mock_response(200, json_data={"count": 0, "results": []})
+async def test_search_assignments_success(tm_client):
+    """A successful search POSTs to the Assignment Center endpoint."""
+    with patch.object(tm_client, "_post", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(200, json_data=MOCK_TM_ASSIGNMENT_RESPONSE)
+        result = await tm_client.search_assignments(assignee_name="New Owner LLC")
+
+    assert result["backend"] == "assignment-center"
+    assert result["total"] == 2
+    assert result["results"][0]["reelNumber"] == 1234
+
+    called_url = m.call_args[0][0]
+    assert called_url == f"{config.TM_ASSIGNMENT_BASE_URL}{SEARCH_PATH}"
+    body = m.call_args[0][1]
+    assert {"property": "New Owner LLC", "searchBy": "assigneeName"} in body["searchCriteria"]
+
+
+@pytest.mark.unit
+async def test_search_assignments_combined_filters(tm_client):
+    """Multiple filters all appear in the request body (AND semantics)."""
+    with patch.object(tm_client, "_post", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(200, json_data=MOCK_TM_ASSIGNMENT_EMPTY_RESPONSE)
         await tm_client.search_assignments(
             serial_number="78787878",
             assignee_name="New Owner LLC",
         )
 
-    called_url = m.call_args[0][0]
-    assert "applicationNumberText%3A78787878" in called_url
-    assert "assigneeName" in called_url
+    body = m.call_args[0][1]
+    search_bys = {c["searchBy"] for c in body["searchCriteria"]}
+    assert "serialNumber" in search_bys
+    assert "assigneeName" in search_bys
+
+
+@pytest.mark.unit
+async def test_search_assignments_http_error(tm_client):
+    """HTTP errors surface as error dicts."""
+    with patch.object(tm_client, "_post", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(500, text="Server error")
+        result = await tm_client.search_assignments(assignee_name="X")
+
+    assert result["error"] is True
+    assert result["status_code"] == 500
+
+
+@pytest.mark.unit
+async def test_search_assignments_non_json(tm_client):
+    """A non-JSON 200 response surfaces as an error dict."""
+    with patch.object(tm_client, "_post", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(200, json_data=None, text="<html>")
+        result = await tm_client.search_assignments(assignee_name="X")
+
+    assert result["error"] is True
+
+
+@pytest.mark.unit
+async def test_search_assignments_reel_frame(tm_client):
+    """reel_frame is a supported search axis."""
+    with patch.object(tm_client, "_post", new_callable=AsyncMock) as m:
+        m.return_value = _mock_response(200, json_data=MOCK_TM_ASSIGNMENT_RESPONSE)
+        result = await tm_client.search_assignments(reel_frame="1234/0567")
+
+    assert result["total"] == 2
+    body = m.call_args[0][1]
+    assert {"property": "1234/0567", "searchBy": "reelFrame"} in body["searchCriteria"]

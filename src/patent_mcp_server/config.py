@@ -35,9 +35,16 @@ class Config:
     # Trademark APIs (v1.0.0)
     TSDR_BASE_URL: str = os.getenv("TSDR_BASE_URL", "https://tsdrapi.uspto.gov/ts/cd")
     TMSEARCH_BASE_URL: str = os.getenv("TMSEARCH_BASE_URL", "https://tmsearch.uspto.gov")
-    TM_ASSIGNMENT_BASE_URL: str = os.getenv("TM_ASSIGNMENT_BASE_URL", "https://assignment-api.uspto.gov")  # Legacy fallback host
-    # TSDR accepts its own key; defaults to the ODP key (both issued via USPTO accounts)
+    TM_ASSIGNMENT_BASE_URL: str = os.getenv("TM_ASSIGNMENT_BASE_URL", "https://assignmentcenter.uspto.gov")
+    # TSDR requires its OWN key (account.uspto.gov/profile/api-manager, "TSDR API"
+    # product) — the ODP key authenticates at the gateway but the backend 404s.
+    # The ODP fallback is kept for users who store a TSDR key in USPTO_API_KEY.
     TSDR_API_KEY: Optional[str] = os.getenv("TSDR_API_KEY") or os.getenv("USPTO_API_KEY")
+    # Optional AWS WAF token cookie for tmsearch.uspto.gov. The internal search
+    # API currently answers plain requests, but sits behind AWS WAF; if USPTO
+    # tightens it, copy the "aws-waf-token" cookie value from a browser session
+    # on tmsearch.uspto.gov (valid ~4 days) and set it here.
+    TMSEARCH_WAF_TOKEN: Optional[str] = os.getenv("TMSEARCH_WAF_TOKEN")
 
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
@@ -88,12 +95,22 @@ class Config:
                 "unavailable on ODP entirely (see issue #16)."
             )
 
-        if not cls.TSDR_API_KEY:
-            logger.warning(
-                "TSDR_API_KEY not set (and no USPTO_API_KEY fallback). TSDR trademark "
-                "tools (tsdrapi.uspto.gov) will return 401. Request an API key via "
-                "your USPTO.gov account, or set USPTO_API_KEY."
-            )
+        if not os.getenv("TSDR_API_KEY"):
+            if cls.TSDR_API_KEY:
+                logger.warning(
+                    "TSDR_API_KEY not set; falling back to USPTO_API_KEY for TSDR. "
+                    "NOTE: TSDR requires its own key (the ODP key usually does NOT "
+                    "work — requests return 404). Request a TSDR API key at "
+                    "https://account.uspto.gov/profile/api-manager (select the "
+                    "'TSDR API' product) and set TSDR_API_KEY."
+                )
+            else:
+                logger.warning(
+                    "TSDR_API_KEY not set. TSDR trademark tools (tsdrapi.uspto.gov) "
+                    "will return 401. Request a TSDR API key at "
+                    "https://account.uspto.gov/profile/api-manager (select the "
+                    "'TSDR API' product)."
+                )
 
         # PatentsView API was shut down March 20, 2026 - no longer warn about missing key
 
