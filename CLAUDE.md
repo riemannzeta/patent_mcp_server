@@ -4,11 +4,16 @@ This file provides guidance for Claude Code and other AI assistants working on t
 
 ## Project Overview
 
-This is a Model Context Protocol (MCP) server that provides access to USPTO patent data through multiple APIs. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
+This is a Model Context Protocol (MCP) server that provides access to USPTO patent and trademark data through multiple APIs. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
 
-**Current state (v0.9.5):** 52 registered tools, 27 active, 25 unavailable due to API shutdowns:
-- **Active:** PPUBS (5), ODP (12), PTAB (7), Utility (3)
+**Current state (v1.0.0):** 61 registered tools, 36 active, 25 unavailable due to API shutdowns:
+- **Active:** PPUBS (5), ODP (12), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
 - **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16)
+
+**Trademark backend contracts (verified live 2026-06-10):**
+- **tmsearch** (`tmsearch_client.py`): `POST tmsearch.uspto.gov/prod-stage-v1-0-0/tmsearch`, Elasticsearch-style body, non-standard response envelope (`hits.totalValue`, hit `source`/`id`). No key; behind AWS WAF (currently permissive — `TMSEARCH_WAF_TOKEN` supported as escape hatch). Class filters need zero-padded 3-digit terms ("025").
+- **Assignments** (`tm_assignment_client.py`): `POST assignmentcenter.uspto.gov/ipas/search/api/v2/public/trademark/exportTradeMarkData` with `searchCriteria` list; no key. The legacy assignment-api.uspto.gov died with the Developer Hub on June 5, 2026.
+- **TSDR** (`tsdr_client.py`): requires a TSDR-specific key from account.uspto.gov/profile/api-manager — the ODP key passes the gateway but 404s on the backend (`BACKEND RESPONSE STATUS: 404`); the client detects this and explains. Status uses `/info` + `Accept: application/json`; the document list at `/casedocs/{caseid}/info` is XML-ONLY (406 on JSON Accept) and is parsed via `_parse_document_list_xml`. Binary bundles are capped at `TrademarkDefaults.MAX_BINARY_BYTES` (full wrappers can exceed 10 MB) — filter by `document_type`/date. All endpoints verified live 2026-06-10 with a real TSDR key.
 
 ## Critical Rules
 
@@ -18,7 +23,7 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 
 ```bash
 uv run pytest
-# Expected: ~221 passed, ~44 deselected (integration tests skipped by default)
+# Expected: ~359 passed, ~54 deselected (integration tests skipped by default)
 ```
 
 If tests fail, fix them before committing. Do not skip or delete failing tests unless the functionality has been intentionally removed.
@@ -86,6 +91,9 @@ src/patent_mcp_server/
 │   ├── ppubs_uspto_gov.py  # Patent Public Search client
 │   ├── api_uspto_gov.py    # Open Data Portal client
 │   ├── ptab_client.py      # PTAB proceedings client
+│   ├── tsdr_client.py      # TSDR trademark status/documents client (TSDR-specific key)
+│   ├── tmsearch_client.py  # Trademark search client (internal API, like PPUBS)
+│   ├── tm_assignment_client.py  # Trademark assignments (Assignment Center, no key)
 │   ├── office_action_client.py   # Legacy - decommissioned early 2026
 │   ├── enriched_citation_client.py  # Legacy - decommissioned early 2026
 │   └── litigation_client.py
@@ -100,6 +108,8 @@ src/patent_mcp_server/
 - **PPUBS tools**: `ppubs_*` (e.g., `ppubs_search_patents`)
 - **ODP tools**: `odp_*` (e.g., `odp_get_application`)
 - **PTAB tools**: `ptab_*` (e.g., `ptab_search_proceedings`)
+- **TSDR tools**: `tsdr_*` (e.g., `tsdr_get_trademark_status`)
+- **Trademark search/assignment tools**: `tm_*` (e.g., `tm_search_trademarks`)
 - **PatentsView tools**: `patentsview_*` (legacy, all return API_UNAVAILABLE)
 
 ### Parameter Naming
@@ -107,6 +117,7 @@ src/patent_mcp_server/
 - Use `query` not `q` for search queries
 - Use `app_num` for application numbers
 - Use `patent_number` for patent numbers
+- Use `serial_number` and `registration_number` for trademarks (never `sn`/`rn`)
 - Use `offset` and `limit` for pagination
 
 ### Error Handling
@@ -152,7 +163,9 @@ uv sync --dev              # Install dev dependencies
 ## Configuration
 
 Environment variables are loaded from `.env` file:
-- `USPTO_API_KEY` - Required for ODP, PTAB, and Litigation tools
+- `USPTO_API_KEY` - Required for ODP and PTAB tools
+- `TSDR_API_KEY` - Required for TSDR trademark tools (separate key from ODP — see account.uspto.gov/profile/api-manager)
+- `TMSEARCH_WAF_TOKEN` - Optional escape hatch if tmsearch.uspto.gov tightens its AWS WAF
 - `LOG_LEVEL` - Logging verbosity (default: INFO)
 
 See `config.py` for all options.

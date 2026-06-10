@@ -1,18 +1,21 @@
 """
-USPTO Patent Search MCP Server
+USPTO Patent & Trademark Search MCP Server
 
 This file provides a Model Context Protocol (MCP) server that exposes tools for interacting
-with multiple USPTO patent data APIs:
+with multiple USPTO patent and trademark data APIs:
 
 1. ppubs.uspto.gov - Full text patent documents, PDF downloads, and advanced search
 2. api.uspto.gov - Metadata, continuity information, transactions, and assignments
 3. PTAB API v3 - Patent Trial and Appeal Board proceedings and decisions
-4. PatentsView API - UNAVAILABLE (shut down March 2026; data migrated to ODP bulk datasets)
-5. Office Action APIs - UNAVAILABLE (decommissioned early 2026, pending ODP migration)
+4. tsdrapi.uspto.gov - Trademark status, prosecution documents, and mark images (TSDR)
+5. tmsearch.uspto.gov - Full-text trademark search (internal API, TESS replacement)
+6. assignmentcenter.uspto.gov - Trademark assignment (ownership transfer) records
+7. PatentsView API - UNAVAILABLE (shut down March 2026; data migrated to ODP bulk datasets)
+8. Office Action APIs - UNAVAILABLE (decommissioned early 2026, pending ODP migration)
 
 The server uses stdio transport for Claude Code/Cursor integration.
 
-Version: 0.9.5
+Version: 1.0.0
 """
 import atexit
 import json
@@ -28,7 +31,10 @@ from patent_mcp_server.constants import (
     Sources, Fields, Defaults, PatentsViewEndpoints
 )
 from patent_mcp_server.util.errors import ApiError, is_error
-from patent_mcp_server.util.validation import validate_patent_number, validate_app_number
+from patent_mcp_server.util.validation import (
+    validate_patent_number, validate_app_number,
+    validate_serial_number, validate_registration_number
+)
 from patent_mcp_server.util.response import (
     ResponseEnvelope, check_and_truncate, estimate_tokens
 )
@@ -36,18 +42,37 @@ from patent_mcp_server.resources import (
     get_cpc_section_info, get_cpc_subsection_info,
     get_status_code_info, get_all_status_codes,
     get_data_source_info, get_all_data_sources,
-    get_search_syntax_guide, CPC_SECTIONS, DATA_SOURCES
+    get_search_syntax_guide, CPC_SECTIONS, DATA_SOURCES,
+    get_trademark_class_info as resource_trademark_class_info,
+    get_trademark_status_code_info, get_all_trademark_classes,
+    get_all_trademark_status_codes
 )
 from patent_mcp_server.prompts import get_prompt, list_prompts, PROMPTS
 from patent_mcp_server.uspto.ppubs_uspto_gov import PpubsClient
 from patent_mcp_server.uspto.api_uspto_gov import ApiUsptoClient
 from patent_mcp_server.uspto.ptab_client import PTABClient
+from patent_mcp_server.uspto.tsdr_client import TSDRClient
+from patent_mcp_server.uspto.tmsearch_client import TmSearchClient
+from patent_mcp_server.uspto.tm_assignment_client import TmAssignmentClient
 from patent_mcp_server.uspto.office_action_client import OfficeActionClient
 from patent_mcp_server.uspto.enriched_citation_client import EnrichedCitationClient
 from patent_mcp_server.patentsview.patentsview_client import PatentsViewClient
 
 # Initialize FastMCP server
-mcp = FastMCP("uspto_patent_tools")
+mcp = FastMCP(
+    "uspto_patent_tools",
+    instructions=(
+        "Tools for researching US patents AND US federal trademarks. "
+        "Patents: full-text search and PDFs (ppubs_*), file-wrapper "
+        "metadata, assignments and continuity (odp_*), and PTAB "
+        "proceedings (ptab_*). Trademarks: live status, documents, and "
+        "mark images via TSDR (tsdr_*), full-text mark/owner search and "
+        "assignment history (tm_*). Reference lookups: get_cpc_info, "
+        "get_status_code, get_trademark_class_info, "
+        "get_trademark_status_code. Use check_api_status to see which "
+        "sources are configured and available."
+    ),
+)
 
 # Set up logging with configured level
 logging.basicConfig(
@@ -70,6 +95,11 @@ enriched_citation_client = EnrichedCitationClient()
 # Create PatentsView client
 patentsview_client = PatentsViewClient()
 
+# Create trademark clients
+tsdr_client = TSDRClient()
+tmsearch_client = TmSearchClient()
+tm_assignment_client = TmAssignmentClient()
+
 
 # Register cleanup handler
 async def cleanup():
@@ -82,6 +112,9 @@ async def cleanup():
         await office_action_client.close()
         await enriched_citation_client.close()
         await patentsview_client.close()
+        await tsdr_client.close()
+        await tmsearch_client.close()
+        await tm_assignment_client.close()
         logger.info("Cleanup completed successfully")
     except Exception as e:
         logger.error(f"Error during cleanup: {str(e)}")
@@ -182,9 +215,41 @@ async def resource_search_syntax() -> str:
     """Get search query syntax guide for all APIs.
 
     Returns documentation on query syntax for PPUBS, PatentsView,
-    and ODP APIs with examples.
+    ODP, and trademark search APIs with examples.
     """
     return get_search_syntax_guide()
+
+
+@mcp.resource("trademarks://classes")
+async def resource_trademark_classes() -> str:
+    """Get all Nice/international trademark classes.
+
+    Returns all 45 international classes (goods 1-34, services 35-45)
+    with titles and descriptions for trademark classification reference.
+    """
+    return json.dumps(get_all_trademark_classes(), indent=2)
+
+
+@mcp.resource("trademarks://classes/{number}")
+async def resource_trademark_class(number: str) -> str:
+    """Get a specific Nice/international trademark class definition."""
+    return json.dumps(resource_trademark_class_info(number), indent=2)
+
+
+@mcp.resource("trademarks://status-codes")
+async def resource_trademark_status_codes() -> str:
+    """Get USPTO trademark status code definitions.
+
+    Returns commonly encountered trademark status codes with
+    descriptions and prosecution stages.
+    """
+    return json.dumps(get_all_trademark_status_codes(), indent=2)
+
+
+@mcp.resource("trademarks://status-codes/{code}")
+async def resource_trademark_status_code(code: str) -> str:
+    """Get a specific USPTO trademark status code definition."""
+    return json.dumps(get_trademark_status_code_info(code), indent=2)
 
 
 # =====================================================================
@@ -251,6 +316,36 @@ async def patent_landscape() -> str:
     return get_prompt("patent_landscape")["content"]
 
 
+@mcp.prompt()
+async def trademark_clearance_search() -> str:
+    """Guide for trademark clearance (knockout) searching.
+
+    USE THIS PROMPT WHEN: You need to assess whether a proposed mark is
+    available by finding existing federal trademarks that could block it.
+    """
+    return get_prompt("trademark_clearance")["content"]
+
+
+@mcp.prompt()
+async def trademark_portfolio_review() -> str:
+    """Guide for reviewing a trademark portfolio.
+
+    USE THIS PROMPT WHEN: You need to inventory a company's trademarks,
+    check statuses and class coverage, and flag renewal deadlines.
+    """
+    return get_prompt("trademark_portfolio")["content"]
+
+
+@mcp.prompt()
+async def trademark_status_monitoring() -> str:
+    """Guide for monitoring trademark status and conflicts.
+
+    USE THIS PROMPT WHEN: You need to track application/registration status
+    over time or watch for new conflicting filings and oppositions.
+    """
+    return get_prompt("trademark_monitoring")["content"]
+
+
 # =====================================================================
 # Helper Functions
 # =====================================================================
@@ -303,7 +398,7 @@ async def _search_patent_by_number(patent_number: str) -> Dict[str, Any]:
 
 @mcp.tool()
 async def check_api_status() -> Dict[str, Any]:
-    """Check status and availability of all patent data sources.
+    """Check status and availability of all patent and trademark data sources.
 
     USE THIS TOOL WHEN: You encounter errors or want to verify which APIs
     are available and properly configured before starting research.
@@ -353,6 +448,53 @@ async def check_api_status() -> Dict[str, Any]:
                 "Legacy endpoints at developer.uspto.gov were decommissioned "
                 "in early 2026. Migration to ODP (api.uspto.gov) is pending. "
                 "Use odp_get_documents as a workaround."
+            ),
+        },
+        "tsdr": {
+            "name": "Trademark Status and Document Retrieval (TSDR)",
+            "configured": bool(config.TSDR_API_KEY),
+            "api_key_set": bool(config.TSDR_API_KEY),
+            "note": (
+                "Official trademark status/document API at tsdrapi.uspto.gov. "
+                "Requires a TSDR-specific API key sent as the USPTO-API-KEY "
+                "header (TSDR_API_KEY env var). NOTE: the ODP key does NOT "
+                "work — it passes the gateway but every request 404s. Request "
+                "a TSDR key at account.uspto.gov/profile/api-manager. Rate "
+                "limits (peak): 60 req/min general, 4 req/min PDF downloads."
+            ),
+        },
+        "tmsearch": {
+            "name": "Trademark Search (tmsearch.uspto.gov)",
+            "configured": True,
+            "requires_auth": False,
+            "note": (
+                "Undocumented internal API behind the USPTO trademark search "
+                "web app (TESS replacement) — same risk profile as PPUBS; "
+                "may change without notice. Contract verified live 2026-06-10. "
+                "Sits behind AWS WAF: if requests start failing with 403/202, "
+                "set TMSEARCH_WAF_TOKEN from a browser session cookie. USPTO "
+                "offers no official REST API for full-text trademark search."
+            ),
+        },
+        "tm_assignments": {
+            "name": "Trademark Assignment Search (Assignment Center)",
+            "configured": True,
+            "requires_auth": False,
+            "note": (
+                "USPTO Assignment Center public API at "
+                "assignmentcenter.uspto.gov — no API key required. Verified "
+                "live 2026-06-10. Replaced the legacy assignment-api.uspto.gov "
+                "XML API, which was decommissioned June 5, 2026."
+            ),
+        },
+        "ttab": {
+            "name": "Trademark Trial and Appeal Board (TTAB)",
+            "configured": False,
+            "status": "NOT_AVAILABLE_AS_API",
+            "note": (
+                "TTAB proceedings have no public REST API. Daily TTAB XML "
+                "data is published as bulk datasets on the Open Data Portal "
+                "— use odp_search_datasets to find them."
             ),
         },
         "litigation": {
@@ -587,7 +729,12 @@ async def ppubs_download_patent_pdf(patent_number: str) -> Dict[str, Any]:
         return search_result
 
     patent = search_result["patent"]
-    return await ppubs_client.download_image(patent[Fields.GUID], patent[Fields.TYPE])
+    return await ppubs_client.download_image(
+        patent[Fields.GUID],
+        patent[Fields.IMAGE_LOCATION],
+        patent[Fields.PAGE_COUNT],
+        patent[Fields.TYPE],
+    )
 
 
 # =====================================================================
@@ -1106,6 +1253,359 @@ async def ptab_get_appeal(appeal_number: str) -> Dict[str, Any]:
     if is_error(result):
         return result
     return check_and_truncate(ResponseEnvelope.from_ptab(result))
+
+
+# =====================================================================
+# TSDR Tools - Trademark Status and Document Retrieval
+# =====================================================================
+
+@mcp.tool()
+async def tsdr_get_trademark_status(
+    serial_number: Optional[str] = None,
+    registration_number: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Get current status of a trademark application or registration from TSDR.
+
+    USE THIS TOOL WHEN: You have a trademark serial number or registration
+    number and need its authoritative live status, mark text, owner,
+    international classes, filing/registration dates, or prosecution stage.
+    TSDR is the official USPTO status source (requires API key).
+
+    Exactly one of serial_number or registration_number is required.
+
+    Args:
+        serial_number: 8-digit application serial number (e.g., "78787878")
+        registration_number: Registration number (e.g., "3500027")
+
+    Returns:
+        Normalized response with the trademark status record.
+    """
+    if serial_number:
+        try:
+            serial_number = validate_serial_number(str(serial_number))
+        except ValueError as e:
+            return ApiError.validation_error(str(e), "serial_number")
+    if registration_number:
+        try:
+            registration_number = validate_registration_number(str(registration_number))
+        except ValueError as e:
+            return ApiError.validation_error(str(e), "registration_number")
+
+    result = await tsdr_client.get_case_status(
+        serial_number=serial_number,
+        registration_number=registration_number,
+    )
+
+    if is_error(result):
+        return result
+
+    return check_and_truncate(ResponseEnvelope.from_tsdr(result))
+
+
+@mcp.tool()
+async def tsdr_list_trademark_documents(serial_number: str) -> Dict[str, Any]:
+    """List prosecution document metadata for a trademark (no downloads).
+
+    USE THIS TOOL WHEN: You want to see what file-wrapper documents exist
+    for a trademark application (office actions, responses, specimens,
+    registration certificates) before downloading anything. Unlike
+    tsdr_download_trademark_documents, this returns metadata only and is
+    NOT subject to the 4 req/min PDF rate limit. Use the DocumentTypeCode
+    values it returns (e.g. "OOA", "SPE") as the document_type filter when
+    downloading.
+
+    Args:
+        serial_number: 8-digit application serial number (e.g., "78787878")
+
+    Returns:
+        Document metadata records (type, description, dates).
+    """
+    try:
+        serial_number = validate_serial_number(str(serial_number))
+    except ValueError as e:
+        return ApiError.validation_error(str(e), "serial_number")
+
+    result = await tsdr_client.list_case_documents(serial_number)
+
+    if is_error(result):
+        return result
+
+    return check_and_truncate(ResponseEnvelope.success(
+        results=result.get("results", []),
+        source="tsdr",
+        total=result.get("total"),
+    ))
+
+
+@mcp.tool()
+async def tsdr_download_trademark_documents(
+    serial_number: str,
+    document_type: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Download the prosecution document bundle for a trademark as PDF (base64).
+
+    USE THIS TOOL WHEN: You need office actions, responses, specimens, or
+    other file-wrapper documents for a trademark application.
+
+    NOTE: TSDR limits PDF downloads to 4 requests per minute per API key,
+    and unfiltered full wrappers can exceed 10 MB (rejected with
+    RESPONSE_TOO_LARGE above 4 MB). Call tsdr_list_trademark_documents
+    first, then filter by document_type and/or date range.
+
+    Args:
+        serial_number: 8-digit application serial number (e.g., "78787878")
+        document_type: Optional document type filter (e.g., "OOA" for
+            outgoing office actions, "SPE" for specimens)
+        date_from: Optional start date filter (YYYY-MM-DD)
+        date_to: Optional end date filter (YYYY-MM-DD)
+
+    Returns:
+        Dictionary with base64-encoded PDF data.
+    """
+    try:
+        serial_number = validate_serial_number(str(serial_number))
+    except ValueError as e:
+        return ApiError.validation_error(str(e), "serial_number")
+
+    return await tsdr_client.download_case_documents(
+        serial_number=serial_number,
+        document_type=document_type,
+        date_from=date_from,
+        date_to=date_to,
+    )
+
+
+@mcp.tool()
+async def tsdr_get_trademark_image(serial_number: str) -> Dict[str, Any]:
+    """Get the mark image (drawing) for a trademark as base64.
+
+    USE THIS TOOL WHEN: You need the visual representation of a design mark
+    or stylized word mark.
+
+    Args:
+        serial_number: 8-digit application serial number (e.g., "78787878")
+
+    Returns:
+        Dictionary with base64-encoded image data.
+    """
+    try:
+        serial_number = validate_serial_number(str(serial_number))
+    except ValueError as e:
+        return ApiError.validation_error(str(e), "serial_number")
+
+    return await tsdr_client.get_mark_image(serial_number)
+
+
+# =====================================================================
+# Trademark Search & Assignment Tools
+# =====================================================================
+
+@mcp.tool()
+async def tm_search_trademarks(
+    query: Optional[str] = None,
+    mark_text: Optional[str] = None,
+    owner_name: Optional[str] = None,
+    goods_services: Optional[str] = None,
+    registration_number: Optional[str] = None,
+    international_class: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    offset: int = 0,
+    limit: int = 25,
+) -> Dict[str, Any]:
+    """Search US federal trademark applications and registrations.
+
+    USE THIS TOOL WHEN: You need to find trademarks by mark text, owner,
+    goods/services description, or Nice/international class — e.g.
+    clearance/knockout searches for a proposed mark, or mapping a company's
+    trademark portfolio.
+
+    NOTE: Backed by the undocumented internal API behind tmsearch.uspto.gov
+    (the TESS replacement) — same risk profile as PPUBS; may break without
+    notice. For authoritative status of a specific mark, use
+    tsdr_get_trademark_status. Federal marks only (no common-law/state marks).
+
+    Args:
+        query: Raw query string for advanced searches
+        mark_text: Word mark text to search (e.g., "ACME")
+        owner_name: Owner/applicant name to search
+        goods_services: Goods/services description terms (e.g., "athletic
+            footwear") — useful for clearance searches across wording
+        registration_number: Exact registration number to look up
+        international_class: Nice class number 1-45 (e.g., "9" for software;
+            use get_trademark_class_info to look up classes)
+        status_filter: "live" (active marks), "dead" (abandoned/cancelled/
+            expired), or omit for both
+        offset: Starting position for pagination (default: 0)
+        limit: Maximum results to return (default: 25, max: 100)
+
+    Returns:
+        Normalized response with matching trademark records.
+    """
+    if not any([query, mark_text, owner_name, goods_services,
+                registration_number, international_class]):
+        return ApiError.create(
+            message=(
+                "At least one search filter is required. Provide query, "
+                "mark_text, owner_name, goods_services, registration_number, "
+                "or international_class."
+            ),
+            error_code="MISSING_FILTER",
+        )
+
+    if registration_number:
+        try:
+            registration_number = validate_registration_number(str(registration_number))
+        except ValueError as e:
+            return ApiError.validation_error(str(e), "registration_number")
+
+    result = await tmsearch_client.search(
+        query=query,
+        mark_text=mark_text,
+        owner_name=owner_name,
+        goods_services=goods_services,
+        registration_number=registration_number,
+        international_class=international_class,
+        status_filter=status_filter,
+        offset=offset,
+        limit=limit,
+    )
+
+    if is_error(result):
+        return result
+
+    return check_and_truncate(
+        ResponseEnvelope.from_tmsearch(result, offset=offset, limit=limit)
+    )
+
+
+@mcp.tool()
+async def tm_get_trademark(serial_number: str) -> Dict[str, Any]:
+    """Get a trademark's search-index record by serial number.
+
+    USE THIS TOOL WHEN: You have a serial number from tm_search_trademarks
+    results and want the full indexed record. For authoritative live status,
+    prefer tsdr_get_trademark_status.
+
+    Args:
+        serial_number: 8-digit application serial number (e.g., "78787878")
+
+    Returns:
+        Normalized response with the trademark record.
+    """
+    try:
+        serial_number = validate_serial_number(str(serial_number))
+    except ValueError as e:
+        return ApiError.validation_error(str(e), "serial_number")
+
+    result = await tmsearch_client.get_by_serial(serial_number)
+
+    if is_error(result):
+        return result
+
+    if not result.get("results"):
+        return ApiError.not_found("Trademark", serial_number)
+
+    return check_and_truncate(
+        ResponseEnvelope.from_tmsearch(result, offset=0, limit=1)
+    )
+
+
+@mcp.tool()
+async def tm_search_assignments(
+    serial_number: Optional[str] = None,
+    registration_number: Optional[str] = None,
+    assignee_name: Optional[str] = None,
+    assignor_name: Optional[str] = None,
+    reel_frame: Optional[str] = None,
+    offset: int = 0,
+    limit: int = 25,
+) -> Dict[str, Any]:
+    """Search recorded trademark assignment (ownership transfer) records.
+
+    USE THIS TOOL WHEN: You need to trace ownership history of a trademark,
+    find the current owner, or find marks transferred to/from a company.
+    Covers recorded assignments from 1955 to present, via the USPTO
+    Assignment Center public API (no API key required).
+
+    At least one filter is required; multiple filters combine (AND).
+
+    Args:
+        serial_number: Trademark application serial number
+        registration_number: Trademark registration number
+        assignee_name: Assignee (new owner) name
+        assignor_name: Assignor (previous owner) name
+        reel_frame: Recordation reel/frame identifier (e.g., "9006/0093")
+        offset: Starting position for pagination (default: 0)
+        limit: Maximum results to return (default: 25)
+
+    Returns:
+        Normalized response with assignment records (reel/frame, assignors,
+        assignees, conveyance, and affected properties).
+    """
+    if serial_number:
+        try:
+            serial_number = validate_serial_number(str(serial_number))
+        except ValueError as e:
+            return ApiError.validation_error(str(e), "serial_number")
+    if registration_number:
+        try:
+            registration_number = validate_registration_number(str(registration_number))
+        except ValueError as e:
+            return ApiError.validation_error(str(e), "registration_number")
+
+    result = await tm_assignment_client.search_assignments(
+        serial_number=serial_number,
+        registration_number=registration_number,
+        assignee_name=assignee_name,
+        assignor_name=assignor_name,
+        reel_frame=reel_frame,
+        offset=offset,
+        limit=limit,
+    )
+
+    if is_error(result):
+        return result
+
+    return check_and_truncate(
+        ResponseEnvelope.from_tm_assignment(result, offset=offset, limit=limit)
+    )
+
+
+@mcp.tool()
+async def get_trademark_class_info(class_number: str) -> Dict[str, Any]:
+    """Look up a Nice/international trademark class (1-45).
+
+    USE THIS TOOL WHEN: You need to know what goods (classes 1-34) or
+    services (classes 35-45) a trademark class covers, or pick the right
+    classes for a clearance search.
+
+    Args:
+        class_number: International class number (e.g., "9" for computer
+            software, "25" for clothing, "42" for software services)
+
+    Returns:
+        Class title, type (goods/services), and description.
+    """
+    return resource_trademark_class_info(class_number)
+
+
+@mcp.tool()
+async def get_trademark_status_code(code: str) -> Dict[str, Any]:
+    """Look up a USPTO trademark status code meaning.
+
+    USE THIS TOOL WHEN: Trademark data contains a numeric status code you
+    need to interpret (e.g., "700" = Registered, "686" = Published for
+    opposition).
+
+    Args:
+        code: Trademark status code (e.g., "700")
+
+    Returns:
+        Status code description and prosecution stage.
+    """
+    return get_trademark_status_code_info(code)
 
 
 # =====================================================================
@@ -1849,7 +2349,7 @@ async def get_party_litigation(
 
 def main():
     """Initialize and run the server with stdio transport."""
-    logger.info("Starting USPTO Patent MCP server with stdio transport")
+    logger.info("Starting USPTO Patent & Trademark MCP server with stdio transport")
     mcp.run(transport='stdio')
 
 
