@@ -10,7 +10,7 @@ Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of 
 
 ## Features
 
-This server provides **61 tools** across 9 USPTO data sources (36 active, 25 unavailable due to API shutdowns):
+This server provides **69 tools** across 10 patent/trademark data sources (48 active, 21 unavailable due to API shutdowns):
 
 1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS
 2. **Full Text Documents** - Get complete text of patents including claims, description, and specification
@@ -21,8 +21,9 @@ This server provides **61 tools** across 9 USPTO data sources (36 active, 25 una
 7. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, goods/services, and class (clearance/knockout searches)
 8. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
 9. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
+10. **Federal Litigation Documents** - Public briefs, judicial orders, and judicial opinions from patent lawsuits (district courts) and appeals (Federal Circuit) via CourtListener / RECAP
 
-> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. All 25 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
+> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. All 21 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
 
 ## API Sources
 
@@ -34,7 +35,7 @@ This server provides **61 tools** across 9 USPTO data sources (36 active, 25 una
 | **tsdrapi.uspto.gov (TSDR)** | Trademark status, prosecution documents, mark images | Yes (TSDR API Key — separate from ODP) | Active |
 | **tmsearch.uspto.gov** | Full-text trademark search (internal API behind the TESS replacement) | No | Active (unofficial) |
 | **assignmentcenter.uspto.gov** | Trademark ownership transfer records (1955-present) | No | Active |
-| **Patent Litigation API** | 74,000+ district court patent cases | N/A | Not offered on ODP (issue #16) |
+| **CourtListener / RECAP** | Federal patent litigation briefs, orders, and opinions (district courts + Federal Circuit) | Token for retrieval (free; search works without) | Active |
 | **PatentsView API** | Disambiguated inventor/assignee data, advanced search | N/A | Shut down March 2026 |
 | **Office Action APIs** | Full-text office actions, citations, rejections | N/A | Decommissioned early 2026 |
 
@@ -116,9 +117,12 @@ The server can be configured using environment variables in your `.env` file. Al
 
 ```bash
 # API Keys
-USPTO_API_KEY=your_key_here      # ODP/PTAB tools
-TSDR_API_KEY=your_tsdr_key_here  # TSDR trademark tools (separate key — see above)
-TMSEARCH_WAF_TOKEN=...           # Optional - only if trademark search hits the WAF
+USPTO_API_KEY=your_key_here       # ODP/PTAB tools
+TSDR_API_KEY=your_tsdr_key_here   # TSDR trademark tools (separate key — see above)
+TMSEARCH_WAF_TOKEN=...            # Optional - only if trademark search hits the WAF
+COURTLISTENER_API_KEY=...         # Federal litigation tools (litigation_*); free, required to RETRIEVE documents/opinions
+PACER_USERNAME=...                # Optional - PACER fallback for filings not in RECAP (per-page fees)
+PACER_PASSWORD=...                # Optional - paired with PACER_USERNAME
 
 # Logging
 LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -242,16 +246,24 @@ If you're already running Claude Code, you'll have to /exit and restart. Then /m
 
 > **Note:** `tm_search_trademarks` and `tm_get_trademark` use the undocumented internal API behind [tmsearch.uspto.gov](https://tmsearch.uspto.gov) (the TESS replacement) — the same situation as the PPUBS patent search API. USPTO offers no official REST API for full-text trademark search. The request/response contract was verified live on 2026-06-10, but these tools may break without notice if USPTO changes the internal API. TTAB proceedings (oppositions/cancellations) have no REST API; daily TTAB XML is available as bulk datasets via `odp_search_datasets`.
 
-### Patent Litigation API (Unavailable — not offered on ODP, issue #16)
+### Federal Litigation Documents (CourtListener / RECAP)
 
-All 4 Litigation tools return `API_UNAVAILABLE`. The Patent Litigation API is not listed in the ODP Swagger catalog. The OCE Patent Litigation dataset (74,000+ district court cases) is distributed as a bulk download at <https://www.uspto.gov/ip-policy/economic-research/research-datasets/patent-litigation-docket-reports-data>.
+Briefs, judicial orders, and judicial opinions from federal patent lawsuits (district courts) and appeals (Court of Appeals for the Federal Circuit, court id `cafc`), via the [CourtListener](https://www.courtlistener.com/) REST API v4 (Free Law Project). The USPTO never offered a live Patent Litigation API on ODP ([issue #16](https://github.com/riemannzeta/patent_mcp_server/issues/16)); these tools fill that gap with an open, free source.
 
-| Tool | Workaround |
-|------|------------|
-| `search_litigation` | OCE Patent Litigation bulk dataset |
-| `get_litigation_case` | OCE Patent Litigation bulk dataset |
-| `get_patent_litigation` | OCE Patent Litigation bulk dataset or `ppubs_search_patents` |
-| `get_party_litigation` | OCE Patent Litigation bulk dataset |
+Full-text **search** works without a key (at a reduced rate limit), but **retrieving** a specific case, document, or opinion requires a free token — set `COURTLISTENER_API_KEY` (get one at <https://www.courtlistener.com/profile/apis>). Filing coverage comes from the crowd-sourced RECAP archive; for filings not yet mirrored there, `litigation_get_document(allow_pacer_fetch=True)` can purchase from PACER (requires `PACER_USERNAME`/`PACER_PASSWORD`; per-page fees apply).
+
+| Tool | Description |
+|------|-------------|
+| `litigation_search_cases` | Search dockets/cases (filter by patent, party, court, dates; `court="cafc"` for appeals) |
+| `litigation_get_case` | Get a docket with parties and case metadata |
+| `litigation_get_patent_cases` | All federal cases referencing a patent |
+| `litigation_get_party_cases` | A company/individual's patent litigation profile |
+| `litigation_list_documents` | List filings on a case (briefs, motions, orders) |
+| `litigation_get_document` | One filing: metadata + extracted text + PDF link (PACER fallback) |
+| `litigation_search_opinions` | Search judicial opinions (district + Federal Circuit) |
+| `litigation_get_opinion` | Full opinion text + download link |
+
+The four legacy litigation tools (`search_litigation`, `get_litigation_case`, `get_patent_litigation`, `get_party_litigation`) are now **live**, backed by CourtListener instead of returning `API_UNAVAILABLE`. For bulk historical analysis, the OCE Patent Litigation dataset (74,000+ district court cases) remains available as a download at <https://www.uspto.gov/ip-policy/economic-research/research-datasets/patent-litigation-docket-reports-data>.
 
 ### PatentsView API (Unavailable — shut down March 2026)
 
@@ -362,7 +374,17 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.0.0 (Current)
+### v1.1.0 (Current)
+- **Federal litigation documents**: 8 new `litigation_*` tools backed by [CourtListener / RECAP](https://www.courtlistener.com/) (Free Law Project) for public briefs, judicial orders, and judicial opinions from patent lawsuits (district courts) and appeals (Federal Circuit, `court="cafc"`)
+  - `litigation_search_cases`, `litigation_get_case`, `litigation_get_patent_cases`, `litigation_get_party_cases` (dockets/cases)
+  - `litigation_list_documents`, `litigation_get_document` (briefs, motions, orders — metadata + extracted text + PDF link, with optional PACER fallback)
+  - `litigation_search_opinions`, `litigation_get_opinion` (judicial opinions)
+- The four legacy litigation tools (`search_litigation`, `get_litigation_case`, `get_patent_litigation`, `get_party_litigation`) are now **live** via CourtListener instead of returning `API_UNAVAILABLE`, closing [issue #16](https://github.com/riemannzeta/patent_mcp_server/issues/16)
+- Full-text search works without a key; retrieving a specific case/document/opinion requires a free `COURTLISTENER_API_KEY`. Optional `PACER_USERNAME`/`PACER_PASSWORD` enable on-demand PACER fetches for filings not yet in RECAP
+- New client `uspto/courtlistener_client.py`; new env vars `COURTLISTENER_API_KEY`, `COURTLISTENER_BASE_URL`, `PACER_USERNAME`, `PACER_PASSWORD`
+- Tool count: 69 registered (48 active, 21 unavailable)
+
+### v1.0.0
 - **Trademark support**: 9 new trademark tools across three new clients, all verified against the live USPTO services on 2026-06-10
   - TSDR (`tsdr_get_trademark_status`, `tsdr_list_trademark_documents`, `tsdr_download_trademark_documents`, `tsdr_get_trademark_image`) — official trademark status/document API. Requires a TSDR-specific key (the ODP key does not work); error responses detect the wrong-key signature and explain how to get the right one. Document bundles above 4 MB are rejected with filter guidance (full wrappers can exceed 10 MB)
   - Trademark search (`tm_search_trademarks`, `tm_get_trademark`) — full-text search by mark text, owner, goods/services, and Nice class via the internal Elasticsearch API behind tmsearch.uspto.gov (no official REST API exists). Verified live; handles AWS WAF rejections with `TMSEARCH_WAF_TOKEN` support

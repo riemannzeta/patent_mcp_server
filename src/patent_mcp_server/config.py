@@ -32,6 +32,20 @@ class Config:
     # Office Action API
     OFFICE_ACTION_BASE_URL: str = os.getenv("OFFICE_ACTION_BASE_URL", "https://developer.uspto.gov")  # Legacy - decommissioned early 2026, pending ODP migration
 
+    # Federal litigation documents (v1.1.0) — CourtListener / RECAP (Free Law
+    # Project) is the primary backend for federal patent litigation briefs,
+    # orders, and opinions. The token is optional (unauthenticated requests work
+    # at a lower rate limit); get a free one at courtlistener.com/profile/apis.
+    COURTLISTENER_API_KEY: Optional[str] = os.getenv("COURTLISTENER_API_KEY")
+    COURTLISTENER_BASE_URL: str = os.getenv(
+        "COURTLISTENER_BASE_URL", "https://www.courtlistener.com"
+    )
+    # Optional PACER credentials. Only used as a fallback to pull documents that
+    # are not yet in the RECAP archive, via CourtListener's RECAP Fetch endpoint
+    # (which purchases from PACER and incurs PACER per-page fees).
+    PACER_USERNAME: Optional[str] = os.getenv("PACER_USERNAME")
+    PACER_PASSWORD: Optional[str] = os.getenv("PACER_PASSWORD")
+
     # Trademark APIs (v1.0.0)
     TSDR_BASE_URL: str = os.getenv("TSDR_BASE_URL", "https://tsdrapi.uspto.gov/ts/cd")
     TMSEARCH_BASE_URL: str = os.getenv("TMSEARCH_BASE_URL", "https://tmsearch.uspto.gov")
@@ -50,7 +64,7 @@ class Config:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.0.0")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.1.0")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry
@@ -113,6 +127,22 @@ class Config:
                 )
 
         # PatentsView API was shut down March 20, 2026 - no longer warn about missing key
+
+        if not cls.COURTLISTENER_API_KEY:
+            logger.warning(
+                "COURTLISTENER_API_KEY not set. Federal litigation tools "
+                "(litigation_*) still work via CourtListener but at a reduced, "
+                "unauthenticated rate limit. Get a free token at "
+                "https://www.courtlistener.com/profile/apis and set "
+                "COURTLISTENER_API_KEY for higher limits."
+            )
+
+        if not (cls.PACER_USERNAME and cls.PACER_PASSWORD):
+            logger.info(
+                "PACER credentials not set (PACER_USERNAME/PACER_PASSWORD). "
+                "This is optional — only needed to pull filings not yet in the "
+                "free RECAP archive (incurs PACER per-page fees)."
+            )
 
         logger.info(f"Configuration loaded: LOG_LEVEL={cls.LOG_LEVEL}, "
                    f"TIMEOUT={cls.REQUEST_TIMEOUT}s, "

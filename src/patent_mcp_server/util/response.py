@@ -313,6 +313,51 @@ class ResponseEnvelope:
         )
 
 
+    @staticmethod
+    def from_courtlistener(
+        raw_response: Dict[str, Any],
+        offset: int = 0,
+        limit: int = 20,
+    ) -> Dict[str, Any]:
+        """Normalize a CourtListener (Free Law Project) v4 response.
+
+        Handles both paginated list/search responses
+        (``{count, next, previous, results}``) and single-record detail
+        responses (a bare object). Cursor pagination URLs are surfaced in
+        ``metadata`` so callers can follow ``next`` to page forward.
+
+        Args:
+            raw_response: Raw response from CourtListener
+            offset: Requested offset (informational; CL uses cursor paging)
+            limit: Requested limit
+
+        Returns:
+            Standardized response
+        """
+        if isinstance(raw_response, dict) and "results" in raw_response:
+            results = raw_response.get("results", [])
+            total = raw_response.get("count", len(results))
+            metadata = {
+                "next": raw_response.get("next"),
+                "previous": raw_response.get("previous"),
+            }
+        else:
+            # Single detail record (docket, opinion, recap document, fetch queue)
+            results = raw_response
+            total = 1
+            metadata = None
+
+        return ResponseEnvelope.success(
+            results=results,
+            source="courtlistener",
+            count=len(results) if isinstance(results, list) else 1,
+            total=total,
+            offset=offset,
+            limit=limit,
+            metadata=metadata,
+        )
+
+
 def estimate_tokens(data: Any) -> int:
     """Estimate token count for a data structure.
 

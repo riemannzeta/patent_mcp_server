@@ -10,12 +10,13 @@ with multiple USPTO patent and trademark data APIs:
 4. tsdrapi.uspto.gov - Trademark status, prosecution documents, and mark images (TSDR)
 5. tmsearch.uspto.gov - Full-text trademark search (internal API, TESS replacement)
 6. assignmentcenter.uspto.gov - Trademark assignment (ownership transfer) records
-7. PatentsView API - UNAVAILABLE (shut down March 2026; data migrated to ODP bulk datasets)
-8. Office Action APIs - UNAVAILABLE (decommissioned early 2026, pending ODP migration)
+7. CourtListener / RECAP - Federal patent litigation briefs, orders, and opinions
+8. PatentsView API - UNAVAILABLE (shut down March 2026; data migrated to ODP bulk datasets)
+9. Office Action APIs - UNAVAILABLE (decommissioned early 2026, pending ODP migration)
 
 The server uses stdio transport for Claude Code/Cursor integration.
 
-Version: 1.0.0
+Version: 1.1.0
 """
 import atexit
 import json
@@ -28,7 +29,7 @@ from pydantic import ValidationError
 
 from patent_mcp_server.config import config
 from patent_mcp_server.constants import (
-    Sources, Fields, Defaults, PatentsViewEndpoints
+    Sources, Fields, Defaults, PatentsViewEndpoints, LitigationDefaults
 )
 from patent_mcp_server.util.errors import ApiError, is_error
 from patent_mcp_server.util.validation import (
@@ -56,6 +57,7 @@ from patent_mcp_server.uspto.tmsearch_client import TmSearchClient
 from patent_mcp_server.uspto.tm_assignment_client import TmAssignmentClient
 from patent_mcp_server.uspto.office_action_client import OfficeActionClient
 from patent_mcp_server.uspto.enriched_citation_client import EnrichedCitationClient
+from patent_mcp_server.uspto.courtlistener_client import CourtListenerClient
 from patent_mcp_server.patentsview.patentsview_client import PatentsViewClient
 
 # Initialize FastMCP server
@@ -65,7 +67,10 @@ mcp = FastMCP(
         "Tools for researching US patents AND US federal trademarks. "
         "Patents: full-text search and PDFs (ppubs_*), file-wrapper "
         "metadata, assignments and continuity (odp_*), and PTAB "
-        "proceedings (ptab_*). Trademarks: live status, documents, and "
+        "proceedings (ptab_*). Federal litigation: briefs, orders, and "
+        "judicial opinions from patent lawsuits and Federal Circuit appeals "
+        "via CourtListener/RECAP (litigation_*). Trademarks: live status, "
+        "documents, and "
         "mark images via TSDR (tsdr_*), full-text mark/owner search and "
         "assignment history (tm_*). Reference lookups: get_cpc_info, "
         "get_status_code, get_trademark_class_info, "
@@ -89,6 +94,7 @@ config.validate()
 ppubs_client = PpubsClient()
 api_client = ApiUsptoClient()
 ptab_client = PTABClient()
+courtlistener_client = CourtListenerClient()
 office_action_client = OfficeActionClient()
 enriched_citation_client = EnrichedCitationClient()
 
@@ -109,6 +115,7 @@ async def cleanup():
         await ppubs_client.close()
         await api_client.close()
         await ptab_client.close()
+        await courtlistener_client.close()
         await office_action_client.close()
         await enriched_citation_client.close()
         await patentsview_client.close()
@@ -497,17 +504,47 @@ async def check_api_status() -> Dict[str, Any]:
                 "— use odp_search_datasets to find them."
             ),
         },
-        "litigation": {
-            "name": "Patent Litigation API",
-            "configured": False,
-            "status": "UNAVAILABLE",
+        "courtlistener": {
+            "name": "Federal Litigation Documents (CourtListener / RECAP)",
+            "configured": True,
+            "requires_auth": False,
+            "api_key_set": bool(config.COURTLISTENER_API_KEY),
             "note": (
-                "The Patent Litigation API is not available on the USPTO "
-                "Open Data Portal (api.uspto.gov) and is not listed in the "
-                "ODP Swagger catalog. The OCE Patent Litigation dataset is "
-                "distributed as a bulk download at "
-                "https://www.uspto.gov/ip-policy/economic-research/research-"
-                "datasets/patent-litigation-docket-reports-data."
+                "Federal patent litigation briefs, orders, and opinions "
+                "(district courts + Federal Circuit) via the CourtListener "
+                "REST API v4 (Free Law Project). Full-text SEARCH works "
+                "without a key (at a reduced rate limit), but RETRIEVING a "
+                "specific case/document/opinion REQUIRES a free token — set "
+                "COURTLISTENER_API_KEY (get one at "
+                "courtlistener.com/profile/apis). Use the litigation_* tools. "
+                "Filing coverage depends on the free RECAP archive; the PACER "
+                "fallback (see below) fills gaps."
+            ),
+        },
+        "pacer": {
+            "name": "PACER fallback (via CourtListener RECAP Fetch)",
+            "configured": bool(config.PACER_USERNAME and config.PACER_PASSWORD),
+            "api_key_set": bool(config.PACER_USERNAME and config.PACER_PASSWORD),
+            "note": (
+                "Optional. Only used to pull filings not yet in the free RECAP "
+                "archive, via litigation_get_document(allow_pacer_fetch=True). "
+                "Requires PACER_USERNAME and PACER_PASSWORD and incurs PACER "
+                "per-page fees ($0.10/page)."
+            ),
+        },
+        "litigation": {
+            "name": "Patent Litigation (district court case metadata)",
+            "configured": True,
+            "requires_auth": False,
+            "note": (
+                "The legacy search_litigation / get_patent_litigation / "
+                "get_party_litigation / get_litigation_case tools are now LIVE, "
+                "backed by CourtListener (see 'courtlistener' above) instead of "
+                "returning API_UNAVAILABLE. The USPTO never offered a litigation "
+                "API on ODP (issue #16). For bulk historical analysis, the OCE "
+                "Patent Litigation dataset is still at https://www.uspto.gov/"
+                "ip-policy/economic-research/research-datasets/"
+                "patent-litigation-docket-reports-data."
             ),
         },
     }
@@ -2240,30 +2277,284 @@ async def get_citation_metrics(patent_number: str) -> Dict[str, Any]:
 # Litigation Tools
 # =====================================================================
 
-def _litigation_unavailable() -> Dict[str, Any]:
-    """Shared API_UNAVAILABLE payload for all litigation tools (see issue #16)."""
-    return {
-        "error": True,
-        "message": (
-            "The USPTO Patent Litigation API is not available on the Open "
-            "Data Portal (api.uspto.gov). No litigation endpoints are "
-            "listed in the ODP Swagger catalog at "
-            "https://data.uspto.gov/swagger/index.html. The OCE Patent "
-            "Litigation dataset (74,000+ district court cases) is "
-            "distributed as a bulk download rather than a live API. "
-            "Download it from https://www.uspto.gov/ip-policy/economic-"
-            "research/research-datasets/patent-litigation-docket-reports-"
-            "data, or use ppubs_search_patents as a partial workaround."
-        ),
-        "error_code": "API_UNAVAILABLE",
-        "workaround": (
-            "Download the OCE Patent Litigation bulk dataset from "
-            "https://www.uspto.gov/ip-policy/economic-research/research-"
-            "datasets/patent-litigation-docket-reports-data, or use "
-            "ppubs_search_patents(query) for patent-level lookups."
-        ),
-    }
+def _cap_text_fields(record: Dict[str, Any]) -> Dict[str, Any]:
+    """Truncate large extracted-text fields on a single CourtListener record.
 
+    Briefs and opinions can carry hundreds of KB of OCR/extracted text in
+    fields like ``plain_text``/``html``. Cap them to LitigationDefaults.
+    MAX_TEXT_CHARS so a single document fits the response token budget; the
+    full document is always available via its download URL.
+    """
+    if not isinstance(record, dict):
+        return record
+    capped = dict(record)
+    limit = LitigationDefaults.MAX_TEXT_CHARS
+    for field in ("plain_text", "html", "html_lawbox", "html_columbia",
+                  "html_with_citations", "xml_harvard"):
+        value = capped.get(field)
+        if isinstance(value, str) and len(value) > limit:
+            capped[field] = value[:limit]
+            capped[f"_{field}_truncated"] = True
+            capped["_text_truncation_message"] = (
+                f"Text truncated to {limit} characters to fit the response "
+                f"budget. Retrieve the full document from its download URL."
+            )
+    return capped
+
+
+# --- Case / docket discovery -----------------------------------------------
+
+@mcp.tool()
+async def litigation_search_cases(
+    query: Optional[str] = None,
+    patent_number: Optional[str] = None,
+    party: Optional[str] = None,
+    court: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    cursor: Optional[str] = None,
+    limit: int = LitigationDefaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """Search federal patent lawsuits and appeals (dockets/cases).
+
+    USE THIS TOOL WHEN: You want to find the federal court cases involving a
+    patent, party, or topic. Live via CourtListener / RECAP (Free Law Project).
+    Covers district court litigation and Federal Circuit appeals.
+
+    For appeals, set court="cafc" (Court of Appeals for the Federal Circuit,
+    which hears all U.S. patent appeals). Other common patent venues: "txed"
+    (E.D. Tex.), "txwd" (W.D. Tex.), "ded" (D. Del.), "cand" (N.D. Cal.).
+
+    Pagination is cursor-based: follow the "next" URL in metadata and pass its
+    cursor value back via the `cursor` argument.
+
+    Args:
+        query: Full-text search query
+        patent_number: Patent number to search for (matched in case text)
+        party: Party (plaintiff/defendant/appellant) name
+        court: CourtListener court id (e.g. "cafc", "txed", "ded")
+        date_from: Filed-after date (YYYY-MM-DD)
+        date_to: Filed-before date (YYYY-MM-DD)
+        cursor: Pagination cursor from a previous response's "next" URL
+        limit: Max results (default: 20)
+    """
+    result = await courtlistener_client.search_dockets(
+        query=query, patent_number=patent_number, party=party, court=court,
+        filed_after=date_from, filed_before=date_to, cursor=cursor, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(result, limit=limit))
+
+
+@mcp.tool()
+async def litigation_get_case(docket_id: str) -> Dict[str, Any]:
+    """Get a federal court case (docket) with parties and case metadata.
+
+    USE THIS TOOL WHEN: You have a CourtListener docket id (from
+    litigation_search_cases) and want the full case record. Use
+    litigation_list_documents to enumerate the filings on the docket.
+
+    Args:
+        docket_id: CourtListener docket id
+    """
+    result = await courtlistener_client.get_docket(docket_id)
+    if is_error(result):
+        return result
+    return check_and_truncate(ResponseEnvelope.from_courtlistener(result))
+
+
+@mcp.tool()
+async def litigation_get_patent_cases(
+    patent_number: str,
+    cursor: Optional[str] = None,
+    limit: int = LitigationDefaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """Get all federal cases that reference a specific patent.
+
+    USE THIS TOOL WHEN: You want the litigation history of one patent across
+    district courts and the Federal Circuit. Live via CourtListener / RECAP.
+
+    Args:
+        patent_number: Patent number (e.g. "8,123,456" or "8123456")
+        cursor: Pagination cursor from a previous response's "next" URL
+        limit: Max results (default: 20)
+    """
+    result = await courtlistener_client.search_dockets(
+        patent_number=patent_number, cursor=cursor, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(result, limit=limit))
+
+
+@mcp.tool()
+async def litigation_get_party_cases(
+    party_name: str,
+    cursor: Optional[str] = None,
+    limit: int = LitigationDefaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """Get federal patent cases involving a company or individual.
+
+    USE THIS TOOL WHEN: You want a party's patent litigation profile (cases
+    where they appear as plaintiff, defendant, or appellant). Live via
+    CourtListener / RECAP.
+
+    Args:
+        party_name: Company or individual name
+        cursor: Pagination cursor from a previous response's "next" URL
+        limit: Max results (default: 20)
+    """
+    result = await courtlistener_client.search_dockets(
+        party=party_name, cursor=cursor, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(result, limit=limit))
+
+
+# --- Documents: briefs, motions, orders ------------------------------------
+
+@mcp.tool()
+async def litigation_list_documents(
+    docket_id: str,
+    document_type: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    cursor: Optional[str] = None,
+    limit: int = LitigationDefaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """List the filings (briefs, motions, orders) on a federal case.
+
+    USE THIS TOOL WHEN: You have a docket id (from litigation_search_cases /
+    litigation_get_patent_cases) and want the documents filed in that case.
+    Narrow by filing type with a keyword in `document_type` (e.g. "brief",
+    "order", "motion", "opinion"). Each result is a RECAP document; pass its
+    id to litigation_get_document to retrieve the text/PDF.
+
+    Args:
+        docket_id: CourtListener docket id
+        document_type: Keyword to filter filings (e.g. "brief", "order")
+        date_from: Filed-after date (YYYY-MM-DD)
+        date_to: Filed-before date (YYYY-MM-DD)
+        cursor: Pagination cursor from a previous response's "next" URL
+        limit: Max results (default: 20)
+    """
+    result = await courtlistener_client.search_recap_documents(
+        docket_id=docket_id, query=document_type,
+        filed_after=date_from, filed_before=date_to, cursor=cursor, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(result, limit=limit))
+
+
+@mcp.tool()
+async def litigation_get_document(
+    recap_document_id: str,
+    allow_pacer_fetch: bool = False,
+) -> Dict[str, Any]:
+    """Get one federal court filing: metadata, extracted text, and PDF link.
+
+    USE THIS TOOL WHEN: You have a RECAP document id (from
+    litigation_list_documents) and want the actual brief/motion/order — its
+    metadata, extracted plain text (capped to the response budget), and the
+    PDF download URL. Live via CourtListener / RECAP.
+
+    If the document is not yet in the free RECAP archive (is_available =
+    false) and `allow_pacer_fetch` is true, it is fetched from PACER via
+    CourtListener's RECAP Fetch (requires PACER_USERNAME / PACER_PASSWORD and
+    incurs PACER per-page fees); the fetch is queued and you poll its result.
+
+    Args:
+        recap_document_id: CourtListener RECAP document id
+        allow_pacer_fetch: If true, fall back to a paid PACER fetch when the
+            document is absent from RECAP (default: False)
+    """
+    result = await courtlistener_client.get_recap_document(recap_document_id)
+    if is_error(result):
+        return result
+
+    if not result.get("is_available") and not result.get("plain_text"):
+        if allow_pacer_fetch:
+            fetch = await courtlistener_client.fetch_from_pacer(
+                recap_document_id=recap_document_id, request_type=2)
+            if is_error(fetch):
+                return fetch
+            return ResponseEnvelope.success(
+                results=fetch, source="courtlistener",
+                metadata={"pacer_fetch": "queued"})
+        result = dict(result)
+        result["_note"] = (
+            "This filing is not in the free RECAP archive yet. Call again "
+            "with allow_pacer_fetch=True to purchase it from PACER (requires "
+            "PACER credentials; per-page fees apply)."
+        )
+
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(_cap_text_fields(result)))
+
+
+# --- Judicial opinions -----------------------------------------------------
+
+@mcp.tool()
+async def litigation_search_opinions(
+    query: Optional[str] = None,
+    patent_number: Optional[str] = None,
+    court: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    cursor: Optional[str] = None,
+    limit: int = LitigationDefaults.SEARCH_LIMIT,
+) -> Dict[str, Any]:
+    """Search judicial opinions in federal patent cases and appeals.
+
+    USE THIS TOOL WHEN: You want court opinions/decisions (not party briefs) —
+    district court rulings or Federal Circuit appellate opinions. Live via
+    CourtListener (Free Law Project). For Federal Circuit appeals set
+    court="cafc".
+
+    Args:
+        query: Full-text search query
+        patent_number: Patent number to search for (matched in opinion text)
+        court: CourtListener court id (e.g. "cafc", "txed", "ded")
+        date_from: Filed-after date (YYYY-MM-DD)
+        date_to: Filed-before date (YYYY-MM-DD)
+        cursor: Pagination cursor from a previous response's "next" URL
+        limit: Max results (default: 20)
+    """
+    result = await courtlistener_client.search_opinions(
+        query=query, patent_number=patent_number, court=court,
+        filed_after=date_from, filed_before=date_to, cursor=cursor, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(result, limit=limit))
+
+
+@mcp.tool()
+async def litigation_get_opinion(opinion_id: str) -> Dict[str, Any]:
+    """Get the full text of a judicial opinion, plus its download link.
+
+    USE THIS TOOL WHEN: You have an opinion id (from
+    litigation_search_opinions) and want the opinion text (capped to the
+    response budget) and PDF URL. Live via CourtListener.
+
+    Args:
+        opinion_id: CourtListener opinion id
+    """
+    result = await courtlistener_client.get_opinion(opinion_id)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(_cap_text_fields(result)))
+
+
+# --- Legacy tool names (revived; now backed by CourtListener) --------------
+# These four tools previously returned API_UNAVAILABLE (issue #16 — the USPTO
+# never offered a litigation API on ODP). They now delegate to CourtListener so
+# existing callers get live data. Prefer the litigation_* tools above for new
+# work (they expose court filters, pagination, and document access).
 
 @mcp.tool()
 async def search_litigation(
@@ -2277,51 +2568,64 @@ async def search_litigation(
     offset: int = 0,
     limit: int = 25,
 ) -> Dict[str, Any]:
-    """Search patent litigation cases (74,000+ district court records).
+    """Search patent litigation cases. Live via CourtListener / RECAP.
 
-    IMPORTANT: The USPTO Patent Litigation API is not available on the Open
-    Data Portal (api.uspto.gov) and is not listed in the ODP Swagger
-    catalog. The OCE Patent Litigation dataset is distributed as bulk
-    downloadable files rather than a live API.
+    USE THIS TOOL WHEN: You want federal patent cases by patent, party, court,
+    or date. (Alias of litigation_search_cases; prefer that for new work.)
+    The plaintiff/defendant arguments are combined into a party search.
 
     Args:
         query: Full-text search query
         patent_number: Filter by patent number
-        plaintiff: Filter by plaintiff name
-        defendant: Filter by defendant name
-        court: Filter by court/district
+        plaintiff: Plaintiff name (combined into the party search)
+        defendant: Defendant name (combined into the party search)
+        court: CourtListener court id (e.g. "cafc", "txed", "ded")
         filing_date_from: Date range start (YYYY-MM-DD)
         filing_date_to: Date range end (YYYY-MM-DD)
-        offset: Starting position (default: 0)
+        offset: Unused (CourtListener uses cursor pagination); accepted for
+            backward compatibility
         limit: Max results (default: 25)
     """
-    return _litigation_unavailable()
+    party = " ".join(p for p in (plaintiff, defendant) if p) or None
+    result = await courtlistener_client.search_dockets(
+        query=query, patent_number=patent_number, party=party, court=court,
+        filed_after=filing_date_from, filed_before=filing_date_to, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(result, offset=offset, limit=limit))
 
 
 @mcp.tool()
 async def get_litigation_case(case_id: str) -> Dict[str, Any]:
-    """Get details of a specific litigation case.
+    """Get details of a specific litigation case. Live via CourtListener.
 
-    IMPORTANT: The USPTO Patent Litigation API is not available on the Open
-    Data Portal. See search_litigation for details and workarounds.
+    USE THIS TOOL WHEN: You have a CourtListener docket id. (Alias of
+    litigation_get_case; prefer that for new work.)
 
     Args:
-        case_id: Case identifier
+        case_id: CourtListener docket id
     """
-    return _litigation_unavailable()
+    result = await courtlistener_client.get_docket(case_id)
+    if is_error(result):
+        return result
+    return check_and_truncate(ResponseEnvelope.from_courtlistener(result))
 
 
 @mcp.tool()
 async def get_patent_litigation(patent_number: str) -> Dict[str, Any]:
-    """Get all litigation involving a specific patent.
+    """Get all litigation involving a specific patent. Live via CourtListener.
 
-    IMPORTANT: The USPTO Patent Litigation API is not available on the Open
-    Data Portal. See search_litigation for details and workarounds.
+    USE THIS TOOL WHEN: You want one patent's litigation history. (Alias of
+    litigation_get_patent_cases; prefer that for new work.)
 
     Args:
         patent_number: Patent number
     """
-    return _litigation_unavailable()
+    result = await courtlistener_client.search_dockets(patent_number=patent_number)
+    if is_error(result):
+        return result
+    return check_and_truncate(ResponseEnvelope.from_courtlistener(result))
 
 
 @mcp.tool()
@@ -2330,17 +2634,23 @@ async def get_party_litigation(
     role: Optional[str] = None,
     limit: int = 25,
 ) -> Dict[str, Any]:
-    """Get litigation history for a company or individual.
+    """Get litigation history for a company or individual. Live via CourtListener.
 
-    IMPORTANT: The USPTO Patent Litigation API is not available on the Open
-    Data Portal. See search_litigation for details and workarounds.
+    USE THIS TOOL WHEN: You want a party's patent litigation profile. (Alias of
+    litigation_get_party_cases; prefer that for new work.)
 
     Args:
         party_name: Company or individual name
-        role: Filter by role - "plaintiff", "defendant", or None for both
+        role: Accepted for backward compatibility; CourtListener searches all
+            party roles (plaintiff, defendant, appellant)
         limit: Max results (default: 25)
     """
-    return _litigation_unavailable()
+    result = await courtlistener_client.search_dockets(
+        party=party_name, limit=limit)
+    if is_error(result):
+        return result
+    return check_and_truncate(
+        ResponseEnvelope.from_courtlistener(result, limit=limit))
 
 
 # =====================================================================

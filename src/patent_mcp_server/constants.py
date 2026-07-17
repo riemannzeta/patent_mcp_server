@@ -227,6 +227,41 @@ class TmSearchFields:
     STATUS_DESCRIPTION = "statusDescription"
 
 
+class LitigationDefaults:
+    """Defaults for federal litigation document tools (CourtListener / RECAP)."""
+    SEARCH_LIMIT = 20
+    SEARCH_LIMIT_MAX = 100
+    # CourtListener v4 search result types (the `type` query param).
+    SEARCH_TYPE_DOCKETS = "r"      # RECAP dockets / docket entries (cases + filings)
+    SEARCH_TYPE_OPINIONS = "o"     # judicial opinions
+    SEARCH_TYPE_RECAP_DOCS = "rd"  # individual RECAP documents (filings)
+    # Cap on extracted document/opinion plain text returned through MCP. Briefs
+    # and opinions can run to hundreds of KB; this keeps a single document under
+    # the response token budget. Callers get the download URL for the full PDF.
+    MAX_TEXT_CHARS = 50_000
+
+
+class FederalCourts:
+    """Common CourtListener court identifiers for patent litigation.
+
+    CourtListener uses short lowercase court ids. The Federal Circuit (`cafc`)
+    hears all U.S. patent appeals; the district courts below are the busiest
+    patent venues. Pass any CourtListener court id to the `court` filter — this
+    list is a convenience, not an exhaustive enumeration.
+    """
+    # Appeals — all patent appeals go to the Federal Circuit
+    FEDERAL_CIRCUIT = "cafc"
+    SUPREME_COURT = "scotus"
+    # High-volume patent district courts
+    EDTX = "txed"    # E.D. Texas
+    WDTX = "txwd"    # W.D. Texas (Waco/Albright)
+    DDE = "ded"      # D. Delaware
+    NDCA = "cand"    # N.D. California
+    CDCA = "cacd"    # C.D. California
+    NDIL = "ilnd"    # N.D. Illinois
+    DNJ = "njd"      # D. New Jersey
+
+
 class OfficeActionTypes:
     """Office Action types."""
     NON_FINAL = "Non-Final Rejection"

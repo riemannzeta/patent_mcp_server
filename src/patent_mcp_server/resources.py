@@ -443,27 +443,79 @@ DATA_SOURCES = {
             "Prosecution strategy research (use odp_get_transactions instead)",
         ],
     },
-    "litigation": {
-        "name": "USPTO Patent Litigation API",
-        "base_url": "N/A",
+    "courtlistener": {
+        "name": "Federal Litigation Documents (CourtListener / RECAP)",
+        "base_url": "https://www.courtlistener.com/api/rest/v4",
         "description": (
-            "UNAVAILABLE. The Patent Litigation API is not available on the "
-            "USPTO Open Data Portal (api.uspto.gov) and is not listed in the "
-            "ODP Swagger catalog. The OCE Patent Litigation dataset (74,000+ "
-            "district court cases) is distributed as a bulk download at "
-            "https://www.uspto.gov/ip-policy/economic-research/research-"
-            "datasets/patent-litigation-docket-reports-data."
+            "Live via the CourtListener REST API v4 (Free Law Project). "
+            "Provides public briefs, motions, judicial orders, and judicial "
+            "opinions from federal patent lawsuits (district courts) and "
+            "appeals (Court of Appeals for the Federal Circuit, court id "
+            "'cafc'). Free and open. Full-text search works without a key (at "
+            "a lower rate limit), but retrieving a specific "
+            "case/document/opinion requires a free token — set "
+            "COURTLISTENER_API_KEY (get one at courtlistener.com/profile/apis). "
+            "Use the litigation_* tools. Filing coverage comes from the "
+            "crowd-sourced RECAP archive; the PACER fallback (see 'pacer') "
+            "fills gaps for a per-page fee."
         ),
         "coverage": {
-            "cases": "Unavailable via API - use OCE bulk dataset",
-            "date_range": "Unavailable via API - use OCE bulk dataset",
+            "cases": "Federal dockets via litigation_search_cases / litigation_get_case / litigation_get_patent_cases / litigation_get_party_cases",
+            "documents": "Briefs, motions, orders via litigation_list_documents / litigation_get_document (metadata + extracted text + PDF link)",
+            "opinions": "District and Federal Circuit opinions via litigation_search_opinions / litigation_get_opinion",
         },
-        "rate_limits": "N/A",
+        "rate_limits": "Higher with COURTLISTENER_API_KEY; reduced when unauthenticated",
         "auth_required": False,
         "best_for": [
-            "Patent litigation history (UNAVAILABLE - use OCE bulk dataset)",
-            "Company litigation profiles (UNAVAILABLE - use OCE bulk dataset)",
-            "Patent enforcement patterns (UNAVAILABLE - use OCE bulk dataset)",
+            "Briefs, orders, and opinions in patent lawsuits",
+            "Federal Circuit (CAFC) appeal opinions",
+            "A patent's or party's federal litigation history",
+            "Full text of judicial opinions and filed documents",
+        ],
+    },
+    "pacer": {
+        "name": "PACER fallback (via CourtListener RECAP Fetch)",
+        "base_url": "https://www.courtlistener.com/api/rest/v4/recap-fetch/",
+        "description": (
+            "Optional fallback to retrieve filings not yet mirrored in the "
+            "free RECAP archive. litigation_get_document(allow_pacer_fetch="
+            "True) queues a purchase from PACER via CourtListener's RECAP "
+            "Fetch endpoint. Requires PACER_USERNAME and PACER_PASSWORD and "
+            "incurs PACER per-page fees ($0.10/page)."
+        ),
+        "coverage": {
+            "documents": "Any PACER document, on demand (paid)",
+        },
+        "rate_limits": "PACER per-page fees apply; fetches are queued asynchronously",
+        "auth_required": True,
+        "best_for": [
+            "Filings missing from the free RECAP archive",
+        ],
+    },
+    "litigation": {
+        "name": "Patent Litigation (district court case metadata)",
+        "base_url": "https://www.courtlistener.com/api/rest/v4",
+        "description": (
+            "LIVE. The legacy search_litigation / get_patent_litigation / "
+            "get_party_litigation / get_litigation_case tools are now backed "
+            "by CourtListener (see 'courtlistener') instead of returning "
+            "API_UNAVAILABLE. The USPTO never offered a litigation API on ODP "
+            "(issue #16). For bulk historical analysis, the OCE Patent "
+            "Litigation dataset (74,000+ district court cases) is still "
+            "available as a download at https://www.uspto.gov/ip-policy/"
+            "economic-research/research-datasets/"
+            "patent-litigation-docket-reports-data."
+        ),
+        "coverage": {
+            "cases": "Live via CourtListener (prefer the litigation_* tools)",
+            "bulk": "OCE Patent Litigation dataset (bulk download) for historical analysis",
+        },
+        "rate_limits": "See 'courtlistener'",
+        "auth_required": False,
+        "best_for": [
+            "Patent litigation history (live via CourtListener)",
+            "Company litigation profiles (live via CourtListener)",
+            "Bulk enforcement-pattern analysis (OCE bulk dataset)",
         ],
     },
     "tsdr": {

@@ -24,10 +24,6 @@ from patent_mcp_server.patents import (
     patentsview_get_attorney,
     patentsview_lookup_ipc,
     patentsview_search_by_ipc,
-    search_litigation,
-    get_litigation_case,
-    get_patent_litigation,
-    get_party_litigation,
 )
 
 
@@ -198,41 +194,13 @@ class TestUnavailablePatentsViewTools:
 
 
 @pytest.mark.unit
-class TestUnavailableLitigationTools:
-    """All 4 Litigation tools should return API_UNAVAILABLE (issue #16)."""
-
-    @pytest.mark.asyncio
-    async def test_search_litigation(self):
-        result = await search_litigation(query="test")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_get_litigation_case(self):
-        result = await get_litigation_case(case_id="test-case")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_get_patent_litigation(self):
-        result = await get_patent_litigation(patent_number="US11234567B2")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_get_party_litigation(self):
-        result = await get_party_litigation(party_name="Apple")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-
-@pytest.mark.unit
 class TestUnavailableToolErrorStructure:
-    """Verify all 25 unavailable tools return a consistent error structure."""
+    """Verify all 21 unavailable tools return a consistent error structure.
+
+    The 4 former litigation tools (search_litigation, get_litigation_case,
+    get_patent_litigation, get_party_litigation) are no longer here — they are
+    now live via CourtListener (see test_litigation_tools.py).
+    """
 
     TOOLS_WITH_ARGS = [
         # Office Action tools (decommissioned early 2026)
@@ -259,11 +227,6 @@ class TestUnavailableToolErrorStructure:
         (patentsview_get_attorney, {"attorney_id": "test-id"}),
         (patentsview_lookup_ipc, {"ipc_code": "G06F"}),
         (patentsview_search_by_ipc, {"ipc_code": "G06F"}),
-        # Litigation tools (not offered on ODP - issue #16)
-        (search_litigation, {"query": "test"}),
-        (get_litigation_case, {"case_id": "test-case"}),
-        (get_patent_litigation, {"patent_number": "US11234567B2"}),
-        (get_party_litigation, {"party_name": "Apple"}),
     ]
 
     @pytest.mark.asyncio

@@ -6,9 +6,11 @@ This file provides guidance for Claude Code and other AI assistants working on t
 
 This is a Model Context Protocol (MCP) server that provides access to USPTO patent and trademark data through multiple APIs. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
 
-**Current state (v1.0.0):** 61 registered tools, 36 active, 25 unavailable due to API shutdowns:
-- **Active:** PPUBS (5), ODP (12), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
-- **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16)
+**Current state (v1.1.0):** 69 registered tools, 48 active, 21 unavailable due to API shutdowns:
+- **Active:** PPUBS (5), ODP (12), PTAB (7), TSDR (4), Trademark search/assignments (3), Federal litigation (8 `litigation_*` + 4 revived legacy litigation tools), Utility (5)
+- **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026)
+
+**Federal litigation backend (`courtlistener_client.py`):** CourtListener / RECAP REST API v4 (Free Law Project) at `www.courtlistener.com/api/rest/v4`. Auth via `Authorization: Token <COURTLISTENER_API_KEY>`. Full-text `/search/?type=r|o|rd` works anonymously (lower rate limit); detail endpoints (`/dockets/{id}/`, `/opinions/{id}/`, `/recap-documents/{id}/`) return 401 without a token — the client maps that to `COURTLISTENER_AUTH_REQUIRED` with setup guidance. Pagination is cursor-based (`next`/`previous` surfaced in envelope metadata). Single-document text capped at `LitigationDefaults.MAX_TEXT_CHARS`. PACER fallback (`litigation_get_document(allow_pacer_fetch=True)`) posts to `/recap-fetch/` with `PACER_USERNAME`/`PACER_PASSWORD` (per-page fees); returns `PACER_NOT_CONFIGURED` when creds are absent. The 4 legacy tools (`search_litigation`, `get_litigation_case`, `get_patent_litigation`, `get_party_litigation`) are now live aliases over this client (closes issue #16). Verified live 2026-06-14.
 
 **Trademark backend contracts (verified live 2026-06-10):**
 - **tmsearch** (`tmsearch_client.py`): `POST tmsearch.uspto.gov/prod-stage-v1-0-0/tmsearch`, Elasticsearch-style body, non-standard response envelope (`hits.totalValue`, hit `source`/`id`). No key; behind AWS WAF (currently permissive — `TMSEARCH_WAF_TOKEN` supported as escape hatch). Class filters need zero-padded 3-digit terms ("025").
@@ -28,36 +30,9 @@ uv run pytest
 
 If tests fail, fix them before committing. Do not skip or delete failing tests unless the functionality has been intentionally removed.
 
-### Release Workflow
+### Playbooks
 
-When publishing a new version:
-
-1. Run full test suite: `uv run pytest`
-2. Bump version in `pyproject.toml` AND `config.py` (USER_AGENT string)
-3. Commit and push to `origin/main`
-4. Build: `rm -rf dist/ && uv run python -m build`
-5. Publish: `uv run twine upload dist/*`
-
-### Handling Decommissioned APIs
-
-When a USPTO API is shut down, follow the established pattern (see PR #14 and the PatentsView shutdown commit):
-
-1. **Keep all tool functions** — don't remove them. Return `API_UNAVAILABLE` with workaround guidance:
-   ```python
-   return {
-       "error": True,
-       "message": "Description of what happened and what to use instead...",
-       "error_code": "API_UNAVAILABLE",
-       "workaround": "Use alternative_tool(args) for this functionality.",
-   }
-   ```
-2. **Update `check_api_status`** in `patents.py` — set `status: "UNAVAILABLE"` with a note
-3. **Update `resources.py`** — update `DATA_SOURCES` entry and fix any cross-references pointing to the now-unavailable API
-4. **Annotate client code** — add decommission notices to docstrings, keep code intact
-5. **Annotate config** — add `# Legacy` comments, remove/downgrade API key warnings in `validate()`
-6. **Add unavailability tests** in `test/unit/test_unavailable_tools.py` — both individual tests and entries in the parametrized `TestUnavailableToolErrorStructure`
-7. **Skip integration tests** — add `@pytest.mark.skip(reason="...")` to affected integration tests
-8. **Bump version** — minor version bump in `pyproject.toml` and `config.py` USER_AGENT
+The release workflow and the decommissioned-API playbook live as skills in `.claude/skills/` (`release`, `decommission-api`) — invoke the matching skill when publishing a version or handling a USPTO API shutdown.
 
 ### Test Organization
 
@@ -71,34 +46,6 @@ uv run pytest
 
 # Integration tests (requires network + API keys)
 uv run pytest -m integration
-```
-
-## Project Structure
-
-```
-src/patent_mcp_server/
-├── patents.py              # Main server file with MCP tools, resources, and prompts
-├── config.py               # Configuration management (environment variables)
-├── constants.py            # Constants and enumerations
-├── prompts.py              # Workflow prompt templates
-├── resources.py            # Static resource data (CPC codes, status codes, data sources)
-├── util/
-│   ├── response.py         # Response normalization utilities
-│   ├── errors.py           # Error handling utilities
-│   ├── validation.py       # Input validation with Pydantic
-│   └── logging.py          # Logging configuration
-├── uspto/
-│   ├── ppubs_uspto_gov.py  # Patent Public Search client
-│   ├── api_uspto_gov.py    # Open Data Portal client
-│   ├── ptab_client.py      # PTAB proceedings client
-│   ├── tsdr_client.py      # TSDR trademark status/documents client (TSDR-specific key)
-│   ├── tmsearch_client.py  # Trademark search client (internal API, like PPUBS)
-│   ├── tm_assignment_client.py  # Trademark assignments (Assignment Center, no key)
-│   ├── office_action_client.py   # Legacy - decommissioned early 2026
-│   ├── enriched_citation_client.py  # Legacy - decommissioned early 2026
-│   └── litigation_client.py
-└── patentsview/
-    └── patentsview_client.py  # Legacy - shut down March 2026
 ```
 
 ## Code Conventions
@@ -136,46 +83,14 @@ All tools should return a dictionary with consistent structure:
 
 Use `ApiError.create()` for error responses.
 
-### Async Patterns
-
-All API clients use async/await:
-```python
-async def tool_name(...) -> Dict[str, Any]:
-    async with SomeClient() as client:
-        return await client.method(...)
-```
-
-## Dependencies
-
-Managed via `pyproject.toml`. Key dependencies:
-- `mcp[cli]` - FastMCP server framework
-- `httpx` - Async HTTP client
-- `pydantic` - Data validation
-- `tenacity` - Retry logic
-
-Dev dependencies include `build` and `twine` for PyPI publishing.
-
-```bash
-uv add package-name        # Add dependency
-uv sync --dev              # Install dev dependencies
-```
-
 ## Configuration
 
-Environment variables are loaded from `.env` file:
-- `USPTO_API_KEY` - Required for ODP and PTAB tools
-- `TSDR_API_KEY` - Required for TSDR trademark tools (separate key from ODP — see account.uspto.gov/profile/api-manager)
-- `TMSEARCH_WAF_TOKEN` - Optional escape hatch if tmsearch.uspto.gov tightens its AWS WAF
-- `LOG_LEVEL` - Logging verbosity (default: INFO)
-
-See `config.py` for all options.
+Environment variables are loaded from `.env` file — see `config.py` for all options and `.env.example` for the list.
 
 ## Reminders
 
 1. **Always run tests before committing**
 2. Keep docstrings up to date — especially "USE THIS TOOL WHEN" guidance
-3. Use consistent error handling patterns
-4. Follow async patterns
-5. Don't introduce new dependencies without good reason
-6. When updating README.md, keep version history and tool counts current
-7. Update both `pyproject.toml` version AND `config.py` USER_AGENT on version bumps
+3. Don't introduce new dependencies without good reason
+4. When updating README.md, keep version history and tool counts current
+5. Update both `pyproject.toml` version AND `config.py` USER_AGENT on version bumps
