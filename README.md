@@ -22,6 +22,8 @@ This server provides **61 tools** across 9 USPTO data sources (36 active, 25 una
 8. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
 9. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
 
+It runs locally over stdio for Claude Desktop and Claude Code, or over HTTP as a shared, stateless service — see [Remote hosting over HTTP](#remote-hosting-over-http).
+
 > **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. All 25 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
 
 ## API Sources
@@ -123,6 +125,14 @@ TMSEARCH_WAF_TOKEN=...           # Optional - only if trademark search hits the 
 # Logging
 LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
+# MCP Transport (see "Remote hosting over HTTP" below)
+MCP_TRANSPORT=stdio    # stdio (default) or streamable-http
+MCP_HOST=127.0.0.1     # Bind address when serving over HTTP
+MCP_PORT=8000          # Port when serving over HTTP
+MCP_PATH=/mcp          # URL path of the MCP endpoint
+MCP_STATELESS=true     # Keep no per-client state between HTTP requests
+MCP_JSON_RESPONSE=false # Reply with plain JSON instead of an SSE stream
+
 # HTTP Settings
 REQUEST_TIMEOUT=30.0  # Request timeout in seconds
 MAX_RETRIES=3         # Maximum number of retry attempts
@@ -177,6 +187,48 @@ claude mcp add-json patents '{"command": "uv", "args": ["--directory", "/path/to
 ```
 
 If you're already running Claude Code, you'll have to /exit and restart. Then /mcp to verify that it's configured.
+
+## Remote hosting over HTTP
+
+The server speaks stdio by default, which is what the Claude Desktop and
+Claude Code configurations above launch. It can instead serve the MCP
+endpoint over HTTP, so one deployment can back a whole team rather than
+every person running their own copy with their own API keys:
+
+```shell
+patent-mcp-server --transport streamable-http --host 0.0.0.0 --port 8000
+```
+
+The endpoint is then at `http://<host>:8000/mcp`. Point an MCP client at
+that URL — in Claude Code:
+
+```shell
+claude mcp add --transport http patents http://your-host:8000/mcp
+```
+
+**This endpoint has no authentication of its own, and it holds your USPTO
+and TSDR API keys.** Anyone who can reach it can spend your USPTO rate
+limits. Bind to `127.0.0.1` (the default) and put an authenticating reverse
+proxy in front of it, or otherwise restrict network access. The server logs
+a warning at startup when it is bound to anything other than loopback.
+
+Requests are stateless by default: the server keeps no per-client state
+between them, so it can run behind a load balancer with several replicas
+and no session affinity. Each worker holds its own upstream USPTO Public
+Search session, which it establishes on demand and refreshes when it
+expires.
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--transport` | `stdio` | `stdio` or `streamable-http` |
+| `--host` | `127.0.0.1` | Bind address for HTTP |
+| `--port` | `8000` | Port for HTTP |
+| `--path` | `/mcp` | URL path of the MCP endpoint |
+| `--stateful` / `--no-stateful` | off | Keep per-client session state; needs session affinity to scale |
+| `--json-response` / `--no-json-response` | off | Reply with plain JSON instead of an SSE stream |
+
+Each flag has a matching environment variable (see Configuration above);
+the command line wins where both are set.
 
 ## Available Tools
 
@@ -362,7 +414,15 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.0.0 (Current)
+### v1.1.0 (Current)
+- **Remote hosting over HTTP**: new `--transport streamable-http` mode serves the MCP endpoint over the network, so one deployment can back a whole team instead of every user running a local copy. `stdio` remains the default, so existing Claude Desktop and Claude Code configurations are unchanged. New flags `--host`, `--port`, `--path`, `--stateful`, `--json-response`, each with a matching `MCP_*` environment variable. See "Remote hosting over HTTP" for the security caveat — the endpoint holds your API keys and does not authenticate callers
+- **Stateless by default**: HTTP requests carry no per-client state, so the server can run behind a load balancer with several replicas and no session affinity
+- **Fixed a session race in the Public Search client** (affects stdio users too): concurrent tool calls each reset the shared cookie jar and raced to swap the access token, so requests already in flight could be signed with a half-replaced session. Session setup is now serialized, a 403 refresh is skipped when another call has already replaced the token, and the token travels per request instead of living on the shared client's default headers
+- **Fixed shutdown**: closing the nine HTTP clients no longer happens in an `atexit` hook that spun up a fresh event loop; it now runs in the loop the clients were opened on. Deliberately not a FastMCP lifespan — in stateless HTTP mode that runs once per request, which would close the clients after the first tool call
+- Raised the MCP SDK floor to `>=1.27` (was `>=1.3.0`, which allowed installs to resolve an SDK without streamable HTTP)
+- Added MCP protocol-layer tests: the suite previously called tool functions directly and never exercised schema generation, resource/prompt registration, or serialization. 19 new tests (378 total, up from 359)
+
+### v1.0.0
 - **Trademark support**: 9 new trademark tools across three new clients, all verified against the live USPTO services on 2026-06-10
   - TSDR (`tsdr_get_trademark_status`, `tsdr_list_trademark_documents`, `tsdr_download_trademark_documents`, `tsdr_get_trademark_image`) — official trademark status/document API. Requires a TSDR-specific key (the ODP key does not work); error responses detect the wrong-key signature and explain how to get the right one. Document bundles above 4 MB are rejected with filter guidance (full wrappers can exceed 10 MB)
   - Trademark search (`tm_search_trademarks`, `tm_get_trademark`) — full-text search by mark text, owner, goods/services, and Nice class via the internal Elasticsearch API behind tmsearch.uspto.gov (no official REST API exists). Verified live; handles AWS WAF rejections with `TMSEARCH_WAF_TOKEN` support
