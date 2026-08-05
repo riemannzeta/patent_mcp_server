@@ -13,20 +13,25 @@ with multiple USPTO patent and trademark data APIs:
 7. PatentsView API - UNAVAILABLE (shut down March 2026; data migrated to ODP bulk datasets)
 8. Office Action APIs - UNAVAILABLE (decommissioned early 2026, pending ODP migration)
 
-The server uses stdio transport for Claude Code/Cursor integration.
+The server speaks stdio by default, for Claude Code/Cursor integration, and
+can also serve the MCP endpoint over streamable HTTP for remote deployments
+(``--transport streamable-http``). The HTTP mode is stateless: no per-client
+state is kept between requests, so it can run behind a load balancer with
+several workers and no session affinity.
 
-Version: 1.0.0
+Version: 1.1.0
 """
-import atexit
+import argparse
 import json
 import logging
 import sys
 from typing import Any, Dict, List, Optional, Union
 
+import anyio
 from mcp.server.fastmcp import FastMCP
 from pydantic import ValidationError
 
-from patent_mcp_server.config import config
+from patent_mcp_server.config import config, LOOPBACK_HOSTS, VALID_TRANSPORTS
 from patent_mcp_server.constants import (
     Sources, Fields, Defaults, PatentsViewEndpoints
 )
@@ -72,6 +77,12 @@ mcp = FastMCP(
         "get_trademark_status_code. Use check_api_status to see which "
         "sources are configured and available."
     ),
+    # Transport defaults; main() overrides these from command-line flags.
+    host=config.MCP_HOST,
+    port=config.MCP_PORT,
+    streamable_http_path=config.MCP_PATH,
+    stateless_http=config.MCP_STATELESS,
+    json_response=config.MCP_JSON_RESPONSE,
 )
 
 # Set up logging with configured level
@@ -101,9 +112,15 @@ tmsearch_client = TmSearchClient()
 tm_assignment_client = TmAssignmentClient()
 
 
-# Register cleanup handler
 async def cleanup():
-    """Clean up resources on shutdown."""
+    """Close every USPTO HTTP client.
+
+    Runs once when the server stops, inside the same event loop the clients
+    were used on. Note this deliberately is *not* wired up as a FastMCP
+    lifespan: in stateless HTTP mode the low-level server — and therefore its
+    lifespan — is entered once per request, which would close these clients
+    after the first tool call.
+    """
     logger.info("Shutting down USPTO Patent MCP server, cleaning up resources...")
     try:
         await ppubs_client.close()
@@ -118,32 +135,6 @@ async def cleanup():
         logger.info("Cleanup completed successfully")
     except Exception as e:
         logger.error(f"Error during cleanup: {str(e)}")
-
-
-# Register cleanup with atexit (best effort for stdio shutdown)
-def sync_cleanup():
-    """Synchronous cleanup wrapper for atexit."""
-    import asyncio
-    try:
-        try:
-            loop = asyncio.get_running_loop()
-            if loop.is_running():
-                loop.create_task(cleanup())
-                return
-        except RuntimeError:
-            pass
-
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(cleanup())
-        finally:
-            loop.close()
-    except Exception as e:
-        logger.debug(f"Cleanup during shutdown (non-critical): {str(e)}")
-
-
-atexit.register(sync_cleanup)
 
 
 # =====================================================================
@@ -2347,10 +2338,103 @@ async def get_party_litigation(
 # Main entry point
 # =====================================================================
 
+def build_arg_parser() -> argparse.ArgumentParser:
+    """Command-line interface for the server."""
+    parser = argparse.ArgumentParser(
+        prog="patent-mcp-server",
+        description="MCP server for USPTO patent and trademark data.",
+    )
+    parser.add_argument(
+        "--transport",
+        choices=sorted(VALID_TRANSPORTS),
+        default=config.MCP_TRANSPORT,
+        help=(
+            "How to serve MCP. 'stdio' (the default) is what Claude Desktop "
+            "and Claude Code launch locally; 'streamable-http' serves a "
+            "network endpoint for shared deployments."
+        ),
+    )
+    parser.add_argument(
+        "--host",
+        default=config.MCP_HOST,
+        help="Address to bind when serving over HTTP (default: %(default)s).",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=config.MCP_PORT,
+        help="Port to bind when serving over HTTP (default: %(default)s).",
+    )
+    parser.add_argument(
+        "--path",
+        default=config.MCP_PATH,
+        help="URL path for the MCP endpoint (default: %(default)s).",
+    )
+    parser.add_argument(
+        "--stateful",
+        action=argparse.BooleanOptionalAction,
+        default=not config.MCP_STATELESS,
+        help=(
+            "Keep per-client session state between HTTP requests. Off by "
+            "default; enabling it pins each client to one process, so it "
+            "needs session affinity to scale."
+        ),
+    )
+    parser.add_argument(
+        "--json-response",
+        action=argparse.BooleanOptionalAction,
+        default=config.MCP_JSON_RESPONSE,
+        help="Reply with a single JSON response instead of an SSE stream.",
+    )
+    return parser
+
+
+async def serve(transport: str) -> None:
+    """Run the server on ``transport`` and close the HTTP clients afterwards.
+
+    Cleanup lives here rather than in an atexit hook so it runs inside the
+    same event loop the clients were opened on.
+    """
+    try:
+        if transport == "streamable-http":
+            await mcp.run_streamable_http_async()
+        else:
+            await mcp.run_stdio_async()
+    finally:
+        await cleanup()
+
+
 def main():
-    """Initialize and run the server with stdio transport."""
-    logger.info("Starting USPTO Patent & Trademark MCP server with stdio transport")
-    mcp.run(transport='stdio')
+    """Initialize and run the server."""
+    args = build_arg_parser().parse_args()
+
+    # FastMCP reads these when the transport starts, so setting them here
+    # lets the command line override the environment.
+    mcp.settings.host = args.host
+    mcp.settings.port = args.port
+    mcp.settings.streamable_http_path = args.path
+    mcp.settings.stateless_http = not args.stateful
+    mcp.settings.json_response = args.json_response
+
+    if args.transport == "streamable-http":
+        mode = "stateful" if args.stateful else "stateless"
+        logger.info(
+            f"Starting USPTO Patent & Trademark MCP server on "
+            f"http://{args.host}:{args.port}{args.path} ({mode})"
+        )
+        if args.host not in LOOPBACK_HOSTS:
+            logger.warning(
+                "This endpoint is reachable beyond this machine and performs "
+                "no authentication of its own. It holds your USPTO and TSDR "
+                "API keys — put it behind an authenticating reverse proxy."
+            )
+    else:
+        logger.info("Starting USPTO Patent & Trademark MCP server with stdio transport")
+
+    try:
+        anyio.run(serve, args.transport)
+    except KeyboardInterrupt:
+        logger.info("Server stopped")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,11 @@ This file provides guidance for Claude Code and other AI assistants working on t
 
 This is a Model Context Protocol (MCP) server that provides access to USPTO patent and trademark data through multiple APIs. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
 
-**Current state (v1.0.0):** 61 registered tools, 36 active, 25 unavailable due to API shutdowns:
+**Transports:** `stdio` by default (Claude Desktop/Code), or `--transport streamable-http` for remote hosting. HTTP mode is stateless by default so it scales across workers without session affinity. Two things to know before touching the server lifecycle:
+- **Do not move client shutdown into a FastMCP `lifespan`.** In stateless HTTP mode the low-level server is entered once *per request*, so a lifespan would close the nine httpx clients after the first tool call. Shutdown lives in `serve()` in `patents.py`, inside the same event loop the clients were opened on.
+- **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
+
+**Current state (v1.1.0):** 61 registered tools, 36 active, 25 unavailable due to API shutdowns:
 - **Active:** PPUBS (5), ODP (12), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
 - **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16)
 
@@ -23,10 +27,12 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 
 ```bash
 uv run pytest
-# Expected: ~359 passed, ~54 deselected (integration tests skipped by default)
+# Expected: ~378 passed, ~54 deselected (integration tests skipped by default)
 ```
 
 If tests fail, fix them before committing. Do not skip or delete failing tests unless the functionality has been intentionally removed.
+
+`.github/workflows/tests.yml` runs the same suite on every push to `main` and every pull request, across Python 3.10–3.13. Integration tests stay deselected there, so CI needs no API keys and no network access to USPTO.
 
 ### Release Workflow
 

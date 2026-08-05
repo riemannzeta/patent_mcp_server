@@ -197,7 +197,7 @@ async def test_make_request_success(ppubs_client):
 async def test_make_request_session_expired_refresh(ppubs_client, mock_session_data):
     """Test automatic session refresh on 403 error."""
     with patch.object(ppubs_client.client, 'request', new_callable=AsyncMock) as mock_request:
-        with patch.object(ppubs_client, 'get_session', new_callable=AsyncMock) as mock_get_session:
+        with patch.object(ppubs_client, '_refresh_session', new_callable=AsyncMock) as mock_refresh:
             # First response: 403 (session expired)
             expired_response = MagicMock()
             expired_response.status_code = 403
@@ -209,12 +209,13 @@ async def test_make_request_session_expired_refresh(ppubs_client, mock_session_d
             success_response.text = '{"result": "success"}'
 
             mock_request.side_effect = [expired_response, success_response]
-            mock_get_session.return_value = mock_session_data
+            mock_refresh.return_value = mock_session_data
 
             response = await ppubs_client.make_request("GET", "http://test.com")
 
-            # Should have refreshed session
-            mock_get_session.assert_called_once()
+            # Should have refreshed session, passing the token that was rejected
+            # so a concurrent refresh isn't duplicated
+            mock_refresh.assert_called_once_with(stale_token=None)
 
             # Should have retried request
             assert mock_request.call_count == 2
@@ -548,3 +549,117 @@ async def test_ppubs_download_patent_pdf_tool_passes_full_signature():
         patent_doc["pageCount"],
         patent_doc["type"],
     )
+
+
+# ============================================================================
+# Session Concurrency Tests
+# ============================================================================
+
+def _session_post_mock(mock_session_data):
+    """A POST mock that answers session-creation requests."""
+    response = MagicMock()
+    response.status_code = 200
+    response.json.return_value = mock_session_data
+    response.headers = {"X-Access-Token": "test-token-123"}
+    response.text = json.dumps(mock_session_data)
+    return response
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_concurrent_get_session_establishes_once(ppubs_client, mock_session_data):
+    """Parallel callers share one session instead of each creating their own.
+
+    Without the lock every concurrent tool call resets the cookie jar and
+    races to swap the access token, so the requests that are already in
+    flight end up signed with a half-replaced session.
+    """
+    async def slow_get(*args, **kwargs):
+        # A real suspension point, so the other callers get a chance to run
+        # mid-establishment. Without it the mocks never yield and the
+        # coroutines run one after another, which would hide the race.
+        await asyncio.sleep(0.01)
+        return MagicMock(status_code=200)
+
+    async def slow_post(*args, **kwargs):
+        await asyncio.sleep(0.01)
+        return _session_post_mock(mock_session_data)
+
+    with patch.object(ppubs_client.client, 'get', side_effect=slow_get):
+        with patch.object(ppubs_client.client, 'post', side_effect=slow_post) as mock_post:
+            results = await asyncio.gather(*(ppubs_client.get_session() for _ in range(5)))
+
+            # One establishment, and everyone got the same session back.
+            assert mock_post.call_count == 1
+            assert all(r == mock_session_data for r in results)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_refresh_skipped_when_another_caller_already_refreshed(
+    ppubs_client, mock_session_data
+):
+    """A 403 does not discard a session that someone else just replaced."""
+    ppubs_client.session = mock_session_data
+    ppubs_client.access_token = "current-token"
+
+    with patch.object(ppubs_client.client, 'post', new_callable=AsyncMock) as mock_post:
+        # The caller's request was signed with a token that has since been
+        # superseded, so there is nothing left to refresh.
+        result = await ppubs_client._refresh_session(stale_token="already-replaced")
+
+        mock_post.assert_not_called()
+        assert result == mock_session_data
+        assert ppubs_client.access_token == "current-token"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_refresh_proceeds_when_token_is_still_current(ppubs_client, mock_session_data):
+    """A 403 on the newest token does establish a replacement session."""
+    ppubs_client.access_token = "stale-token"
+
+    with patch.object(ppubs_client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(ppubs_client.client, 'post', new_callable=AsyncMock) as mock_post:
+            mock_get.return_value = MagicMock(status_code=200)
+            mock_post.return_value = _session_post_mock(mock_session_data)
+
+            await ppubs_client._refresh_session(stale_token="stale-token")
+
+            assert ppubs_client.access_token == "test-token-123"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_token_is_sent_per_request(ppubs_client):
+    """The session token rides on each request, not on the shared client.
+
+    Keeping it off the client's default headers means a refresh cannot
+    change the credentials of a request that has already been built.
+    """
+    ppubs_client.access_token = "test-token-123"
+
+    with patch.object(ppubs_client.client, 'request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = MagicMock(status_code=200, text="{}")
+
+        await ppubs_client.make_request("GET", "http://test.com")
+
+        sent = mock_request.call_args.kwargs["headers"]
+        assert sent["X-Access-Token"] == "test-token-123"
+        assert "X-Access-Token" not in ppubs_client.client.headers
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_caller_supplied_token_is_preserved(ppubs_client):
+    """An explicit token wins, so session creation can send its placeholder."""
+    ppubs_client.access_token = "test-token-123"
+
+    with patch.object(ppubs_client.client, 'request', new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = MagicMock(status_code=200, text="{}")
+
+        await ppubs_client.make_request(
+            "POST", "http://test.com", headers={"X-Access-Token": "null"}
+        )
+
+        assert mock_request.call_args.kwargs["headers"]["X-Access-Token"] == "null"
