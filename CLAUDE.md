@@ -6,9 +6,15 @@ This file provides guidance for Claude Code and other AI assistants working on t
 
 This is a Model Context Protocol (MCP) server that provides access to USPTO patent and trademark data through multiple APIs. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
 
-**Current state (v1.1.0):** 69 registered tools, 48 active, 21 unavailable due to API shutdowns:
+**Transports:** `stdio` by default (Claude Desktop/Code), or `--transport streamable-http` for remote hosting. HTTP mode is stateless by default so it scales across workers without session affinity. Two things to know before touching the server lifecycle:
+- **Do not move client shutdown into a FastMCP `lifespan`.** In stateless HTTP mode the low-level server is entered once *per request*, so a lifespan would close the httpx clients after the first tool call. Shutdown lives in `serve()` in `patents.py`, inside the same event loop the clients were opened on.
+- **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
+
+**Current state (v1.1.1):** 69 registered tools, 48 active, 21 unavailable due to API shutdowns:
 - **Active:** PPUBS (5), ODP (12), PTAB (7), TSDR (4), Trademark search/assignments (3), Federal litigation (8 `litigation_*` + 4 revived legacy litigation tools), Utility (5)
 - **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026)
+
+**PPUBS search syntax (verified live 2026-08-05):** field qualifiers are dotted suffixes (`.ti.`, `.ab.`, `.clm.`, `.spec.`, `.in.`, `.as.`, `.pn.`, `.cpc.`, `@pd`/`@ad` date ranges). The legacy slash-prefix forms (`TTL/`, `IN/`, `AN/`, `CPC/`) no longer work on the live API — they silently return 0 results, and `TTL/"phrase"` returns a server 500. The PDF download endpoint is `/api/print/save/{pdfName}` (the old `/api/internal/print/save/` path 404s).
 
 **Federal litigation backend (`courtlistener_client.py`):** CourtListener / RECAP REST API v4 (Free Law Project) at `www.courtlistener.com/api/rest/v4`. Auth via `Authorization: Token <COURTLISTENER_API_KEY>`. Full-text `/search/?type=r|o|rd` works anonymously (lower rate limit); detail endpoints (`/dockets/{id}/`, `/opinions/{id}/`, `/recap-documents/{id}/`) return 401 without a token — the client maps that to `COURTLISTENER_AUTH_REQUIRED` with setup guidance. Pagination is cursor-based (`next`/`previous` surfaced in envelope metadata). Single-document text capped at `LitigationDefaults.MAX_TEXT_CHARS`. PACER fallback (`litigation_get_document(allow_pacer_fetch=True)`) posts to `/recap-fetch/` with `PACER_USERNAME`/`PACER_PASSWORD` (per-page fees); returns `PACER_NOT_CONFIGURED` when creds are absent. The 4 legacy tools (`search_litigation`, `get_litigation_case`, `get_patent_litigation`, `get_party_litigation`) are now live aliases over this client (closes issue #16). Verified live 2026-06-14.
 
@@ -25,10 +31,12 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 
 ```bash
 uv run pytest
-# Expected: ~359 passed, ~54 deselected (integration tests skipped by default)
+# Expected: ~389 passed, ~57 deselected (integration tests skipped by default)
 ```
 
 If tests fail, fix them before committing. Do not skip or delete failing tests unless the functionality has been intentionally removed.
+
+`.github/workflows/tests.yml` runs the same suite on every push to `main` and every pull request, across Python 3.10–3.13. Integration tests stay deselected there, so CI needs no API keys and no network access to USPTO.
 
 ### Playbooks
 

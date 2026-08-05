@@ -619,25 +619,28 @@ SEARCH_SYNTAX_GUIDE = """
 
 ## PPUBS (Patent Public Search)
 
-PPUBS uses a field-based search syntax:
+PPUBS uses dotted-suffix field qualifiers (`term.field.`). The legacy
+slash-prefix forms (`TTL/`, `IN/`, `AN/`, `CPC/`) no longer work — they
+silently return 0 results, and `TTL/"phrase"` returns a server error.
 
-### Common Fields:
-- `TTL/` - Title
-- `ABST/` - Abstract
-- `ACLM/` - All Claims
-- `SPEC/` - Specification/Description
-- `ISD/` - Issue Date (format: YYYYMMDD)
-- `APD/` - Application Date
-- `IN/` - Inventor Name
-- `AN/` - Assignee Name
-- `PN/` - Patent Number
-- `CPC/` - CPC Classification
+### Common Fields (verified live 2026-08-05):
+- `.ti.` - Title
+- `.ab.` - Abstract
+- `.clm.` - Claims
+- `.spec.` - Specification/Description
+- `.in.` - Inventor Name
+- `.as.` - Assignee Name
+- `.pn.` - Patent Number
+- `.cpc.` - CPC Classification
+- `@pd` - Publication/issue date (format: YYYYMMDD)
+- `@ad` - Application date
 
 ### Example Queries:
-- `TTL/"machine learning"` - Title contains "machine learning"
-- `IN/Smith AND AN/IBM` - Inventor Smith, assigned to IBM
-- `CPC/G06N3/08` - Neural network patents
-- `ISD/20230101->20231231` - Patents issued in 2023
+- `"machine learning".ti.` - Title contains "machine learning"
+- `smith.in. AND IBM.as.` - Inventor Smith, assigned to IBM
+- `G06N3/08.cpc.` - Neural network patents
+- `@pd>="20230101"<="20231231"` - Patents issued in 2023
+- `photolithography.ti. AND @pd>="20200101"` - combined
 
 ---
 

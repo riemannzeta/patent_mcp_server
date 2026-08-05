@@ -72,6 +72,14 @@ class PpubsClient:
         # Session caching
         self.session_expires_at: Optional[datetime] = None
 
+        # Serializes session establishment. Several tool calls can run
+        # concurrently against this one client (always so over HTTP, and
+        # whenever a client issues parallel tool calls over stdio), and each
+        # of them resetting the cookie jar and swapping the access token at
+        # the same time would leave the others signing requests with a
+        # half-replaced session.
+        self._session_lock = asyncio.Lock()
+
         # Load search query template
         script_dir = Path(__file__).parent.parent
         search_query_path = script_dir / "json" / "search_query.json"
@@ -86,18 +94,58 @@ class PpubsClient:
         """Async context manager exit with cleanup."""
         await self.close()
 
+    def _session_is_cached(self) -> bool:
+        """Whether the cached session is still usable."""
+        if not (config.ENABLE_CACHING and self.session_expires_at):
+            return False
+        return datetime.now() < self.session_expires_at
+
+    def _auth_headers(self) -> Dict[str, str]:
+        """Session headers for a single request.
+
+        The token is attached per request rather than stored on the shared
+        client's default headers, so a session refresh cannot retroactively
+        change the credentials of a request that is already in flight.
+        """
+        return {"X-Access-Token": self.access_token} if self.access_token else {}
+
     async def get_session(self) -> Optional[Dict[str, Any]]:
         """Establish a session with USPTO Public Search.
 
-        Uses caching to avoid unnecessary session creation.
+        Uses caching to avoid unnecessary session creation. Concurrent
+        callers share a single establishment rather than each starting their
+        own.
         """
-        # Check if cached session is still valid
-        if config.ENABLE_CACHING and self.session_expires_at:
-            if datetime.now() < self.session_expires_at:
+        if self._session_is_cached():
+            logger.info("Using cached session")
+            return self.session
+
+        async with self._session_lock:
+            # Re-check inside the lock: another caller may have established a
+            # session while we were waiting for it.
+            if self._session_is_cached():
                 logger.info("Using cached session")
                 return self.session
+            return await self._establish_session()
 
+    async def _refresh_session(self, stale_token: Optional[str]) -> Optional[Dict[str, Any]]:
+        """Replace a session that a request found expired.
+
+        ``stale_token`` is the token the failed request actually used. If it
+        no longer matches the current one, another caller has already
+        refreshed and we reuse their session instead of discarding it.
+        """
+        async with self._session_lock:
+            if self.access_token != stale_token:
+                logger.info("Session already refreshed by another request")
+                return self.session
+            return await self._establish_session()
+
+    async def _establish_session(self) -> Optional[Dict[str, Any]]:
+        """Create a new upstream session. Callers must hold ``_session_lock``."""
         logger.info("Establishing new session with USPTO Public Search")
+        # Drop cookies belonging to the dead session before asking for a new
+        # one. Serialized by the lock, so this happens once per refresh.
         self.client.cookies = httpx.Cookies()
 
         try:
@@ -125,7 +173,6 @@ class PpubsClient:
             self.session = response.json()
             self.case_id = self.session["userCase"]["caseId"]
             self.access_token = response.headers["X-Access-Token"]
-            self.client.headers["X-Access-Token"] = self.access_token
 
             # Set session expiration
             if config.ENABLE_CACHING:
@@ -139,6 +186,21 @@ class PpubsClient:
         except Exception as e:
             logger.error(f"Error establishing session: {str(e)}")
             return None
+
+    @staticmethod
+    def _with_auth(kwargs: Dict[str, Any], token: Optional[str]) -> Dict[str, Any]:
+        """Copy request kwargs with the session token added to the headers.
+
+        An explicit ``X-Access-Token`` supplied by the caller wins, which is
+        what lets session creation send its own placeholder token.
+        """
+        if not token:
+            return kwargs
+        merged = dict(kwargs)
+        headers = dict(merged.get("headers") or {})
+        headers.setdefault("X-Access-Token", token)
+        merged["headers"] = headers
+        return merged
 
     @retry(
         stop=stop_after_attempt(config.MAX_RETRIES),
@@ -162,13 +224,20 @@ class PpubsClient:
             httpx.Response object or error dictionary
         """
         try:
-            response = await self.client.request(method, url, **kwargs)
+            # Capture the token this attempt is signed with, so that if it is
+            # rejected we only refresh when nobody else already has.
+            token = self.access_token
+            response = await self.client.request(
+                method, url, **self._with_auth(kwargs, token)
+            )
 
             # Handle 403 (Session expired)
             if response.status_code == 403:
                 logger.info("Session expired, refreshing")
-                await self.get_session()
-                response = await self.client.request(method, url, **kwargs)
+                await self._refresh_session(stale_token=token)
+                response = await self.client.request(
+                    method, url, **self._with_auth(kwargs, self.access_token)
+                )
 
             # Handle rate limiting
             if response.status_code == 429:
@@ -180,7 +249,9 @@ class PpubsClient:
                 ) + 1
                 logger.info(f"Rate limited, waiting {wait_time} seconds")
                 await asyncio.sleep(wait_time)
-                response = await self.client.request(method, url, **kwargs)
+                response = await self.client.request(
+                    method, url, **self._with_auth(kwargs, self.access_token)
+                )
 
             # Log response body for debugging
             logger.debug(f"Response body for {method} {url}: {response.text}")
@@ -193,6 +264,17 @@ class PpubsClient:
         except Exception as e:
             logger.error(f"Request error: {str(e)}")
             return ApiError.from_exception(e, f"Request to {url} failed")
+
+    async def _ensure_case_id(self) -> Optional[str]:
+        """Return the case id of the current session, establishing one if needed.
+
+        Callers should use the returned value rather than re-reading
+        ``self.case_id``, so that a concurrent refresh cannot swap the case id
+        out from under a request that is mid-assembly.
+        """
+        if self.case_id is None:
+            await self.get_session()
+        return self.case_id
 
     async def run_query(
         self,
@@ -225,8 +307,7 @@ class PpubsClient:
             sources = [Sources.PUBLISHED_APPLICATIONS, Sources.GRANTED_PATENTS, Sources.OCR]
 
         # Ensure we have a session
-        if self.case_id is None:
-            await self.get_session()
+        case_id = await self._ensure_case_id()
 
         logger.info(f"Running query: {query}")
 
@@ -236,7 +317,7 @@ class PpubsClient:
         data["start"] = start
         data["pageCount"] = min(limit, Defaults.SEARCH_LIMIT_MAX)
         data["sort"] = sort
-        data["query"]["caseId"] = self.case_id
+        data["query"]["caseId"] = case_id
         data["query"]["op"] = default_operator
         data["query"]["q"] = query
         data["query"]["queryName"] = query
@@ -296,8 +377,7 @@ class PpubsClient:
             Dictionary containing document data or error
         """
         # Ensure we have a session
-        if self.case_id is None:
-            await self.get_session()
+        await self._ensure_case_id()
 
         logger.info(f"Getting document: {guid}")
 
@@ -345,8 +425,7 @@ class PpubsClient:
             Print job ID string or error dictionary
         """
         # Ensure we have a session
-        if self.case_id is None:
-            await self.get_session()
+        case_id = await self._ensure_case_id()
 
         logger.info(f"Requesting PDF save for: {guid}")
 
@@ -358,12 +437,13 @@ class PpubsClient:
         response = await self.client.post(
             f"{config.PPUBS_BASE_URL}/api/print/imageviewer",
             json={
-                "caseId": self.case_id,
+                "caseId": case_id,
                 "pageKeys": page_keys,
                 "patentGuid": guid,
                 "saveOrPrint": "save",
                 "source": document_type,
             },
+            headers=self._auth_headers(),
         )
 
         if response.status_code == 500:
@@ -393,8 +473,7 @@ class PpubsClient:
             Dictionary with PDF content (base64) or error
         """
         # Ensure we have a session
-        if self.case_id is None:
-            await self.get_session()
+        await self._ensure_case_id()
 
         logger.info(f"Downloading document images for: {guid}")
 
@@ -411,6 +490,7 @@ class PpubsClient:
                 response = await self.client.post(
                     f"{config.PPUBS_BASE_URL}/api/print/print-process",
                     json=[print_job_id],
+                    headers=self._auth_headers(),
                 )
 
                 if response.status_code != 200:
@@ -433,7 +513,8 @@ class PpubsClient:
             logger.info(f"Downloading PDF: {pdf_name}")
             request = self.client.build_request(
                 HTTPMethods.GET,
-                f"{config.PPUBS_BASE_URL}/api/internal/print/save/{pdf_name}",
+                f"{config.PPUBS_BASE_URL}/api/print/save/{pdf_name}",
+                headers=self._auth_headers(),
             )
 
             response = await self.client.send(request, stream=True)

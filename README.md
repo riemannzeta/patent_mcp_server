@@ -23,6 +23,8 @@ This server provides **69 tools** across 10 patent/trademark data sources (48 ac
 9. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
 10. **Federal Litigation Documents** - Public briefs, judicial orders, and judicial opinions from patent lawsuits (district courts) and appeals (Federal Circuit) via CourtListener / RECAP
 
+It runs locally over stdio for Claude Desktop and Claude Code, or over HTTP as a shared, stateless service — see [Remote hosting over HTTP](#remote-hosting-over-http).
+
 > **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. All 21 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
 
 ## API Sources
@@ -127,6 +129,14 @@ PACER_PASSWORD=...                # Optional - paired with PACER_USERNAME
 # Logging
 LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
+# MCP Transport (see "Remote hosting over HTTP" below)
+MCP_TRANSPORT=stdio    # stdio (default) or streamable-http
+MCP_HOST=127.0.0.1     # Bind address when serving over HTTP
+MCP_PORT=8000          # Port when serving over HTTP
+MCP_PATH=/mcp          # URL path of the MCP endpoint
+MCP_STATELESS=true     # Keep no per-client state between HTTP requests
+MCP_JSON_RESPONSE=false # Reply with plain JSON instead of an SSE stream
+
 # HTTP Settings
 REQUEST_TIMEOUT=30.0  # Request timeout in seconds
 MAX_RETRIES=3         # Maximum number of retry attempts
@@ -181,6 +191,48 @@ claude mcp add-json patents '{"command": "uv", "args": ["--directory", "/path/to
 ```
 
 If you're already running Claude Code, you'll have to /exit and restart. Then /mcp to verify that it's configured.
+
+## Remote hosting over HTTP
+
+The server speaks stdio by default, which is what the Claude Desktop and
+Claude Code configurations above launch. It can instead serve the MCP
+endpoint over HTTP, so one deployment can back a whole team rather than
+every person running their own copy with their own API keys:
+
+```shell
+patent-mcp-server --transport streamable-http --host 0.0.0.0 --port 8000
+```
+
+The endpoint is then at `http://<host>:8000/mcp`. Point an MCP client at
+that URL — in Claude Code:
+
+```shell
+claude mcp add --transport http patents http://your-host:8000/mcp
+```
+
+**This endpoint has no authentication of its own, and it holds your USPTO
+and TSDR API keys.** Anyone who can reach it can spend your USPTO rate
+limits. Bind to `127.0.0.1` (the default) and put an authenticating reverse
+proxy in front of it, or otherwise restrict network access. The server logs
+a warning at startup when it is bound to anything other than loopback.
+
+Requests are stateless by default: the server keeps no per-client state
+between them, so it can run behind a load balancer with several replicas
+and no session affinity. Each worker holds its own upstream USPTO Public
+Search session, which it establishes on demand and refreshes when it
+expires.
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--transport` | `stdio` | `stdio` or `streamable-http` |
+| `--host` | `127.0.0.1` | Bind address for HTTP |
+| `--port` | `8000` | Port for HTTP |
+| `--path` | `/mcp` | URL path of the MCP endpoint |
+| `--stateful` / `--no-stateful` | off | Keep per-client session state; needs session affinity to scale |
+| `--json-response` / `--no-json-response` | off | Reply with plain JSON instead of an SSE stream |
+
+Each flag has a matching environment variable (see Configuration above);
+the command line wins where both are set.
 
 ## Available Tools
 
@@ -351,6 +403,8 @@ uv run pytest --cov=patent_mcp_server
 
 Test results are stored in `/test/test_results/`.
 
+The unit suite also runs in CI on every push to `main` and every pull request, across Python 3.10–3.13 (`.github/workflows/tests.yml`). Integration tests stay deselected there, so CI needs no API keys.
+
 ### Development
 
 To install development dependencies:
@@ -374,7 +428,7 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.1.0 (Current)
+### Unreleased
 - **Federal litigation documents**: 8 new `litigation_*` tools backed by [CourtListener / RECAP](https://www.courtlistener.com/) (Free Law Project) for public briefs, judicial orders, and judicial opinions from patent lawsuits (district courts) and appeals (Federal Circuit, `court="cafc"`)
   - `litigation_search_cases`, `litigation_get_case`, `litigation_get_patent_cases`, `litigation_get_party_cases` (dockets/cases)
   - `litigation_list_documents`, `litigation_get_document` (briefs, motions, orders — metadata + extracted text + PDF link, with optional PACER fallback)
@@ -383,6 +437,19 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 - Full-text search works without a key; retrieving a specific case/document/opinion requires a free `COURTLISTENER_API_KEY`. Optional `PACER_USERNAME`/`PACER_PASSWORD` enable on-demand PACER fetches for filings not yet in RECAP
 - New client `uspto/courtlistener_client.py`; new env vars `COURTLISTENER_API_KEY`, `COURTLISTENER_BASE_URL`, `PACER_USERNAME`, `PACER_PASSWORD`
 - Tool count: 69 registered (48 active, 21 unavailable)
+
+### v1.1.1 (Current)
+- **Fixed `ppubs_download_patent_pdf`**: USPTO moved the PDF download endpoint — the old `/api/internal/print/save/{pdfName}` path now returns 404; the client uses the live `/api/print/save/{pdfName}` endpoint (verified live 2026-08-05 with a real search, document fetch, and PDF download)
+- **Corrected PPUBS search syntax guidance**: the slash-prefix field qualifiers (`TTL/`, `IN/`, `AN/`, `CPC/`) no longer work on the live API — they silently return 0 results, and `TTL/"phrase"` returns a server 500. Search tool docstrings, the prior-art prompt, and the `patents://search-syntax` guide now teach the working dotted-suffix forms (`.ti.`, `.ab.`, `.clm.`, `.spec.`, `.in.`, `.as.`, `.pn.`, `.cpc.`, `@pd`/`@ad` date ranges), each verified live
+- Both breakages were USPTO-side drift predating v1.1.0 (confirmed by running the same live test against v1.0.0-era code)
+
+### v1.1.0
+- **Remote hosting over HTTP**: new `--transport streamable-http` mode serves the MCP endpoint over the network, so one deployment can back a whole team instead of every user running a local copy. `stdio` remains the default, so existing Claude Desktop and Claude Code configurations are unchanged. New flags `--host`, `--port`, `--path`, `--stateful`, `--json-response`, each with a matching `MCP_*` environment variable. See "Remote hosting over HTTP" for the security caveat — the endpoint holds your API keys and does not authenticate callers
+- **Stateless by default**: HTTP requests carry no per-client state, so the server can run behind a load balancer with several replicas and no session affinity
+- **Fixed a session race in the Public Search client** (affects stdio users too): concurrent tool calls each reset the shared cookie jar and raced to swap the access token, so requests already in flight could be signed with a half-replaced session. Session setup is now serialized, a 403 refresh is skipped when another call has already replaced the token, and the token travels per request instead of living on the shared client's default headers
+- **Fixed shutdown**: closing the nine HTTP clients no longer happens in an `atexit` hook that spun up a fresh event loop; it now runs in the loop the clients were opened on. Deliberately not a FastMCP lifespan — in stateless HTTP mode that runs once per request, which would close the clients after the first tool call
+- Raised the MCP SDK floor to `>=1.27` (was `>=1.3.0`, which allowed installs to resolve an SDK without streamable HTTP)
+- Added MCP protocol-layer tests: the suite previously called tool functions directly and never exercised schema generation, resource/prompt registration, or serialization. 19 new tests (378 total, up from 359)
 
 ### v1.0.0
 - **Trademark support**: 9 new trademark tools across three new clients, all verified against the live USPTO services on 2026-06-10

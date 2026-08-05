@@ -13,6 +13,13 @@ import logging
 # Load environment variables from .env file
 load_dotenv()
 
+# Transports this server can speak. The MCP "sse" transport is deliberately
+# omitted: it is deprecated in favour of streamable-http.
+VALID_TRANSPORTS = frozenset({"stdio", "streamable-http"})
+
+# Hosts that keep an HTTP deployment on the local machine only.
+LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
+
 
 class Config:
     """Centralized configuration class."""
@@ -63,8 +70,25 @@ class Config:
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
+    # MCP Transport
+    # "stdio" (default) keeps the local Claude Desktop/Code integration
+    # unchanged. "streamable-http" serves the MCP endpoint over HTTP for
+    # remote/shared deployments — see the hosting section of README.md, and
+    # note that an HTTP endpoint exposes the operator's USPTO API keys to
+    # anyone who can reach it, so it must sit behind authentication.
+    MCP_TRANSPORT: str = os.getenv("MCP_TRANSPORT", "stdio")
+    MCP_HOST: str = os.getenv("MCP_HOST", "127.0.0.1")
+    MCP_PORT: int = int(os.getenv("MCP_PORT", "8000"))
+    MCP_PATH: str = os.getenv("MCP_PATH", "/mcp")
+    # Stateless mode holds no per-client session state between requests, so
+    # the server can run behind a load balancer with several workers and no
+    # session affinity. Each worker keeps its own upstream USPTO session.
+    MCP_STATELESS: bool = os.getenv("MCP_STATELESS", "true").lower() == "true"
+    # Return a single JSON response per request instead of an SSE stream.
+    MCP_JSON_RESPONSE: bool = os.getenv("MCP_JSON_RESPONSE", "false").lower() == "true"
+
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.1.0")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.1.1")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry
@@ -144,9 +168,24 @@ class Config:
                 "free RECAP archive (incurs PACER per-page fees)."
             )
 
+        if cls.MCP_TRANSPORT not in VALID_TRANSPORTS:
+            logger.warning(
+                f"MCP_TRANSPORT={cls.MCP_TRANSPORT!r} is not recognized. "
+                f"Valid values are {sorted(VALID_TRANSPORTS)}. Falling back to 'stdio'."
+            )
+
+        if cls.MCP_TRANSPORT == "streamable-http" and cls.MCP_HOST not in LOOPBACK_HOSTS:
+            logger.warning(
+                f"Serving MCP over HTTP on {cls.MCP_HOST}:{cls.MCP_PORT}, which is "
+                "reachable beyond this machine. This server holds your USPTO and "
+                "TSDR API keys and performs no authentication of its own — put it "
+                "behind an authenticating reverse proxy or restrict network access."
+            )
+
         logger.info(f"Configuration loaded: LOG_LEVEL={cls.LOG_LEVEL}, "
                    f"TIMEOUT={cls.REQUEST_TIMEOUT}s, "
-                   f"CACHING={'enabled' if cls.ENABLE_CACHING else 'disabled'}")
+                   f"CACHING={'enabled' if cls.ENABLE_CACHING else 'disabled'}, "
+                   f"TRANSPORT={cls.MCP_TRANSPORT}")
 
 
 # Create singleton instance
