@@ -441,6 +441,42 @@ async def test_download_image_success(ppubs_client):
                     assert result["content_type"] == "application/pdf"
 
 
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_download_image_uses_current_save_endpoint(ppubs_client):
+    """Regression: USPTO moved the PDF download endpoint. The old
+    /api/internal/print/save/{pdfName} path returns 404 ("No static
+    resource"); the live endpoint is /api/print/save/{pdfName}
+    (verified live 2026-08-05)."""
+    ppubs_client.case_id = "test-case-123456"
+
+    with patch.object(ppubs_client, '_request_save', new_callable=AsyncMock) as mock_request_save:
+        with patch.object(ppubs_client.client, 'post', new_callable=AsyncMock) as mock_post:
+            with patch.object(ppubs_client.client, 'build_request') as mock_build:
+                with patch.object(ppubs_client.client, 'send', new_callable=AsyncMock) as mock_send:
+                    mock_request_save.return_value = MOCK_PDF_REQUEST_RESPONSE
+
+                    status_response = MagicMock()
+                    status_response.status_code = 200
+                    status_response.json.return_value = MOCK_PDF_STATUS_COMPLETED
+                    mock_post.return_value = status_response
+
+                    pdf_response = MagicMock()
+                    pdf_response.status_code = 200
+                    pdf_response.aread = AsyncMock(return_value=b"%PDF-fake")
+                    mock_send.return_value = pdf_response
+                    mock_build.return_value = MagicMock()
+
+                    await ppubs_client.download_image(
+                        "US-9876543-B2", "US/09/876/543", 10, "USPAT"
+                    )
+
+                    download_url = mock_build.call_args[0][1]
+                    pdf_name = MOCK_PDF_STATUS_COMPLETED[0]["pdfName"]
+                    assert download_url.endswith(f"/api/print/save/{pdf_name}")
+                    assert "/api/internal/" not in download_url
+
+
 # ============================================================================
 # Resource Cleanup Tests
 # ============================================================================

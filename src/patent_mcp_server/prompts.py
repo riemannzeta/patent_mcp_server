@@ -40,17 +40,17 @@ Search within relevant CPC classifications:
 
 ```
 Use ppubs_search_patents with CPC field qualifiers:
-- CPC/G06N3/08 - search a specific classification
-- Combine with keywords: CPC/G06N AND "transformer"
+- G06N3/08.cpc. - search a specific classification
+- Combine with keywords: G06N.cpc. AND "transformer"
 ```
 
 ## Step 5: Inventor/Assignee Search
 Find patents from key players in the field:
 
 ```
-Use ppubs_search_patents with IN/ and AN/ qualifiers:
-- IN/Smith - patents by inventor Smith
-- AN/"International Business Machines" - assignee search
+Use ppubs_search_patents with .in. and .as. qualifiers:
+- smith.in. - patents by inventor Smith
+- "International Business Machines".as. - assignee search
 ```
 
 ## Step 6: Examiner Citation Review

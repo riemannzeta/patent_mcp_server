@@ -574,12 +574,16 @@ async def ppubs_search_patents(
                must appear together. Examples:
                - '"machine learning"' - exact phrase, all fields
                - machine learning - both terms anywhere (AND)
-               - TTL/"neural network" - title contains phrase
-               - IN/Smith AND AN/IBM - inventor Smith, assignee IBM
-               - CPC/G06N3/08 - CPC classification
+               - '"neural network".ti.' - title contains phrase
+               - smith.in. AND IBM.as. - inventor Smith, assignee IBM
+               - G06N3/08.cpc. - CPC classification
+               Field qualifiers are dotted suffixes (.ti., .ab., .in.,
+               .as., .cpc., .pn.) — the legacy slash-prefix forms
+               (TTL/, IN/, AN/, CPC/) no longer work: they silently
+               return 0 results, and TTL/"phrase" returns a server 500.
                Default `sort="date_publ desc"` means broad queries return
                the latest grants first — narrow with field qualifiers
-               (TTL/, AB/, IN/, AN/, CPC/) to get relevant matches.
+               to get relevant matches.
         offset: Starting position for pagination (default: 0)
         limit: Maximum results to return (default: 100, max: 500)
         sort: Sort order (default: "date_publ desc")
@@ -619,7 +623,9 @@ async def ppubs_search_applications(
         query: Search query using USPTO BRS syntax (same as
                ppubs_search_patents). Multi-word terms are AND-ed —
                quote phrases that must appear together (e.g.
-               '"machine learning"').
+               '"machine learning"'). Field qualifiers are dotted
+               suffixes (.ti., .ab., .in., .as., .cpc.) — the legacy
+               slash-prefix forms (TTL/, IN/) no longer work.
         offset: Starting position for pagination (default: 0)
         limit: Maximum results to return (default: 100, max: 500)
         sort: Sort order (default: "date_publ desc")
