@@ -416,7 +416,12 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.1.0 (Current)
+### v1.1.1 (Current)
+- **Fixed `ppubs_download_patent_pdf`**: USPTO moved the PDF download endpoint — the old `/api/internal/print/save/{pdfName}` path now returns 404; the client uses the live `/api/print/save/{pdfName}` endpoint (verified live 2026-08-05 with a real search, document fetch, and PDF download)
+- **Corrected PPUBS search syntax guidance**: the slash-prefix field qualifiers (`TTL/`, `IN/`, `AN/`, `CPC/`) no longer work on the live API — they silently return 0 results, and `TTL/"phrase"` returns a server 500. Search tool docstrings, the prior-art prompt, and the `patents://search-syntax` guide now teach the working dotted-suffix forms (`.ti.`, `.ab.`, `.clm.`, `.spec.`, `.in.`, `.as.`, `.pn.`, `.cpc.`, `@pd`/`@ad` date ranges), each verified live
+- Both breakages were USPTO-side drift predating v1.1.0 (confirmed by running the same live test against v1.0.0-era code)
+
+### v1.1.0
 - **Remote hosting over HTTP**: new `--transport streamable-http` mode serves the MCP endpoint over the network, so one deployment can back a whole team instead of every user running a local copy. `stdio` remains the default, so existing Claude Desktop and Claude Code configurations are unchanged. New flags `--host`, `--port`, `--path`, `--stateful`, `--json-response`, each with a matching `MCP_*` environment variable. See "Remote hosting over HTTP" for the security caveat — the endpoint holds your API keys and does not authenticate callers
 - **Stateless by default**: HTTP requests carry no per-client state, so the server can run behind a load balancer with several replicas and no session affinity
 - **Fixed a session race in the Public Search client** (affects stdio users too): concurrent tool calls each reset the shared cookie jar and raced to swap the access token, so requests already in flight could be signed with a half-replaced session. Session setup is now serialized, a 403 refresh is skipped when another call has already replaced the token, and the token travels per request instead of living on the shared client's default headers

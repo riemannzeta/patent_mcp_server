@@ -513,7 +513,7 @@ class PpubsClient:
             logger.info(f"Downloading PDF: {pdf_name}")
             request = self.client.build_request(
                 HTTPMethods.GET,
-                f"{config.PPUBS_BASE_URL}/api/internal/print/save/{pdf_name}",
+                f"{config.PPUBS_BASE_URL}/api/print/save/{pdf_name}",
                 headers=self._auth_headers(),
             )
 
