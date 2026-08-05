@@ -19,7 +19,7 @@ can also serve the MCP endpoint over streamable HTTP for remote deployments
 state is kept between requests, so it can run behind a load balancer with
 several workers and no session affinity.
 
-Version: 1.1.0
+Version: 1.1.1
 """
 import argparse
 import json
