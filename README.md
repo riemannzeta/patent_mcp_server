@@ -391,6 +391,8 @@ uv run pytest --cov=patent_mcp_server
 
 Test results are stored in `/test/test_results/`.
 
+The unit suite also runs in CI on every push to `main` and every pull request, across Python 3.10–3.13 (`.github/workflows/tests.yml`). Integration tests stay deselected there, so CI needs no API keys.
+
 ### Development
 
 To install development dependencies:

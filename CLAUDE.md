@@ -32,6 +32,8 @@ uv run pytest
 
 If tests fail, fix them before committing. Do not skip or delete failing tests unless the functionality has been intentionally removed.
 
+`.github/workflows/tests.yml` runs the same suite on every push to `main` and every pull request, across Python 3.10–3.13. Integration tests stay deselected there, so CI needs no API keys and no network access to USPTO.
+
 ### Release Workflow
 
 When publishing a new version:
