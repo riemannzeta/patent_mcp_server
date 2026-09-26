@@ -21,6 +21,7 @@ Key contract facts (verified live against the ODP API, 2026-05-18):
   * Interference proceedings are not offered on ODP (return 501).
 """
 
+import asyncio
 import logging
 from typing import Any, Optional, Dict, List, Tuple
 
@@ -33,7 +34,7 @@ from tenacity import (
 )
 
 from patent_mcp_server.util.logging import LoggingTransport
-from patent_mcp_server.util.errors import ApiError
+from patent_mcp_server.util.errors import ApiError, retry_after_seconds
 from patent_mcp_server.config import config
 from patent_mcp_server.constants import Defaults, PTABFields
 
@@ -210,9 +211,15 @@ class PTABClient:
         logger.info(f"Making GET request to {url}")
 
         try:
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
-            return response.json()
+            for attempt in range(config.MAX_RETRIES):
+                response = await self.client.get(url, params=params)
+                if response.status_code == 429 and attempt < config.MAX_RETRIES - 1:
+                    delay = retry_after_seconds(response, attempt)
+                    logger.warning(f"PTAB API rate limit (429); retrying in {delay:.0f}s")
+                    await asyncio.sleep(delay)
+                    continue
+                response.raise_for_status()
+                return response.json()
 
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code

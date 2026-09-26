@@ -44,12 +44,13 @@ src/patent_mcp_server/
 ├── util/{errors,response,validation,logging}.py
 └── json/search_query.json  # PPUBS request template
 test/unit/                  # Network-free, run by default
-test/test_tools*.py         # Integration tests, network required, opt-in via -m integration
+test/test_*.py              # Integration tests (live USPTO calls), opt-in via -m integration
 ```
 
 ## Conventions in one screen
 
-- **Tool naming**: `ppubs_*`, `odp_*`, `ptab_*`, `patentsview_*` (legacy).
+- **Tool naming**: `ppubs_*`, `odp_*`, `ptab_*`, `tsdr_*`, `tm_*`, `patentsview_*` (legacy).
+- **Registration**: active tools use `@tool()` (adds read-only annotations); tools for shut-down APIs use `@legacy_tool()` (registered only under `ENABLE_LEGACY_TOOLS`). Never a bare `@mcp.tool()`.
 - **Parameters**: `query` not `q`; `app_num`; `patent_number`; `offset` + `limit`.
 - **Error returns**: `{"error": True, "message": ..., "error_code": ...}` — build via `ApiError.create()`.
 - **Decommissioned APIs** return `error_code="API_UNAVAILABLE"` with a `workaround` field pointing at the active replacement.

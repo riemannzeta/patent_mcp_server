@@ -10,13 +10,17 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 - **Do not move client shutdown into a FastMCP `lifespan`.** In stateless HTTP mode the low-level server is entered once *per request*, so a lifespan would close the nine httpx clients after the first tool call. Shutdown lives in `serve()` in `patents.py`, inside the same event loop the clients were opened on.
 - **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
 
-**Current state (v1.1.0):** 61 registered tools, 36 active, 25 unavailable due to API shutdowns:
-- **Active:** PPUBS (5), ODP (12), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
-- **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16)
+**Current state (v1.2.0):** 38 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
+- **Active:** PPUBS (6), ODP (13), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
+- **Legacy (API_UNAVAILABLE):** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16). Their functions stay in `patents.py` under `@legacy_tool()`, which registers them only when the flag is set; every active tool uses `@tool()`, which adds read-only annotations. Don't use a bare `@mcp.tool()`.
 
-**Trademark backend contracts (verified live 2026-06-10):**
+**PPUBS contracts (verified live 2026-09-26):** field qualifiers are dotted suffixes — `.pn.` (works with D/RE/PP prefixes), `.urpn.` (references cited; the basis of `ppubs_get_citing_patents`, granted patents only), `.ti.`, `.ab.`, `.in.`, `.as.`, `.cpc.`, `@pd`/`@ad`. The slash forms (`TTL/`, `AN/`, `CPC/`) and `patentNumber:"…"` return 0 results. `validate_patent_number` keeps the series prefix and strips separators, "US" and the kind code; don't reduce it to digits again. Full documents and search hits are slimmed in `util/response.py` (`slim_document`, `slim_search_hit`) — a raw document is ~24k tokens, a raw hit ~14 KB because of the `urpn`/`urpnCode` lists.
+
+**ODP file-wrapper documents (verified live 2026-09-26):** `GET /api/v1/patent/applications/{app}/documents` returns `documentBag` with `documentIdentifier`, `documentCode` and `downloadOptionBag`. The PDF lives at `/api/v1/download/applications/{app}/{documentIdentifier}.pdf`, which answers 302 to a signed `data-documents.uspto.gov` URL valid for 30 s; `ApiUsptoClient.download_file` follows it and caps the body at `Defaults.MAX_BINARY_BYTES`.
+
+**Trademark backend contracts (verified live 2026-06-10; assignments re-verified 2026-09-26):**
 - **tmsearch** (`tmsearch_client.py`): `POST tmsearch.uspto.gov/prod-stage-v1-0-0/tmsearch`, Elasticsearch-style body, non-standard response envelope (`hits.totalValue`, hit `source`/`id`). No key; behind AWS WAF (currently permissive — `TMSEARCH_WAF_TOKEN` supported as escape hatch). Class filters need zero-padded 3-digit terms ("025").
-- **Assignments** (`tm_assignment_client.py`): `POST assignmentcenter.uspto.gov/ipas/search/api/v2/public/trademark/exportTradeMarkData` with `searchCriteria` list; no key. The legacy assignment-api.uspto.gov died with the Developer Hub on June 5, 2026.
+- **Assignments** (`tm_assignment_client.py`): `POST assignmentcenter.uspto.gov/ipas/search/api/v3/public/trademark/exportTradeMarkData` with `searchCriteria` list; no key. The v2 path is refused by CloudFront since 2026-09 ("supports only cachable requests"); v3 takes the same body and returns the same envelope (verified live 2026-09-26). To find the current path when it moves again: the web app is a module-federation shell — `/assets/federation.manifest.prod.json` → `/ipasSearch/browser/remoteEntry.json` → grep the exposed `searchModule-*.js` for `exportTradeMarkData`. The legacy assignment-api.uspto.gov died with the Developer Hub on June 5, 2026.
 - **TSDR** (`tsdr_client.py`): requires a TSDR-specific key from account.uspto.gov/profile/api-manager — the ODP key passes the gateway but 404s on the backend (`BACKEND RESPONSE STATUS: 404`); the client detects this and explains. Status uses `/info` + `Accept: application/json`; the document list at `/casedocs/{caseid}/info` is XML-ONLY (406 on JSON Accept) and is parsed via `_parse_document_list_xml`. Binary bundles are capped at `TrademarkDefaults.MAX_BINARY_BYTES` (full wrappers can exceed 10 MB) — filter by `document_type`/date. All endpoints verified live 2026-06-10 with a real TSDR key.
 
 ## Critical Rules
@@ -27,7 +31,7 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 
 ```bash
 uv run pytest
-# Expected: ~378 passed, ~54 deselected (integration tests skipped by default)
+# Expected: ~430 passed, ~56 deselected (integration tests skipped by default)
 ```
 
 If tests fail, fix them before committing. Do not skip or delete failing tests unless the functionality has been intentionally removed.
@@ -48,7 +52,7 @@ When publishing a new version:
 
 When a USPTO API is shut down, follow the established pattern (see PR #14 and the PatentsView shutdown commit):
 
-1. **Keep all tool functions** — don't remove them. Return `API_UNAVAILABLE` with workaround guidance:
+1. **Keep all tool functions** — don't remove them. Change the decorator from `@tool()` to `@legacy_tool()` so the tool is registered only under `ENABLE_LEGACY_TOOLS`, and return `API_UNAVAILABLE` with workaround guidance:
    ```python
    return {
        "error": True,
@@ -68,7 +72,7 @@ When a USPTO API is shut down, follow the established pattern (see PR #14 and th
 ### Test Organization
 
 - **Unit tests** (`test/unit/`): Run by default, mock external APIs
-- **Integration tests** (`test/test_tools.py`, `test/test_tools_pytest.py`): Require network access, skipped by default
+- **Integration tests** (`test/test_tools.py`, `test/test_ptab_integration.py`, `test/test_trademark_integration.py`): Require network access and the API keys in `.env`, skipped by default; `uv run pytest -m ""` runs everything. Anything that touches the network must carry the `integration` marker, and every test must be able to fail — a script that logs errors instead of asserting is not a test (`test/test_patents.py` was one, ran live on every default invocation, and was removed in v1.2.0)
 - **Unavailability tests** (`test/unit/test_unavailable_tools.py`): Verify decommissioned tools return correct error structure
 
 ```bash
@@ -172,6 +176,7 @@ Environment variables are loaded from `.env` file:
 - `USPTO_API_KEY` - Required for ODP and PTAB tools
 - `TSDR_API_KEY` - Required for TSDR trademark tools (separate key from ODP — see account.uspto.gov/profile/api-manager)
 - `TMSEARCH_WAF_TOKEN` - Optional escape hatch if tmsearch.uspto.gov tightens its AWS WAF
+- `ENABLE_LEGACY_TOOLS` - Register the 25 tools for shut-down APIs (default: false)
 - `LOG_LEVEL` - Logging verbosity (default: INFO)
 
 See `config.py` for all options.

@@ -35,7 +35,11 @@ from patent_mcp_server.constants import TrademarkDefaults
 # Set up logging
 logger = logging.getLogger('tm_assignment_client')
 
-SEARCH_PATH = "/ipas/search/api/v2/public/trademark/exportTradeMarkData"
+# v3 since at least 2026-09 (verified live 2026-09-26). The v2 path still
+# exists but CloudFront now refuses POST to it ("supports only cachable
+# requests"); v3 takes the same searchCriteria body and returns the same
+# [{"searchCriteria": [...], "data": [...]}] envelope.
+SEARCH_PATH = "/ipas/search/api/v3/public/trademark/exportTradeMarkData"
 
 # Maximum rows the Assignment Center API returns per request
 MAX_ROWS_PER_REQUEST = 1000

@@ -57,9 +57,10 @@ Use ppubs_search_patents with .in. and .as. qualifiers:
 Review what prior art examiners have cited:
 
 ```
-Use odp_get_documents on related applications:
-- Office actions in the file wrapper list cited references
-- Follow citation chains backward and forward
+Use odp_get_documents(app_num, document_code="892,1449,CTNF,CTFR"):
+- 892 forms list the examiner's citations; 1449 forms the applicant's
+- Read a form or office action with odp_download_document(app_num, document_id)
+- Follow citations forward with ppubs_get_citing_patents(patent_number)
 (Note: the dedicated citation APIs were decommissioned in early 2026.)
 ```
 
@@ -110,10 +111,12 @@ Use odp_get_application (with application number) to get file wrapper data:
 
 ## Step 4: Review Office Actions
 ```
-Use odp_get_documents and odp_get_transactions:
-- Find office action documents in the file wrapper
-- Understand rejection bases (102, 103, 112) from the documents
-- Review applicant's arguments and claim amendments
+Use odp_get_documents(app_num, document_code="CTNF,CTFR,NOA,REM,CLM"):
+- CTNF/CTFR are the non-final and final rejections, REM the applicant's
+  arguments, CLM the claims as amended
+- Read each with odp_download_document(app_num, document_id)
+- Understand rejection bases (102, 103, 112) and how claims were amended
+- odp_get_transactions gives the dated event list alongside
 (Note: the dedicated Office Action APIs were decommissioned in early 2026.)
 ```
 
@@ -163,8 +166,8 @@ Analyze a company's patent portfolio to understand their IP position and strateg
 ## Step 1: Identify Company Variations
 Companies often file under different names:
 ```
-Use ppubs_search_patents with AN/ qualifier:
-- Search for company name and variations: AN/"Acme" OR AN/"Acme Corp"
+Use ppubs_search_patents with the .as. qualifier:
+- Search for company name and variations: "Acme".as. OR "Acme Corp".as.
 - Note subsidiary names
 - Also try odp_search_applications with assignee_name
 ```
@@ -173,13 +176,13 @@ Use ppubs_search_patents with AN/ qualifier:
 ```
 Use ppubs_search_patents with assignee filter:
 - Get count of total patents (check the "total" field)
-- Identify date range of filings with ISD/ ranges
+- Identify date range of filings with @pd ranges (e.g. @pd>="20200101")
 - Note technology distribution by CPC codes in results
 ```
 
 ## Step 3: Technology Focus Analysis
 ```
-Use ppubs_search_patents combining AN/ and CPC/ qualifiers:
+Use ppubs_search_patents combining .as. and .cpc. qualifiers:
 - Identify top CPC codes in portfolio
 - Map technology areas covered (interpret with get_cpc_info)
 - Find gaps or emerging focus areas
@@ -187,7 +190,7 @@ Use ppubs_search_patents combining AN/ and CPC/ qualifiers:
 
 ## Step 4: Inventor Analysis
 ```
-Use ppubs_search_patents with IN/ qualifier:
+Use ppubs_search_patents with the .in. qualifier:
 - Identify key inventors appearing in results
 - Track inventor movement (acquired talent)
 ```
@@ -195,7 +198,7 @@ Use ppubs_search_patents with IN/ qualifier:
 ## Step 5: Filing Trends
 ```
 Search with date filters:
-- Analyze year-over-year filing trends (ISD/ ranges)
+- Analyze year-over-year filing trends (@pd date ranges)
 - Identify ramp-up or slow-down periods
 - Correlate with business events if known
 ```
@@ -319,7 +322,7 @@ Assess the risk of patent infringement for a product or technology.
 
 ## Step 2: Keyword and Classification Search
 ```
-Use ppubs_search_patents with keywords and CPC/ qualifiers:
+Use ppubs_search_patents with keywords and .cpc. qualifiers:
 - Search for each technical feature
 - Use multiple synonyms and phrasings
 - Focus on relevant CPC classifications
@@ -349,8 +352,8 @@ Use odp_get_application_metadata and odp_get_transactions:
 
 ## Step 6: Review Prosecution History
 ```
-Use odp_get_documents:
-- Find office actions in the file wrapper
+Use odp_get_documents(app_num, document_code="CTNF,CTFR,REM,CLM"):
+- Read office actions and responses with odp_download_document
 - Note any estoppel from claim amendments
 - Review applicant's arguments for claim interpretation
 ```
@@ -402,15 +405,15 @@ Use get_cpc_info:
 
 ## Step 3: Quantitative Analysis
 ```
-Use ppubs_search_patents with CPC/ qualifiers:
+Use ppubs_search_patents with .cpc. qualifiers:
 - Check the "total" field for patents per CPC code
-- Track filings over time with ISD/ date ranges
+- Track filings over time with @pd date ranges
 - Identify growth trends
 ```
 
 ## Step 4: Top Assignee Analysis
 ```
-Use ppubs_search_patents combining CPC/ and AN/ qualifiers:
+Use ppubs_search_patents combining .cpc. and .as. qualifiers:
 - Rank companies by patent count
 - Calculate market share of filings
 - Identify new entrants vs incumbents

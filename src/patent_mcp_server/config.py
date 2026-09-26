@@ -74,7 +74,7 @@ class Config:
     MCP_JSON_RESPONSE: bool = os.getenv("MCP_JSON_RESPONSE", "false").lower() == "true"
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.1.1")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.2.0")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry
@@ -88,6 +88,13 @@ class Config:
 
     # Caching
     ENABLE_CACHING: bool = os.getenv("ENABLE_CACHING", "true").lower() == "true"
+
+    # Register the tools whose APIs have shut down (patentsview_*, office
+    # action, enriched citation, litigation). Off by default: their schemas
+    # cost every client ~6k tokens per session and their names tempt models
+    # into calls that can only fail. The functions stay importable either
+    # way; only registration with the MCP server is gated.
+    ENABLE_LEGACY_TOOLS: bool = os.getenv("ENABLE_LEGACY_TOOLS", "false").lower() == "true"
 
     # Response Size Management (for LLM context windows)
     MAX_RESPONSE_TOKENS: int = int(os.getenv("MAX_RESPONSE_TOKENS", "8000"))

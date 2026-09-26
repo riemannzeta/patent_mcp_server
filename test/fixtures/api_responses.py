@@ -366,3 +366,83 @@ def create_mock_search_response(count: int, offset: int = 0) -> dict:
         "currentPage": (offset // 25) + 1,
         "items": items
     }
+
+
+# Trimmed from a live GET /api/v1/patent/applications/16123456/documents
+# (2026-09-26). Newest first, as the API returns them.
+MOCK_DOCUMENTS_RESPONSE = {
+    "count": 5,
+    "documentBag": [
+        {
+            "applicationNumberText": "16123456",
+            "officialDate": "2020-10-20T00:00:00.000-0400",
+            "documentIdentifier": "KGC5TXULLDFLYX9",
+            "documentCode": "NOA",
+            "documentCodeDescriptionText": "Notice of Allowance and Fees Due (PTOL-85)",
+            "directionCategory": "OUTGOING",
+            "downloadOptionBag": [
+                {"mimeTypeIdentifier": "PDF",
+                 "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/16123456/KGC5TXULLDFLYX9.pdf",
+                 "pageTotalQuantity": 2},
+            ],
+        },
+        {
+            "applicationNumberText": "16123456",
+            "officialDate": "2020-06-29T00:00:00.000-0400",
+            "documentIdentifier": "KC0FAKEREMEAPX1",
+            "documentCode": "REM",
+            "documentCodeDescriptionText": "Applicant Arguments/Remarks Made in an Amendment",
+            "directionCategory": "INCOMING",
+            "downloadOptionBag": [
+                {"mimeTypeIdentifier": "PDF",
+                 "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/16123456/KC0FAKEREMEAPX1.pdf",
+                 "pageTotalQuantity": 8},
+            ],
+        },
+        {
+            "applicationNumberText": "16123456",
+            "officialDate": "2020-03-27T00:00:00.000-0400",
+            "documentIdentifier": "K87AK41FRXEAPX5",
+            "documentCode": "CTNF",
+            "documentCodeDescriptionText": "Non-Final Rejection",
+            "directionCategory": "OUTGOING",
+            "downloadOptionBag": [
+                {"mimeTypeIdentifier": "PDF",
+                 "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/16123456/K87AK41FRXEAPX5.pdf",
+                 "pageTotalQuantity": 9},
+                {"mimeTypeIdentifier": "MS_WORD",
+                 "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/16123456/K87AK41FRXEAPX5.docx"},
+                {"mimeTypeIdentifier": "XML",
+                 "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/16123456/K87AK41FRXEAPX5.xml"},
+            ],
+        },
+        {
+            "applicationNumberText": "16123456",
+            "officialDate": "2020-03-27T00:00:00.000-0400",
+            "documentIdentifier": "K87AK41FRXEAPX6",
+            "documentCode": "892",
+            "documentCodeDescriptionText": "List of references cited by examiner",
+            "directionCategory": "OUTGOING",
+            "downloadOptionBag": [
+                {"mimeTypeIdentifier": "PDF",
+                 "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/16123456/K87AK41FRXEAPX6.pdf",
+                 "pageTotalQuantity": 1},
+            ],
+        },
+        {
+            "applicationNumberText": "16123456",
+            "officialDate": "2018-09-06T00:00:00.000-0400",
+            "documentIdentifier": "JLQY2WZORXEAPX4",
+            "documentCode": "SPEC",
+            "documentCodeDescriptionText": "Specification",
+            "directionCategory": "INCOMING",
+            "downloadOptionBag": [
+                {"mimeTypeIdentifier": "PDF",
+                 "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/16123456/JLQY2WZORXEAPX4.pdf",
+                 "pageTotalQuantity": 22},
+                {"mimeTypeIdentifier": "XML",
+                 "downloadUrl": "https://api.uspto.gov/api/v1/download/applications/16123456/JLQY2WZORXEAPX4.xml"},
+            ],
+        },
+    ],
+}

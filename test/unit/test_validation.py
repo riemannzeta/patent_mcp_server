@@ -182,6 +182,30 @@ def test_validate_patent_number_leading_zeros():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("raw,expected", [
+    # Kind codes are dropped, not folded into the number
+    ("US 9,876,543 B2", "9876543"),
+    ("US10000000B2", "10000000"),
+    ("US-9876543-B2", "9876543"),
+    ("9876543B2", "9876543"),
+    ("US 8,000,000 B1", "8000000"),
+    ("US 2018/0123456 A1".replace("/", ""), "20180123456"),
+    # Series prefixes are kept — dropping them points at the wrong patent
+    ("D845123", "D845123"),
+    ("US-D845123-S", "D845123"),
+    ("d845123", "D845123"),
+    ("RE49123", "RE49123"),
+    ("US RE49,123 E", "RE49123"),
+    ("PP31234", "PP31234"),
+    ("PP31234P3", "PP31234"),
+    ("USRE49123E", "RE49123"),
+])
+def test_validate_patent_number_prefixes_and_kind_codes(raw, expected):
+    """Prefixed numbers and kind-code suffixes normalize to what .pn. wants."""
+    assert validate_patent_number(raw) == expected
+
+
+@pytest.mark.unit
 def test_validate_app_number_leading_zeros():
     """Test application number with leading zeros."""
     result = validate_app_number("01234567")

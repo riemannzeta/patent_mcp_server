@@ -64,11 +64,42 @@ class Defaults:
     SEARCH_LIMIT_MAX = 500
     API_LIMIT = 25
     DATASET_LIMIT = 10
+    # File-wrapper listings: a wrapper can hold 200+ documents at ~450
+    # characters each, so page through them.
+    DOCUMENT_LIST_LIMIT = 50
+    # Cap on binary (PDF) payloads returned through MCP as base64. Office
+    # actions are usually well under 1 MB; a full specification with
+    # drawings can be several.
+    MAX_BINARY_BYTES = 4_000_000
     REQUEST_TIMEOUT = 30.0
     RETRY_DELAY = 1.0
     MAX_RETRIES = 3
     SESSION_EXPIRY_MINUTES = 30
     RATE_LIMIT_RETRY_DELAY = 5
+
+
+class DocumentSections:
+    """Named parts of a PPUBS full-text document (ppubs_get_* ``sections``).
+
+    A whole document runs 20-40k tokens, most of it descriptionHtml. Callers
+    that only need the claims or the front page can ask for those alone.
+    """
+    BIBLIO = "biblio"
+    ABSTRACT = "abstract"
+    CLAIMS = "claims"
+    DESCRIPTION = "description"
+    ALL = [BIBLIO, ABSTRACT, CLAIMS, DESCRIPTION]
+    # Raw *Html fields that carry each text section.
+    HTML_FIELDS = {
+        ABSTRACT: ("abstractHtml",),
+        CLAIMS: ("claimsHtml",),
+        DESCRIPTION: ("descriptionHtml", "briefHtml", "backgroundTextHtml"),
+    }
+    # Always kept, so a claims-only response still says which patent it is.
+    IDENTITY_FIELDS = (
+        "guid", "type", "inventionTitle", "datePublished",
+        "applicationNumber", "publicationReferenceDocumentNumber",
+    )
 
 
 class PTABTrialTypes:

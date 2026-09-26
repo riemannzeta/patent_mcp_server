@@ -7,6 +7,8 @@ utilities used throughout the application.
 
 from typing import Optional, Dict, Any
 
+from patent_mcp_server.config import config
+
 
 class ApiError:
     """Utility class for creating consistent error responses."""
@@ -150,3 +152,22 @@ def is_error(response: Dict[str, Any]) -> bool:
         True if the response contains an error, False otherwise
     """
     return response.get("error", False) is True
+
+
+def retry_after_seconds(response: Any, attempt: int) -> float:
+    """How long to wait before retrying a 429 (Too Many Requests).
+
+    Honors a numeric Retry-After header, capped at RETRY_MAX_WAIT; otherwise
+    backs off exponentially from RETRY_MIN_WAIT. api.uspto.gov rate-limits
+    per key, so a burst of tool calls (or the integration suite) trips it.
+    """
+    header = None
+    headers = getattr(response, "headers", None)
+    if headers is not None:
+        try:
+            header = headers.get("retry-after")
+        except Exception:
+            header = None
+    if header is not None and str(header).strip().isdigit():
+        return min(float(header), float(config.RETRY_MAX_WAIT))
+    return float(min(config.RETRY_MIN_WAIT * (2 ** attempt), config.RETRY_MAX_WAIT))

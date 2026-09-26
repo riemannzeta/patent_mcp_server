@@ -420,3 +420,31 @@ async def test_close():
     with patch.object(client.client, "aclose", new_callable=AsyncMock) as mock_close:
         await client.close()
         mock_close.assert_called_once()
+
+
+# ============================================================================
+# 429 handling
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_make_request_retries_after_429(ptab_client):
+    """A rate-limited call waits and retries instead of failing outright."""
+    import httpx
+
+    limited = MagicMock(status_code=429, headers={"retry-after": "2"}, text="Too Many Requests")
+    limited.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "429", request=MagicMock(), response=limited
+    )
+    ok = MagicMock(status_code=200, headers={})
+    ok.json.return_value = {"count": 1}
+
+    with patch.object(ptab_client.client, "get", new_callable=AsyncMock,
+                      side_effect=[limited, ok]) as get, \
+         patch("patent_mcp_server.uspto.ptab_client.asyncio.sleep",
+               new_callable=AsyncMock) as sleep:
+        result = await ptab_client._make_request("/api/v1/patent/trials/proceedings/search")
+
+    assert result == {"count": 1}
+    assert get.await_count == 2
+    sleep.assert_awaited_once_with(2.0)
