@@ -10,7 +10,7 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 - **Do not move client shutdown into a FastMCP `lifespan`.** In stateless HTTP mode the low-level server is entered once *per request*, so a lifespan would close the nine httpx clients after the first tool call. Shutdown lives in `serve()` in `patents.py`, inside the same event loop the clients were opened on.
 - **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
 
-**Current state (v1.2.0):** 38 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
+**Current state (v1.2.1):** 38 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
 - **Active:** PPUBS (6), ODP (13), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
 - **Legacy (API_UNAVAILABLE):** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16). Their functions stay in `patents.py` under `@legacy_tool()`, which registers them only when the flag is set; every active tool uses `@tool()`, which adds read-only annotations. Don't use a bare `@mcp.tool()`.
 

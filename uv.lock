@@ -811,7 +811,7 @@ wheels = [
 
 [[package]]
 name = "patent-mcp-server"
-version = "1.2.0"
+version = "1.2.1"
 source = { editable = "." }
 dependencies = [
     { name = "h2" },
@@ -846,7 +846,7 @@ dev = [
 requires-dist = [
     { name = "h2", specifier = ">=4.2.0" },
     { name = "httpx", specifier = ">=0.28.1" },
-    { name = "mcp", extras = ["cli"], specifier = ">=1.27" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.27,<2" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.3" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.0.0" },

@@ -455,7 +455,10 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.2.0 (Current)
+### v1.2.1 (Current)
+- **Fixed fresh installs**: `mcp[cli]>=1.27` resolved to mcp 2.x, which renamed `mcp.server.fastmcp` to `mcp.server.mcpserver`, so `uvx patent-mcp-server` and `pip install patent-mcp-server` crashed on import (`ModuleNotFoundError: No module named 'mcp.server.fastmcp'`). mcp 2.0.0 shipped on 2026-07-28, so v1.1.1 and v1.2.0 were both affected; the checked-in `uv.lock` (mcp 1.28.1) hid it from local runs and CI. The dependency is now `mcp[cli]>=1.27,<2`. Migrating to the mcp 2 API is a separate piece of work
+
+### v1.2.0
 - **Fixed patent-number parsing**: `"US 9,876,543 B2"` was read as 98765432 (the kind code folded into the number) and `"D845123"` as 845123, a 1907 utility patent. Numbers now keep their D/RE/PP prefix and lose separators, a leading "US" and the kind code. The lookup also dropped a dead `patentNumber:"…"` query that returned nothing and cost ~3 s per call
 - **`sections` on `ppubs_get_full_document` and `ppubs_get_patent_by_number`**: choose `biblio`, `abstract`, `claims`, `description`. A whole document is ~24k tokens; `["biblio", "claims"]` is ~6k. Empty and search-highlight fields are dropped from every document
 - **Smaller search results**: each PPUBS hit carried two 7 KB references-cited lists; three hits are now 5k characters instead of 41k. `ppubs_search_*` default to `limit=20` (the truncation step cut larger responses to 20 anyway)
