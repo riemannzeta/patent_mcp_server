@@ -10,21 +10,22 @@ Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of 
 
 ## Features
 
-This server provides **61 tools** across 9 USPTO data sources (36 active, 25 unavailable due to API shutdowns):
+This server provides **38 tools** across six live USPTO data sources (25 more, for APIs USPTO has shut down, stay in the code behind `ENABLE_LEGACY_TOOLS`):
 
 1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS
-2. **Full Text Documents** - Get complete text of patents including claims, description, and specification
+2. **Full Text Documents** - Get the text of a patent by number, or just its claims, abstract or front page to save context
 3. **PDF Downloads** - Download patents as PDF files (Claude Desktop doesn't support this as a client currently)
-4. **Prosecution History** - Access transactions and file wrapper data via ODP
+4. **Prosecution History** - Transactions, file-wrapper document lists filtered by type (office actions, responses, notices of allowance), and the documents themselves as PDF via ODP
 5. **Patent Family Data** - Continuity information, foreign priority, and related applications
 6. **Bulk Datasets** - Search and access USPTO bulk data products including PatentsView disambiguated data
-7. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, goods/services, and class (clearance/knockout searches)
-8. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
-9. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
+7. **Forward Citations** - Find the later patents that cite a patent
+8. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, goods/services, and class (clearance/knockout searches)
+9. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
+10. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
 
 It runs locally over stdio for Claude Desktop and Claude Code, or over HTTP as a shared, stateless service — see [Remote hosting over HTTP](#remote-hosting-over-http).
 
-> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. All 25 affected tools remain registered and return helpful workaround guidance pointing to alternative tools.
+> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. The 25 affected tools stay in the code but are not registered by default, since their schemas cost every client about 6k tokens per session and they can only fail; set `ENABLE_LEGACY_TOOLS=true` to register them, and each returns workaround guidance pointing to a live tool.
 
 ## API Sources
 
@@ -54,6 +55,35 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ## Installation
+
+### From PyPI (no clone needed)
+
+[`uvx`](https://docs.astral.sh/uv/guides/tools/) downloads and runs the published package on demand. Point Claude Desktop at it in `claude_desktop_config.json`, passing your API keys in the environment:
+
+```json
+{
+  "mcpServers": {
+    "patents": {
+      "command": "uvx",
+      "args": ["patent-mcp-server"],
+      "env": {
+        "USPTO_API_KEY": "your_odp_key",
+        "TSDR_API_KEY": "your_tsdr_key"
+      }
+    }
+  }
+}
+```
+
+or in Claude Code:
+
+```shell
+claude mcp add patents -e USPTO_API_KEY=your_odp_key -e TSDR_API_KEY=your_tsdr_key -- uvx patent-mcp-server
+```
+
+The keys are optional (see [API Key Setup](#api-key-setup)); the PPUBS patent tools, trademark search and assignment search work without any. A `.env` file is read from the working directory, which under `uvx` is wherever the client started the server, so pass keys through `env` as above.
+
+### From source
 
 1. Clone this repository:
    ```bash
@@ -121,6 +151,9 @@ The server can be configured using environment variables in your `.env` file. Al
 USPTO_API_KEY=your_key_here      # ODP/PTAB tools
 TSDR_API_KEY=your_tsdr_key_here  # TSDR trademark tools (separate key — see above)
 TMSEARCH_WAF_TOKEN=...           # Optional - only if trademark search hits the WAF
+
+# Tool registration
+ENABLE_LEGACY_TOOLS=false  # Also register the 25 tools for shut-down APIs (they return API_UNAVAILABLE)
 
 # Logging
 LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -246,8 +279,9 @@ the command line wins where both are set.
 |------|-------------|
 | `ppubs_search_patents` | Search granted patents (full-text, daily updates) |
 | `ppubs_search_applications` | Search published patent applications |
-| `ppubs_get_full_document` | Get full patent document by GUID |
-| `ppubs_get_patent_by_number` | Get patent's full text by number |
+| `ppubs_get_full_document` | Get a document by GUID; `sections` picks biblio, abstract, claims or description |
+| `ppubs_get_patent_by_number` | Get a patent's text by number ("US 10,000,000 B2", "D845123" and "RE49123" all work), with the same `sections` option |
+| `ppubs_get_citing_patents` | Forward citations: later granted patents that cite a patent |
 | `ppubs_download_patent_pdf` | Download patent as PDF |
 
 ### Open Data Portal (api.uspto.gov)
@@ -262,7 +296,8 @@ the command line wins where both are set.
 | `odp_get_attorney` | Get attorney/agent of record |
 | `odp_get_foreign_priority` | Get foreign priority claims |
 | `odp_get_transactions` | Get prosecution transaction history |
-| `odp_get_documents` | Get file wrapper documents |
+| `odp_get_documents` | List file wrapper documents, filtered by document code (CTNF, CTFR, NOA, REM, CLM, 892…) and direction |
+| `odp_download_document` | Download one file wrapper document as PDF (office actions, responses, notices) |
 | `odp_search_datasets` | Search bulk data products |
 | `odp_get_dataset` | Get dataset product details |
 
@@ -294,7 +329,11 @@ the command line wins where both are set.
 
 > **Note:** `tm_search_trademarks` and `tm_get_trademark` use the undocumented internal API behind [tmsearch.uspto.gov](https://tmsearch.uspto.gov) (the TESS replacement) — the same situation as the PPUBS patent search API. USPTO offers no official REST API for full-text trademark search. The request/response contract was verified live on 2026-06-10, but these tools may break without notice if USPTO changes the internal API. TTAB proceedings (oppositions/cancellations) have no REST API; daily TTAB XML is available as bulk datasets via `odp_search_datasets`.
 
-### Patent Litigation API (Unavailable — not offered on ODP, issue #16)
+### Legacy tools (hidden unless `ENABLE_LEGACY_TOOLS=true`)
+
+The 25 tools below are for APIs USPTO has shut down. They stay in the code and keep their names, but the server registers them only when `ENABLE_LEGACY_TOOLS=true`, because their schemas cost every client about 6k tokens per session and every call returns `API_UNAVAILABLE`. Each response carries a `workaround` naming the live tool that covers the need.
+
+#### Patent Litigation API (Unavailable — not offered on ODP, issue #16)
 
 All 4 Litigation tools return `API_UNAVAILABLE`. The Patent Litigation API is not listed in the ODP Swagger catalog. The OCE Patent Litigation dataset (74,000+ district court cases) is distributed as a bulk download at <https://www.uspto.gov/ip-policy/economic-research/research-datasets/patent-litigation-docket-reports-data>.
 
@@ -305,7 +344,7 @@ All 4 Litigation tools return `API_UNAVAILABLE`. The Patent Litigation API is no
 | `get_patent_litigation` | OCE Patent Litigation bulk dataset or `ppubs_search_patents` |
 | `get_party_litigation` | OCE Patent Litigation bulk dataset |
 
-### PatentsView API (Unavailable — shut down March 2026)
+#### PatentsView API (Unavailable — shut down March 2026)
 
 All 14 PatentsView tools return `API_UNAVAILABLE` with workaround guidance. PatentsView data has been migrated to the USPTO Open Data Portal as bulk downloadable datasets. Use `ppubs_search_patents` for patent search, `odp_search_datasets` to find bulk datasets.
 
@@ -326,26 +365,26 @@ All 14 PatentsView tools return `API_UNAVAILABLE` with workaround guidance. Pate
 | `patentsview_search_by_ipc` | `ppubs_search_patents` with IPC query |
 | `patentsview_lookup_ipc` | `odp_search_datasets` (bulk data) |
 
-### Office Action APIs (Unavailable — decommissioned early 2026)
+#### Office Action APIs (Unavailable — decommissioned early 2026)
 
-All 4 Office Action tools return `API_UNAVAILABLE`. Use `odp_get_documents` to access office action documents from the file wrapper.
+All 4 Office Action tools return `API_UNAVAILABLE`. The documents themselves are in the file wrapper: `odp_get_documents(app_num, document_code="CTNF,CTFR")` lists the rejections and `odp_download_document` reads one.
 
 | Tool | Workaround |
 |------|------------|
-| `get_office_action_text` | `odp_get_documents` |
+| `get_office_action_text` | `odp_get_documents(document_code="CTNF,CTFR")` then `odp_download_document` |
 | `search_office_actions` | `odp_get_documents` or `odp_get_transactions` |
-| `get_office_action_citations` | `odp_get_documents` |
-| `get_office_action_rejections` | `odp_get_documents` |
+| `get_office_action_citations` | `odp_get_documents(document_code="892,1449")` then `odp_download_document` |
+| `get_office_action_rejections` | `odp_get_documents(document_code="CTNF,CTFR")` then `odp_download_document` |
 
-### Enriched Citation APIs (Unavailable — decommissioned early 2026)
+#### Enriched Citation APIs (Unavailable — decommissioned early 2026)
 
-All 3 Enriched Citation tools return `API_UNAVAILABLE`. Use `odp_get_documents` or `ppubs` tools as workarounds.
+All 3 Enriched Citation tools return `API_UNAVAILABLE`. Forward citations come from `ppubs_get_citing_patents`; the references a patent cites are on its front page (`ppubs_get_patent_by_number(sections=["biblio"])`).
 
 | Tool | Workaround |
 |------|------------|
-| `get_enriched_citations` | `odp_get_documents` |
-| `search_citations` | `odp_get_documents` |
-| `get_citation_metrics` | `odp_get_documents` |
+| `get_enriched_citations` | `ppubs_get_citing_patents` (forward) and `ppubs_get_patent_by_number(sections=["biblio"])` (backward) |
+| `search_citations` | `ppubs_get_citing_patents` |
+| `get_citation_metrics` | `ppubs_get_citing_patents` — `total` is the forward-citation count |
 
 ### Resources and Prompts
 
@@ -416,7 +455,20 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.1.1 (Current)
+### v1.2.0 (Current)
+- **Fixed patent-number parsing**: `"US 9,876,543 B2"` was read as 98765432 (the kind code folded into the number) and `"D845123"` as 845123, a 1907 utility patent. Numbers now keep their D/RE/PP prefix and lose separators, a leading "US" and the kind code. The lookup also dropped a dead `patentNumber:"…"` query that returned nothing and cost ~3 s per call
+- **`sections` on `ppubs_get_full_document` and `ppubs_get_patent_by_number`**: choose `biblio`, `abstract`, `claims`, `description`. A whole document is ~24k tokens; `["biblio", "claims"]` is ~6k. Empty and search-highlight fields are dropped from every document
+- **Smaller search results**: each PPUBS hit carried two 7 KB references-cited lists; three hits are now 5k characters instead of 41k. `ppubs_search_*` default to `limit=20` (the truncation step cut larger responses to 20 anyway)
+- **New `odp_download_document`** fetches a file-wrapper document (office action, response, notice of allowance…) as PDF, following ODP's signed 30-second redirect; documents over 4 MB are refused. **`odp_get_documents`** gains `document_code` and `direction` filters, paging, and a per-code count of the whole wrapper
+- **New `ppubs_get_citing_patents`**: forward citations via the `.urpn.` field of granted patents; `total` is the citation count
+- **Legacy tools hidden by default**: the 25 tools for shut-down APIs made up 39% of the schema text sent to every client (~6k tokens). Set `ENABLE_LEGACY_TOOLS=true` to register them; the functions, names and workaround messages are unchanged
+- **Read-only annotations** on every tool, so clients that honor them need not confirm each call
+- The competitor-portfolio, freedom-to-operate and patent-landscape prompts, the `patentsview_*` workaround messages and this README still taught the slash-prefix search syntax that stopped working in August (`AN/`, `IN/`, `CPC/`); all now use `.as.`, `.in.`, `.cpc.` and `@pd`
+- `test/test_patents.py` (two script-style live checks that always passed) is now marked integration, so the default suite makes no network calls
+- Live-verified 2026-09-26: `.pn.` with D/RE prefixes, `.urpn.`, the ODP document listing and download redirect
+- Tool count: 38 registered by default (63 with `ENABLE_LEGACY_TOOLS`)
+
+### v1.1.1
 - **Fixed `ppubs_download_patent_pdf`**: USPTO moved the PDF download endpoint — the old `/api/internal/print/save/{pdfName}` path now returns 404; the client uses the live `/api/print/save/{pdfName}` endpoint (verified live 2026-08-05 with a real search, document fetch, and PDF download)
 - **Corrected PPUBS search syntax guidance**: the slash-prefix field qualifiers (`TTL/`, `IN/`, `AN/`, `CPC/`) no longer work on the live API — they silently return 0 results, and `TTL/"phrase"` returns a server 500. Search tool docstrings, the prior-art prompt, and the `patents://search-syntax` guide now teach the working dotted-suffix forms (`.ti.`, `.ab.`, `.clm.`, `.spec.`, `.in.`, `.as.`, `.pn.`, `.cpc.`, `@pd`/`@ad` date ranges), each verified live
 - Both breakages were USPTO-side drift predating v1.1.0 (confirmed by running the same live test against v1.0.0-era code)

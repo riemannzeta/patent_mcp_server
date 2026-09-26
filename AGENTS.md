@@ -49,7 +49,8 @@ test/test_tools*.py         # Integration tests, network required, opt-in via -m
 
 ## Conventions in one screen
 
-- **Tool naming**: `ppubs_*`, `odp_*`, `ptab_*`, `patentsview_*` (legacy).
+- **Tool naming**: `ppubs_*`, `odp_*`, `ptab_*`, `tsdr_*`, `tm_*`, `patentsview_*` (legacy).
+- **Registration**: active tools use `@tool()` (adds read-only annotations); tools for shut-down APIs use `@legacy_tool()` (registered only under `ENABLE_LEGACY_TOOLS`). Never a bare `@mcp.tool()`.
 - **Parameters**: `query` not `q`; `app_num`; `patent_number`; `offset` + `limit`.
 - **Error returns**: `{"error": True, "message": ..., "error_code": ...}` — build via `ApiError.create()`.
 - **Decommissioned APIs** return `error_code="API_UNAVAILABLE"` with a `workaround` field pointing at the active replacement.
