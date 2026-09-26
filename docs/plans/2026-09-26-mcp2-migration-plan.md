@@ -94,7 +94,16 @@ CLAUDE.md warns against a FastMCP lifespan because 1.x entered it once per reque
 
 ### Structured output
 
-2.x derives an `outputSchema` from the `-> Dict[str, Any]` annotation (an open object) and fills `structured_content` from the returned dict, next to the JSON text. Clients that understand structured content get a typed payload; older clients read the text as before. Response size roughly doubles on the wire for those clients, since both forms travel. If that matters, pass `structured_output=False` through the `tool()` helper. Decide after measuring with Claude Code: `check_and_truncate` budgets on the dict, not the wire, so the token estimate would be off by 2x for structured-aware clients.
+2.x derives an `outputSchema` from the `-> Dict[str, Any]` annotation and fills `structured_content` from the returned dict, next to the JSON text. Both forms travel in every `CallToolResult`. Measured through an in-memory `Client` against the spike server on 2026-09-26:
+
+| Call | text | structured_content | wire total | wire / text |
+|---|---|---|---|---|
+| `get_cpc_info("G06")` | 125 | 127 | 479 | 3.8 |
+| `ppubs_get_patent_by_number(sections=["biblio","claims"])` | 26,791 | 25,723 | 53,732 | 2.0 |
+| `ppubs_search_patents(limit=5)` | 4,635 | 3,731 | 9,089 | 2.0 |
+| `get_cpc_info` with `structured_output=False` | 125 | 0 | 316 | — |
+
+The schema 2.x derives from `Dict[str, Any]` is `{"result": {"type": "object", "additionalProperties": true}}`, which tells a client nothing it cannot learn from the text. So the duplicate costs a 2x wire payload and buys no typing. **Decision: pass `structured_output=False` in the `tool()` and `legacy_tool()` helpers in Phase 1.** `check_and_truncate` budgets on the dict, and with structured output off the wire size matches that budget again. Revisit only if a tool grows a real Pydantic return model whose schema a client would use.
 
 ### Result validation
 
@@ -136,7 +145,7 @@ mcp 2.x negotiates `2026-07-28` and keeps `HANDSHAKE_PROTOCOL_VERSIONS` for olde
 
 1. `pyproject.toml`: `"mcp>=2,<3"` (drop `[cli]`); keep `python-multipart` and `h2` pins with their comments. `uv lock`.
 2. `patents.py`: import `MCPServer`; construct with `name` and `instructions` only; delete the `mcp.settings.*` block in `main()`; thread the five HTTP settings into `serve()` as above.
-3. `patents.py`: `ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True)`.
+3. `patents.py`: `ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True)`, and `structured_output=False` in `tool()` so results travel once (see Structured output above).
 4. Run `uv run pytest`; expect only `test_mcp_server.py` to fail (import of the removed helper).
 
 ### Phase 2: Tests (same PR, second commit)
@@ -161,7 +170,7 @@ Estimated size: about 40 changed lines in `src/`, 20 in tests, plus docs. The sp
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | A client (Claude Desktop build in the field) rejects protocol `2026-07-28` | Low; 2.x keeps handshake versions for older clients | High: server unusable from that client | Smoke-test both clients before release; 1.2.1 stays on PyPI and `uvx patent-mcp-server==1.2.1` is the rollback |
-| Structured output doubles wire size for structured-aware clients | Medium | Medium: context cost the v1.2.0 work just reduced | Measure with Claude Code; set `structured_output=False` in `tool()` if the text copy is what clients render |
+| Structured output doubles wire size (measured 2.0x on documents and searches) | Certain if left on | Medium: context cost the v1.2.0 work just reduced | `structured_output=False` in `tool()` from Phase 1; a unit test asserts `structured_content is None` and no `outputSchema` on the wire |
 | 2.x validates results and rejects a tool's return shape | Low; all tools return dicts | Medium | `test_every_tool_has_usable_schema` plus the unavailable-tool tests exercise every shape through the in-memory client |
 | New transitive dependencies (`opentelemetry-api`, `httpx2`, `pyjwt[crypto]`) bring their own advisories | Medium over time | Low | Dependabot already watches the lock; `pip-audit` in the release checklist |
 | `mcp._tool_manager` (private) changes under 2.x minors | Low | Low: two tests | Prefer `mcp.list_tools()` where a public call suffices |
@@ -169,7 +178,7 @@ Estimated size: about 40 changed lines in `src/`, 20 in tests, plus docs. The sp
 ## What Would Show This Plan Is Wrong
 
 - The stdio smoke test fails against current Claude Desktop: then a shim supporting both SDK lines is worth its cost, and the plan should be reversed to "support both, default to 2.x".
-- `structured_content` measurably increases the tokens Claude Code spends per call: then `structured_output=False` belongs in Phase 1, not in a follow-up.
+- A client turns out to render `structured_content` and ignore the text: then `structured_output=False` would blank that client's view, and the setting should flip back on with a tighter budget in `check_and_truncate`. Check by calling one tool from Claude Code and Claude Desktop after Phase 1.
 - `uv run pytest` on Python 3.10 fails on a 2.x dependency (`anyio>=4.9`, `pydantic>=2.12`, `starlette>=0.48`): then the Python floor moves and the CI matrix with it, which is a larger change than this plan assumes.
 
 ## Sources
