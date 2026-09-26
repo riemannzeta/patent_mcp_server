@@ -455,7 +455,10 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.3.0 (Current)
+### v1.4.0 (Current)
+- **`httpx` → `httpx2`** for the nine USPTO clients and the logging transport. `httpx2` is the successor from the same author (now under the pydantic organization) and is what mcp 2 already depends on; `httpx` 0.28.1 (December 2024) and `httpcore` 1.0.9 (April 2025) have stopped moving. The API is the same for everything this code uses (`AsyncClient`, `AsyncHTTPTransport`, `Cookies`, `build_request`/`send(stream=True)`, the exception classes), so the change is a rename across 20 files; `httpx` and `httpcore` leave the dependency tree entirely. The PPUBS session handling, PDF print job, TSDR XML document list, tmsearch, Assignment Center v3 and the ODP document download redirect were each re-verified live on 2026-09-26 (whole suite, nothing deselected)
+
+### v1.3.0
 - **MCP Python SDK 2.x**: the server now builds on `mcp>=2,<3` (`MCPServer`, the renamed `FastMCP`), which lifts the `mcp<2` pin v1.2.1 added. Tool names, arguments and results are unchanged; the `--host/--port/--path/--stateful/--json-response` flags and `MCP_*` variables keep their meaning. Under the hood the transport settings move from the server constructor to `run_streamable_http_async()`, the protocol tests use mcp 2's in-memory `Client`, and the dependency drops the `[cli]` extra (empty in 2.x)
 - **Structured output off**: mcp 2 sends every dict result twice by default, as JSON text and again as `structured_content`, against an output schema of "any object" — measured at 2.0x wire size on documents and searches. Tools register with `structured_output=False`, so results travel once, as before
 - Pinned `click>=8.3.3` (PYSEC-2026-2132; a transitive dependency via uvicorn that predates this release) so `pip-audit` is clean on the new tree

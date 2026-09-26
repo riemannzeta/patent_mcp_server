@@ -13,7 +13,7 @@ import asyncio
 import base64
 import os
 from typing import Any, Optional, Dict, List, Union
-import httpx
+import httpx2
 import logging
 import urllib.parse
 from tenacity import (
@@ -49,10 +49,10 @@ class ApiUsptoClient:
         }
 
         # Create a custom transport that logs all requests and responses
-        transport = httpx.AsyncHTTPTransport()
+        transport = httpx2.AsyncHTTPTransport()
         logging_transport = LoggingTransport(transport)
 
-        self.client = httpx.AsyncClient(
+        self.client = httpx2.AsyncClient(
             headers=self.headers,
             http2=True,
             follow_redirects=True,
@@ -98,7 +98,7 @@ class ApiUsptoClient:
             min=config.RETRY_MIN_WAIT,
             max=config.RETRY_MAX_WAIT
         ),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
+        retry=retry_if_exception_type((httpx2.TimeoutException, httpx2.NetworkError)),
         reraise=True
     )
     async def make_request(
@@ -160,7 +160,7 @@ class ApiUsptoClient:
                 logger.info(f"Request successful: {response.status_code}")
                 return response.json()
 
-        except httpx.HTTPStatusError as e:
+        except httpx2.HTTPStatusError as e:
             status_code = e.response.status_code
             logger.error(f"HTTP error: {status_code} - {e.response.text}")
 
@@ -177,7 +177,7 @@ class ApiUsptoClient:
                     response_text=e.response.text
                 )
 
-        except (httpx.TimeoutException, httpx.NetworkError) as e:
+        except (httpx2.TimeoutException, httpx2.NetworkError) as e:
             logger.warning(f"Network error (will retry): {str(e)}")
             raise  # Let tenacity handle the retry
 
@@ -246,7 +246,7 @@ class ApiUsptoClient:
                 "content": base64.b64encode(content).decode("ascii"),
             }
 
-        except (httpx.TimeoutException, httpx.NetworkError) as e:
+        except (httpx2.TimeoutException, httpx2.NetworkError) as e:
             logger.error(f"Network error downloading {url}: {str(e)}")
             return ApiError.from_exception(e, f"Download of {url} failed")
         except Exception as e:

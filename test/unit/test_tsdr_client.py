@@ -2,7 +2,7 @@
 import base64
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+import httpx2
 
 from patent_mcp_server.uspto.tsdr_client import TSDRClient, DOCUMENT_LIST_NS
 from patent_mcp_server.constants import TrademarkDefaults
@@ -25,8 +25,8 @@ async def tsdr_client():
 
 
 def _mock_response(status_code=200, json_data=None, content=b"", headers=None):
-    """Build a MagicMock httpx.Response."""
-    response = MagicMock(spec=httpx.Response)
+    """Build a MagicMock httpx2.Response."""
+    response = MagicMock(spec=httpx2.Response)
     response.status_code = status_code
     response.headers = headers or {}
     response.content = content

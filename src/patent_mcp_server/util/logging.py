@@ -1,11 +1,11 @@
-import httpx
+import httpx2
 import logging
 import json
 
 logger = logging.getLogger('logging_transport')
 
 # Define custom transport that logs all requests and responses
-class LoggingTransport(httpx.AsyncBaseTransport):
+class LoggingTransport(httpx2.AsyncBaseTransport):
 
     def __init__(self, transport):
         self.transport = transport
