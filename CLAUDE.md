@@ -72,7 +72,7 @@ When a USPTO API is shut down, follow the established pattern (see PR #14 and th
 ### Test Organization
 
 - **Unit tests** (`test/unit/`): Run by default, mock external APIs
-- **Integration tests** (`test/test_tools.py`, `test/test_tools_pytest.py`, `test/test_patents.py`): Require network access, skipped by default. Anything that touches the network must carry the `integration` marker — `test_patents.py` once didn't, and ran live on every default invocation
+- **Integration tests** (`test/test_tools.py`, `test/test_tools_pytest.py`): Require network access, skipped by default. Anything that touches the network must carry the `integration` marker, and every test must be able to fail — a script that logs errors instead of asserting is not a test (`test/test_patents.py` was one, ran live on every default invocation, and was removed in v1.2.0)
 - **Unavailability tests** (`test/unit/test_unavailable_tools.py`): Verify decommissioned tools return correct error structure
 
 ```bash

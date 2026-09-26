@@ -464,7 +464,7 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 - **Legacy tools hidden by default**: the 25 tools for shut-down APIs made up 39% of the schema text sent to every client (~6k tokens). Set `ENABLE_LEGACY_TOOLS=true` to register them; the functions, names and workaround messages are unchanged
 - **Read-only annotations** on every tool, so clients that honor them need not confirm each call
 - The competitor-portfolio, freedom-to-operate and patent-landscape prompts, the `patentsview_*` workaround messages and this README still taught the slash-prefix search syntax that stopped working in August (`AN/`, `IN/`, `CPC/`); all now use `.as.`, `.in.`, `.cpc.` and `@pd`
-- `test/test_patents.py` (two script-style live checks that always passed) is now marked integration, so the default suite makes no network calls
+- Removed `test/test_patents.py`: two script-style live checks that logged errors instead of asserting, so they always passed while calling USPTO and rewriting `json/` and `pdfs/` on every default `pytest` run, including CI. `test/test_tools_pytest.py` covers the same calls with asserts. The default suite now makes no network calls
 - Live-verified 2026-09-26: `.pn.` with D/RE prefixes, `.urpn.`, the ODP document listing and download redirect
 - Tool count: 38 registered by default (63 with `ENABLE_LEGACY_TOOLS`)
 
