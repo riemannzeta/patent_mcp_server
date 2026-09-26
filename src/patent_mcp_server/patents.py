@@ -29,6 +29,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import anyio
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 from pydantic import ValidationError
 
 from patent_mcp_server.config import config, LOOPBACK_HOSTS, VALID_TRANSPORTS
@@ -84,6 +85,33 @@ mcp = FastMCP(
     stateless_http=config.MCP_STATELESS,
     json_response=config.MCP_JSON_RESPONSE,
 )
+
+# Every tool here reads from USPTO and writes nothing, so clients that honor
+# annotations (Claude Desktop, Claude Code) can run them without a
+# per-call confirmation. openWorldHint is true because results come from a
+# live external service.
+READ_ONLY = ToolAnnotations(
+    readOnlyHint=True,
+    destructiveHint=False,
+    idempotentHint=True,
+    openWorldHint=True,
+)
+
+
+def tool(**kwargs):
+    """Register a read-only tool with the server."""
+    return mcp.tool(annotations=READ_ONLY, **kwargs)
+
+
+def legacy_tool(**kwargs):
+    """Register a tool for a shut-down API only when ENABLE_LEGACY_TOOLS is set.
+
+    The decorated function is returned unchanged either way, so tests and
+    other callers can still import and call it directly.
+    """
+    if config.ENABLE_LEGACY_TOOLS:
+        return tool(**kwargs)
+    return lambda func: func
 
 # Set up logging with configured level
 logging.basicConfig(
@@ -374,7 +402,7 @@ async def _search_patent_by_number(patent_number: str) -> Dict[str, Any]:
 # Diagnostic Tools
 # =====================================================================
 
-@mcp.tool()
+@tool()
 async def check_api_status() -> Dict[str, Any]:
     """Check status and availability of all patent and trademark data sources.
 
@@ -493,6 +521,18 @@ async def check_api_status() -> Dict[str, Any]:
     return {
         "success": True,
         "sources": status,
+        "legacy_tools": {
+            "registered": config.ENABLE_LEGACY_TOOLS,
+            "note": (
+                "The 25 tools for shut-down APIs (patentsview_*, office "
+                "action, enriched citation, litigation) are "
+                + ("registered because ENABLE_LEGACY_TOOLS is set; each "
+                   "returns API_UNAVAILABLE with workaround guidance."
+                   if config.ENABLE_LEGACY_TOOLS else
+                   "hidden. Set ENABLE_LEGACY_TOOLS=true to register them; "
+                   "each returns API_UNAVAILABLE with workaround guidance.")
+            ),
+        },
         "token_budget": {
             "max_response_tokens": config.MAX_RESPONSE_TOKENS,
             "truncation_enabled": config.TRUNCATE_LARGE_RESPONSES,
@@ -500,7 +540,7 @@ async def check_api_status() -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@tool()
 async def get_cpc_info(cpc_code: str) -> Dict[str, Any]:
     """Look up CPC (Cooperative Patent Classification) code information.
 
@@ -520,7 +560,7 @@ async def get_cpc_info(cpc_code: str) -> Dict[str, Any]:
         return get_cpc_subsection_info(cpc_code)
 
 
-@mcp.tool()
+@tool()
 async def get_status_code(code: str) -> Dict[str, Any]:
     """Look up USPTO application status code meaning.
 
@@ -540,7 +580,7 @@ async def get_status_code(code: str) -> Dict[str, Any]:
 # PPUBS Tools - Full text patents and PDF downloads
 # =====================================================================
 
-@mcp.tool()
+@tool()
 async def ppubs_search_patents(
     query: str,
     offset: int = 0,
@@ -594,7 +634,7 @@ async def ppubs_search_patents(
     return check_and_truncate(response)
 
 
-@mcp.tool()
+@tool()
 async def ppubs_search_applications(
     query: str,
     offset: int = 0,
@@ -635,7 +675,7 @@ async def ppubs_search_applications(
     return check_and_truncate(response)
 
 
-@mcp.tool()
+@tool()
 async def ppubs_get_full_document(guid: str, source_type: str) -> Dict[str, Any]:
     """Get complete patent document by GUID from PPUBS.
 
@@ -657,7 +697,7 @@ async def ppubs_get_full_document(guid: str, source_type: str) -> Dict[str, Any]
     return check_and_truncate(result)
 
 
-@mcp.tool()
+@tool()
 async def ppubs_get_patent_by_number(patent_number: str) -> Dict[str, Any]:
     """Get a granted patent's full text by patent number.
 
@@ -692,7 +732,7 @@ async def ppubs_get_patent_by_number(patent_number: str) -> Dict[str, Any]:
     return check_and_truncate(result)
 
 
-@mcp.tool()
+@tool()
 async def ppubs_download_patent_pdf(patent_number: str) -> Dict[str, Any]:
     """Download a patent as PDF (base64 encoded).
 
@@ -729,7 +769,7 @@ async def ppubs_download_patent_pdf(patent_number: str) -> Dict[str, Any]:
 # ODP Tools - USPTO Open Data Portal (api.uspto.gov)
 # =====================================================================
 
-@mcp.tool()
+@tool()
 async def odp_get_application(app_num: str) -> Dict[str, Any]:
     """Get patent application data from USPTO Open Data Portal.
 
@@ -756,7 +796,7 @@ async def odp_get_application(app_num: str) -> Dict[str, Any]:
     return ResponseEnvelope.from_odp(result)
 
 
-@mcp.tool()
+@tool()
 async def odp_get_application_metadata(app_num: str) -> Dict[str, Any]:
     """Get detailed metadata for a patent application.
 
@@ -780,7 +820,7 @@ async def odp_get_application_metadata(app_num: str) -> Dict[str, Any]:
     return ResponseEnvelope.from_odp(result)
 
 
-@mcp.tool()
+@tool()
 async def odp_get_continuity(app_num: str) -> Dict[str, Any]:
     """Get patent family/continuity data (parent and child applications).
 
@@ -807,7 +847,7 @@ async def odp_get_continuity(app_num: str) -> Dict[str, Any]:
     return ResponseEnvelope.from_odp(result)
 
 
-@mcp.tool()
+@tool()
 async def odp_get_assignment(app_num: str) -> Dict[str, Any]:
     """Get patent assignment/ownership records.
 
@@ -826,7 +866,7 @@ async def odp_get_assignment(app_num: str) -> Dict[str, Any]:
     return await api_client.make_request(url)
 
 
-@mcp.tool()
+@tool()
 async def odp_get_adjustment(app_num: str) -> Dict[str, Any]:
     """Get patent term adjustment (PTA) data.
 
@@ -845,7 +885,7 @@ async def odp_get_adjustment(app_num: str) -> Dict[str, Any]:
     return await api_client.make_request(url)
 
 
-@mcp.tool()
+@tool()
 async def odp_get_attorney(app_num: str) -> Dict[str, Any]:
     """Get attorney/agent of record for an application.
 
@@ -861,7 +901,7 @@ async def odp_get_attorney(app_num: str) -> Dict[str, Any]:
     return await api_client.make_request(url)
 
 
-@mcp.tool()
+@tool()
 async def odp_get_foreign_priority(app_num: str) -> Dict[str, Any]:
     """Get foreign priority claims for an application.
 
@@ -880,7 +920,7 @@ async def odp_get_foreign_priority(app_num: str) -> Dict[str, Any]:
     return await api_client.make_request(url)
 
 
-@mcp.tool()
+@tool()
 async def odp_get_transactions(app_num: str) -> Dict[str, Any]:
     """Get prosecution transaction history for an application.
 
@@ -904,7 +944,7 @@ async def odp_get_transactions(app_num: str) -> Dict[str, Any]:
     return check_and_truncate(ResponseEnvelope.from_odp(result))
 
 
-@mcp.tool()
+@tool()
 async def odp_get_documents(app_num: str) -> Dict[str, Any]:
     """Get list of documents in the application file wrapper.
 
@@ -925,7 +965,7 @@ async def odp_get_documents(app_num: str) -> Dict[str, Any]:
     return check_and_truncate(ResponseEnvelope.from_odp(result))
 
 
-@mcp.tool()
+@tool()
 async def odp_search_applications(
     query: Optional[str] = None,
     application_number: Optional[str] = None,
@@ -1022,7 +1062,7 @@ async def odp_search_applications(
     return check_and_truncate(ResponseEnvelope.from_odp(result, offset, limit))
 
 
-@mcp.tool()
+@tool()
 async def odp_search_datasets(
     query: Optional[str] = None,
     offset: int = 0,
@@ -1048,7 +1088,7 @@ async def odp_search_datasets(
     return await api_client.make_request(url)
 
 
-@mcp.tool()
+@tool()
 async def odp_get_dataset(product_id: str) -> Dict[str, Any]:
     """Get details of a specific bulk dataset product.
 
@@ -1063,7 +1103,7 @@ async def odp_get_dataset(product_id: str) -> Dict[str, Any]:
 # PTAB Tools - Patent Trial and Appeal Board
 # =====================================================================
 
-@mcp.tool()
+@tool()
 async def ptab_search_proceedings(
     query: Optional[str] = None,
     trial_type: Optional[str] = None,
@@ -1111,7 +1151,7 @@ async def ptab_search_proceedings(
         ResponseEnvelope.from_ptab(result, offset, limit))
 
 
-@mcp.tool()
+@tool()
 async def ptab_get_proceeding(proceeding_number: str) -> Dict[str, Any]:
     """Get details of a specific PTAB proceeding. Live via USPTO ODP v3.0.
 
@@ -1127,7 +1167,7 @@ async def ptab_get_proceeding(proceeding_number: str) -> Dict[str, Any]:
     return check_and_truncate(ResponseEnvelope.from_ptab(result))
 
 
-@mcp.tool()
+@tool()
 async def ptab_get_documents(
     proceeding_number: str,
     document_type: Optional[str] = None,
@@ -1151,7 +1191,7 @@ async def ptab_get_documents(
         ResponseEnvelope.from_ptab(result, offset, limit))
 
 
-@mcp.tool()
+@tool()
 async def ptab_search_decisions(
     query: Optional[str] = None,
     decision_type: Optional[str] = None,
@@ -1185,7 +1225,7 @@ async def ptab_search_decisions(
         ResponseEnvelope.from_ptab(result, offset, limit))
 
 
-@mcp.tool()
+@tool()
 async def ptab_get_decision(decision_id: str) -> Dict[str, Any]:
     """Get details of a specific PTAB decision. Live via USPTO ODP v3.0.
 
@@ -1198,7 +1238,7 @@ async def ptab_get_decision(decision_id: str) -> Dict[str, Any]:
     return check_and_truncate(ResponseEnvelope.from_ptab(result))
 
 
-@mcp.tool()
+@tool()
 async def ptab_search_appeals(
     query: Optional[str] = None,
     application_number: Optional[str] = None,
@@ -1230,7 +1270,7 @@ async def ptab_search_appeals(
         ResponseEnvelope.from_ptab(result, offset, limit))
 
 
-@mcp.tool()
+@tool()
 async def ptab_get_appeal(appeal_number: str) -> Dict[str, Any]:
     """Get details of a specific ex parte appeal decision. Live via USPTO ODP v3.0.
 
@@ -1247,7 +1287,7 @@ async def ptab_get_appeal(appeal_number: str) -> Dict[str, Any]:
 # TSDR Tools - Trademark Status and Document Retrieval
 # =====================================================================
 
-@mcp.tool()
+@tool()
 async def tsdr_get_trademark_status(
     serial_number: Optional[str] = None,
     registration_number: Optional[str] = None,
@@ -1290,7 +1330,7 @@ async def tsdr_get_trademark_status(
     return check_and_truncate(ResponseEnvelope.from_tsdr(result))
 
 
-@mcp.tool()
+@tool()
 async def tsdr_list_trademark_documents(serial_number: str) -> Dict[str, Any]:
     """List prosecution document metadata for a trademark (no downloads).
 
@@ -1325,7 +1365,7 @@ async def tsdr_list_trademark_documents(serial_number: str) -> Dict[str, Any]:
     ))
 
 
-@mcp.tool()
+@tool()
 async def tsdr_download_trademark_documents(
     serial_number: str,
     document_type: Optional[str] = None,
@@ -1365,7 +1405,7 @@ async def tsdr_download_trademark_documents(
     )
 
 
-@mcp.tool()
+@tool()
 async def tsdr_get_trademark_image(serial_number: str) -> Dict[str, Any]:
     """Get the mark image (drawing) for a trademark as base64.
 
@@ -1390,7 +1430,7 @@ async def tsdr_get_trademark_image(serial_number: str) -> Dict[str, Any]:
 # Trademark Search & Assignment Tools
 # =====================================================================
 
-@mcp.tool()
+@tool()
 async def tm_search_trademarks(
     query: Optional[str] = None,
     mark_text: Optional[str] = None,
@@ -1468,7 +1508,7 @@ async def tm_search_trademarks(
     )
 
 
-@mcp.tool()
+@tool()
 async def tm_get_trademark(serial_number: str) -> Dict[str, Any]:
     """Get a trademark's search-index record by serial number.
 
@@ -1500,7 +1540,7 @@ async def tm_get_trademark(serial_number: str) -> Dict[str, Any]:
     )
 
 
-@mcp.tool()
+@tool()
 async def tm_search_assignments(
     serial_number: Optional[str] = None,
     registration_number: Optional[str] = None,
@@ -1561,7 +1601,7 @@ async def tm_search_assignments(
     )
 
 
-@mcp.tool()
+@tool()
 async def get_trademark_class_info(class_number: str) -> Dict[str, Any]:
     """Look up a Nice/international trademark class (1-45).
 
@@ -1579,7 +1619,7 @@ async def get_trademark_class_info(class_number: str) -> Dict[str, Any]:
     return resource_trademark_class_info(class_number)
 
 
-@mcp.tool()
+@tool()
 async def get_trademark_status_code(code: str) -> Dict[str, Any]:
     """Look up a USPTO trademark status code meaning.
 
@@ -1600,7 +1640,7 @@ async def get_trademark_status_code(code: str) -> Dict[str, Any]:
 # PatentsView Tools - Advanced search with disambiguation
 # =====================================================================
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_search_patents(
     query: str,
     search_type: str = "any",
@@ -1634,7 +1674,7 @@ async def patentsview_search_patents(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_get_patent(patent_id: str) -> Dict[str, Any]:
     """Get detailed patent information from PatentsView.
 
@@ -1657,7 +1697,7 @@ async def patentsview_get_patent(patent_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_search_assignees(
     name: str,
     limit: int = 100,
@@ -1687,7 +1727,7 @@ async def patentsview_search_assignees(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_get_assignee(assignee_id: str) -> Dict[str, Any]:
     """Get detailed assignee information by disambiguated ID.
 
@@ -1712,7 +1752,7 @@ async def patentsview_get_assignee(assignee_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_search_inventors(
     name: str,
     limit: int = 100,
@@ -1742,7 +1782,7 @@ async def patentsview_search_inventors(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_get_inventor(inventor_id: str) -> Dict[str, Any]:
     """Get detailed inventor information by disambiguated ID.
 
@@ -1767,7 +1807,7 @@ async def patentsview_get_inventor(inventor_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_get_claims(patent_id: str) -> Dict[str, Any]:
     """Get all claims text for a patent.
 
@@ -1792,7 +1832,7 @@ async def patentsview_get_claims(patent_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_get_description(patent_id: str) -> Dict[str, Any]:
     """Get patent detailed description/specification text.
 
@@ -1817,7 +1857,7 @@ async def patentsview_get_description(patent_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_search_by_cpc(
     cpc_code: str,
     limit: int = 100,
@@ -1845,7 +1885,7 @@ async def patentsview_search_by_cpc(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_lookup_cpc(cpc_code: str) -> Dict[str, Any]:
     """Look up CPC classification code details.
 
@@ -1867,7 +1907,7 @@ async def patentsview_lookup_cpc(cpc_code: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_search_attorneys(
     name: str,
     limit: int = 100,
@@ -1895,7 +1935,7 @@ async def patentsview_search_attorneys(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_get_attorney(attorney_id: str) -> Dict[str, Any]:
     """Get detailed attorney information by ID.
 
@@ -1919,7 +1959,7 @@ async def patentsview_get_attorney(attorney_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_lookup_ipc(ipc_code: str) -> Dict[str, Any]:
     """Look up IPC (International Patent Classification) code details.
 
@@ -1944,7 +1984,7 @@ async def patentsview_lookup_ipc(ipc_code: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def patentsview_search_by_ipc(
     ipc_code: str,
     limit: int = 100,
@@ -1975,7 +2015,7 @@ async def patentsview_search_by_ipc(
 # Office Action Tools
 # =====================================================================
 
-@mcp.tool()
+@legacy_tool()
 async def get_office_action_text(
     application_number: str,
     mail_date: Optional[str] = None,
@@ -2011,7 +2051,7 @@ async def get_office_action_text(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def search_office_actions(
     query: Optional[str] = None,
     application_number: Optional[str] = None,
@@ -2051,7 +2091,7 @@ async def search_office_actions(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def get_office_action_citations(
     application_number: str,
     mail_date: Optional[str] = None,
@@ -2085,7 +2125,7 @@ async def get_office_action_citations(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def get_office_action_rejections(
     application_number: str,
     mail_date: Optional[str] = None,
@@ -2123,7 +2163,7 @@ async def get_office_action_rejections(
 # Citation Tools
 # =====================================================================
 
-@mcp.tool()
+@legacy_tool()
 async def get_enriched_citations(
     patent_number: str,
     include_forward: bool = True,
@@ -2161,7 +2201,7 @@ async def get_enriched_citations(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def search_citations(
     citing_patent: Optional[str] = None,
     cited_patent: Optional[str] = None,
@@ -2198,7 +2238,7 @@ async def search_citations(
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def get_citation_metrics(patent_number: str) -> Dict[str, Any]:
     """Get citation metrics for a patent.
 
@@ -2253,7 +2293,7 @@ def _litigation_unavailable() -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
+@legacy_tool()
 async def search_litigation(
     query: Optional[str] = None,
     patent_number: Optional[str] = None,
@@ -2286,7 +2326,7 @@ async def search_litigation(
     return _litigation_unavailable()
 
 
-@mcp.tool()
+@legacy_tool()
 async def get_litigation_case(case_id: str) -> Dict[str, Any]:
     """Get details of a specific litigation case.
 
@@ -2299,7 +2339,7 @@ async def get_litigation_case(case_id: str) -> Dict[str, Any]:
     return _litigation_unavailable()
 
 
-@mcp.tool()
+@legacy_tool()
 async def get_patent_litigation(patent_number: str) -> Dict[str, Any]:
     """Get all litigation involving a specific patent.
 
@@ -2312,7 +2352,7 @@ async def get_patent_litigation(patent_number: str) -> Dict[str, Any]:
     return _litigation_unavailable()
 
 
-@mcp.tool()
+@legacy_tool()
 async def get_party_litigation(
     party_name: str,
     role: Optional[str] = None,

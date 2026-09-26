@@ -89,6 +89,13 @@ class Config:
     # Caching
     ENABLE_CACHING: bool = os.getenv("ENABLE_CACHING", "true").lower() == "true"
 
+    # Register the tools whose APIs have shut down (patentsview_*, office
+    # action, enriched citation, litigation). Off by default: their schemas
+    # cost every client ~6k tokens per session and their names tempt models
+    # into calls that can only fail. The functions stay importable either
+    # way; only registration with the MCP server is gated.
+    ENABLE_LEGACY_TOOLS: bool = os.getenv("ENABLE_LEGACY_TOOLS", "false").lower() == "true"
+
     # Response Size Management (for LLM context windows)
     MAX_RESPONSE_TOKENS: int = int(os.getenv("MAX_RESPONSE_TOKENS", "8000"))
     TRUNCATE_LARGE_RESPONSES: bool = os.getenv("TRUNCATE_LARGE_RESPONSES", "true").lower() == "true"

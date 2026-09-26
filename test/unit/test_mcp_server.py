@@ -126,19 +126,72 @@ async def test_get_prompt():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_decommissioned_tool_reports_unavailable():
-    """A shut-down API surfaces its guidance through the protocol.
+async def test_every_tool_is_marked_read_only():
+    """Every registered tool carries read-only annotations.
 
-    These tools stay registered on purpose so clients get a workaround
-    instead of an unknown-tool error.
+    Clients that honor them can skip a per-call confirmation; a tool
+    registered with a bare @mcp.tool() would lose that.
     """
     async with connect() as session:
-        result = await session.call_tool("patentsview_search_patents", {"query": "test"})
+        result = await session.list_tools()
+        for tool in result.tools:
+            assert tool.annotations is not None, f"{tool.name} has no annotations"
+            assert tool.annotations.readOnlyHint is True, f"{tool.name} not read-only"
+            assert tool.annotations.openWorldHint is True, f"{tool.name} not open-world"
 
-        payload = json.loads(result.content[0].text)
-        assert payload["error"] is True
-        assert payload["error_code"] == "API_UNAVAILABLE"
-        assert payload["workaround"]
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_legacy_tools_hidden_by_default():
+    """Tools for shut-down APIs are not registered unless opted in.
+
+    Their schemas cost every client ~6k tokens per session, and the
+    functions still exist for direct callers (test_unavailable_tools.py).
+    """
+    if patents.config.ENABLE_LEGACY_TOOLS:
+        pytest.skip("ENABLE_LEGACY_TOOLS is set in this environment")
+    async with connect() as session:
+        result = await session.list_tools()
+        names = {tool.name for tool in result.tools}
+
+    for name in ("patentsview_search_patents", "get_office_action_text",
+                 "get_enriched_citations", "search_litigation"):
+        assert name not in names, f"{name} registered without ENABLE_LEGACY_TOOLS"
+        assert callable(getattr(patents, name)), f"{name} function removed"
+
+    payload = await patents.patentsview_search_patents(query="test")
+    assert payload["error_code"] == "API_UNAVAILABLE"
+    assert payload["workaround"]
+
+
+@pytest.mark.unit
+def test_legacy_tool_registers_when_enabled(monkeypatch):
+    """With ENABLE_LEGACY_TOOLS set, legacy_tool registers like tool."""
+    monkeypatch.setattr(patents.config, "ENABLE_LEGACY_TOOLS", True)
+
+    @patents.legacy_tool()
+    async def legacy_probe_tool() -> dict:
+        """Probe."""
+        return {}
+
+    try:
+        registered = patents.mcp._tool_manager.get_tool("legacy_probe_tool")
+        assert registered is not None
+        assert registered.annotations.readOnlyHint is True
+    finally:
+        patents.mcp._tool_manager._tools.pop("legacy_probe_tool", None)
+
+
+@pytest.mark.unit
+def test_legacy_tool_returns_function_when_disabled(monkeypatch):
+    """With the default off, legacy_tool leaves the function untouched."""
+    monkeypatch.setattr(patents.config, "ENABLE_LEGACY_TOOLS", False)
+
+    async def probe() -> dict:
+        return {}
+
+    assert patents.legacy_tool()(probe) is probe
+    assert patents.mcp._tool_manager.get_tool("probe") is None
 
 
 # ============================================================================
