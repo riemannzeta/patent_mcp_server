@@ -1666,7 +1666,7 @@ async def patentsview_search_assignees(
 
     IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
     March 20, 2026. Use ppubs_search_patents with an assignee name query
-    (e.g., AN/"company name") as a workaround.
+    (e.g., "company name".as.) as a workaround.
 
     Args:
         name: Assignee/company name (partial match supported)
@@ -1678,12 +1678,12 @@ async def patentsview_search_assignees(
             "PatentsView API is no longer available. The PatentsView API "
             "(search.patentsview.org) was shut down on March 20, 2026. "
             "Use ppubs_search_patents with an assignee name query "
-            '(e.g., query=\'AN/"company name"\') to search by assignee. '
+            "(e.g., query='\"company name\".as.') to search by assignee. "
             "Disambiguated assignee data is available as bulk datasets "
             "on the USPTO Open Data Portal (use odp_search_datasets)."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": 'Use ppubs_search_patents(query=\'AN/"company name"\') to search by assignee.',
+        "workaround": "Use ppubs_search_patents(query='\"company name\".as.') to search by assignee.",
     }
 
 
@@ -1721,7 +1721,7 @@ async def patentsview_search_inventors(
 
     IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
     March 20, 2026. Use ppubs_search_patents with an inventor name query
-    (e.g., IN/"last name") as a workaround.
+    (e.g., "last name".in.) as a workaround.
 
     Args:
         name: Inventor name (last name, or "First Last")
@@ -1733,12 +1733,12 @@ async def patentsview_search_inventors(
             "PatentsView API is no longer available. The PatentsView API "
             "(search.patentsview.org) was shut down on March 20, 2026. "
             "Use ppubs_search_patents with an inventor name query "
-            '(e.g., query=\'IN/"inventor name"\') to search by inventor. '
+            "(e.g., query='\"inventor name\".in.') to search by inventor. "
             "Disambiguated inventor data is available as bulk datasets "
             "on the USPTO Open Data Portal (use odp_search_datasets)."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": 'Use ppubs_search_patents(query=\'IN/"inventor name"\') to search by inventor.',
+        "workaround": "Use ppubs_search_patents(query='\"inventor name\".in.') to search by inventor.",
     }
 
 
@@ -1826,7 +1826,7 @@ async def patentsview_search_by_cpc(
 
     IMPORTANT: The PatentsView API (search.patentsview.org) was shut down on
     March 20, 2026. Use ppubs_search_patents with a CPC query
-    (e.g., CPC/"G06N3/08") as a workaround.
+    (e.g., G06N3/08.cpc.) as a workaround.
 
     Args:
         cpc_code: CPC code (e.g., "G06N3/08" for neural networks)
@@ -1838,10 +1838,10 @@ async def patentsview_search_by_cpc(
             "PatentsView API is no longer available. The PatentsView API "
             "(search.patentsview.org) was shut down on March 20, 2026. "
             "Use ppubs_search_patents with a CPC classification query "
-            '(e.g., query=\'CPC/"G06N3/08"\') to search by CPC code.'
+            "(e.g., query='G06N3/08.cpc.') to search by CPC code."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": 'Use ppubs_search_patents(query=\'CPC/"G06N3/08"\') to search by CPC.',
+        "workaround": "Use ppubs_search_patents(query='G06N3/08.cpc.') to search by CPC.",
     }
 
 

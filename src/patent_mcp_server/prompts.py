@@ -163,8 +163,8 @@ Analyze a company's patent portfolio to understand their IP position and strateg
 ## Step 1: Identify Company Variations
 Companies often file under different names:
 ```
-Use ppubs_search_patents with AN/ qualifier:
-- Search for company name and variations: AN/"Acme" OR AN/"Acme Corp"
+Use ppubs_search_patents with the .as. qualifier:
+- Search for company name and variations: "Acme".as. OR "Acme Corp".as.
 - Note subsidiary names
 - Also try odp_search_applications with assignee_name
 ```
@@ -173,13 +173,13 @@ Use ppubs_search_patents with AN/ qualifier:
 ```
 Use ppubs_search_patents with assignee filter:
 - Get count of total patents (check the "total" field)
-- Identify date range of filings with ISD/ ranges
+- Identify date range of filings with @pd ranges (e.g. @pd>="20200101")
 - Note technology distribution by CPC codes in results
 ```
 
 ## Step 3: Technology Focus Analysis
 ```
-Use ppubs_search_patents combining AN/ and CPC/ qualifiers:
+Use ppubs_search_patents combining .as. and .cpc. qualifiers:
 - Identify top CPC codes in portfolio
 - Map technology areas covered (interpret with get_cpc_info)
 - Find gaps or emerging focus areas
@@ -187,7 +187,7 @@ Use ppubs_search_patents combining AN/ and CPC/ qualifiers:
 
 ## Step 4: Inventor Analysis
 ```
-Use ppubs_search_patents with IN/ qualifier:
+Use ppubs_search_patents with the .in. qualifier:
 - Identify key inventors appearing in results
 - Track inventor movement (acquired talent)
 ```
@@ -195,7 +195,7 @@ Use ppubs_search_patents with IN/ qualifier:
 ## Step 5: Filing Trends
 ```
 Search with date filters:
-- Analyze year-over-year filing trends (ISD/ ranges)
+- Analyze year-over-year filing trends (@pd date ranges)
 - Identify ramp-up or slow-down periods
 - Correlate with business events if known
 ```
@@ -319,7 +319,7 @@ Assess the risk of patent infringement for a product or technology.
 
 ## Step 2: Keyword and Classification Search
 ```
-Use ppubs_search_patents with keywords and CPC/ qualifiers:
+Use ppubs_search_patents with keywords and .cpc. qualifiers:
 - Search for each technical feature
 - Use multiple synonyms and phrasings
 - Focus on relevant CPC classifications
@@ -402,15 +402,15 @@ Use get_cpc_info:
 
 ## Step 3: Quantitative Analysis
 ```
-Use ppubs_search_patents with CPC/ qualifiers:
+Use ppubs_search_patents with .cpc. qualifiers:
 - Check the "total" field for patents per CPC code
-- Track filings over time with ISD/ date ranges
+- Track filings over time with @pd date ranges
 - Identify growth trends
 ```
 
 ## Step 4: Top Assignee Analysis
 ```
-Use ppubs_search_patents combining CPC/ and AN/ qualifiers:
+Use ppubs_search_patents combining .cpc. and .as. qualifiers:
 - Rank companies by patent count
 - Calculate market share of filings
 - Identify new entrants vs incumbents

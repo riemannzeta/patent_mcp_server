@@ -313,13 +313,13 @@ All 14 PatentsView tools return `API_UNAVAILABLE` with workaround guidance. Pate
 |------|------------|
 | `patentsview_search_patents` | `ppubs_search_patents` |
 | `patentsview_get_patent` | `ppubs_get_patent_by_number` |
-| `patentsview_search_assignees` | `ppubs_search_patents` with `AN/"name"` query |
+| `patentsview_search_assignees` | `ppubs_search_patents` with `"name".as.` query |
 | `patentsview_get_assignee` | `odp_search_datasets` (bulk data) |
-| `patentsview_search_inventors` | `ppubs_search_patents` with `IN/"name"` query |
+| `patentsview_search_inventors` | `ppubs_search_patents` with `"name".in.` query |
 | `patentsview_get_inventor` | `odp_search_datasets` (bulk data) |
 | `patentsview_get_claims` | `ppubs_get_full_document` |
 | `patentsview_get_description` | `ppubs_get_full_document` |
-| `patentsview_search_by_cpc` | `ppubs_search_patents` with `CPC/"code"` query |
+| `patentsview_search_by_cpc` | `ppubs_search_patents` with `code.cpc.` query |
 | `patentsview_lookup_cpc` | `get_cpc_info` |
 | `patentsview_search_attorneys` | `odp_get_attorney` (per-application) |
 | `patentsview_get_attorney` | `odp_get_attorney` (per-application) |
