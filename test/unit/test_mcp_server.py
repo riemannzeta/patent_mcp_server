@@ -1,16 +1,16 @@
 """Unit tests for the MCP protocol layer.
 
 The rest of the suite calls the tool functions directly, which skips
-everything FastMCP does: schema generation, resource and prompt
+everything MCPServer does: schema generation, resource and prompt
 registration, and serialization of results. These tests drive the server
-through a real ClientSession over an in-memory transport, so a change that
+through a real client over an in-memory transport, so a change that
 breaks registration or a tool signature fails here rather than in a user's
 client.
 """
 import json
 
 import pytest
-from mcp.shared.memory import create_connected_server_and_client_session
+from mcp.client import Client
 
 from patent_mcp_server import patents
 
@@ -18,12 +18,14 @@ from patent_mcp_server import patents
 def connect():
     """Open a client session against the real server object.
 
-    Used inline as ``async with connect() as session``. Deliberately not a
-    pytest fixture: the session holds a running server task for as long as
-    it is open, and handing that across a fixture yield deadlocks when the
+    ``Client(server)`` connects in memory (mcp 2 replaced
+    create_connected_server_and_client_session with it). Used inline as
+    ``async with connect() as session``. Deliberately not a pytest
+    fixture: the session holds a running server task for as long as it is
+    open, and handing that across a fixture yield deadlocks when the
     fixture and the test resolve to different event loops.
     """
-    return create_connected_server_and_client_session(patents.mcp)
+    return Client(patents.mcp)
 
 
 # ============================================================================
@@ -52,7 +54,7 @@ async def test_server_exposes_tools():
 async def test_every_tool_has_usable_schema():
     """Each tool carries a description and an object input schema.
 
-    FastMCP builds these from the function signature and docstring, so this
+    MCPServer builds these from the function signature and docstring, so this
     catches an unannotated argument or a missing docstring.
     """
     async with connect() as session:
@@ -60,7 +62,7 @@ async def test_every_tool_has_usable_schema():
 
         for tool in result.tools:
             assert tool.description, f"{tool.name} has no description"
-            assert tool.inputSchema["type"] == "object", f"{tool.name} schema is not an object"
+            assert tool.input_schema["type"] == "object", f"{tool.name} schema is not an object"
 
 
 @pytest.mark.unit
@@ -99,10 +101,12 @@ async def test_call_tool_returns_json():
     async with connect() as session:
         result = await session.call_tool("get_cpc_info", {"cpc_code": "G06"})
 
-        assert not result.isError
+        assert not result.is_error
         payload = json.loads(result.content[0].text)
         assert payload["code"] == "G06"
         assert payload["section"] == "G"
+        # structured_output is off in tool(): the dict travels once, as text
+        assert result.structured_content is None
 
 
 @pytest.mark.unit
@@ -136,8 +140,21 @@ async def test_every_tool_is_marked_read_only():
         result = await session.list_tools()
         for tool in result.tools:
             assert tool.annotations is not None, f"{tool.name} has no annotations"
-            assert tool.annotations.readOnlyHint is True, f"{tool.name} not read-only"
-            assert tool.annotations.openWorldHint is True, f"{tool.name} not open-world"
+            assert tool.annotations.read_only_hint is True, f"{tool.name} not read-only"
+            assert tool.annotations.open_world_hint is True, f"{tool.name} not open-world"
+            # No output schema: structured_output is off (see tool() in patents.py)
+            assert tool.output_schema is None, f"{tool.name} advertises an outputSchema"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_annotations_use_camel_case_on_the_wire():
+    """Clients read readOnlyHint, not read_only_hint, from the JSON."""
+    async with connect() as session:
+        result = await session.list_tools()
+        wire = result.tools[0].annotations.model_dump(by_alias=True, exclude_none=True)
+        assert wire["readOnlyHint"] is True
+        assert "read_only_hint" not in wire
 
 
 @pytest.mark.unit
@@ -177,7 +194,7 @@ def test_legacy_tool_registers_when_enabled(monkeypatch):
     try:
         registered = patents.mcp._tool_manager.get_tool("legacy_probe_tool")
         assert registered is not None
-        assert registered.annotations.readOnlyHint is True
+        assert registered.annotations.read_only_hint is True
     finally:
         patents.mcp._tool_manager._tools.pop("legacy_probe_tool", None)
 
@@ -203,15 +220,15 @@ def test_legacy_tool_returns_function_when_disabled(monkeypatch):
 async def test_server_survives_repeated_sessions():
     """Consecutive sessions each work against the same server object.
 
-    In stateless HTTP mode the low-level server is entered once per request,
-    so anything torn down at the end of a session would leave later requests
-    broken. This is the regression test for putting client shutdown in a
-    lifespan.
+    Anything torn down at the end of a session would leave later sessions
+    broken. Under mcp 1 stateless HTTP entered the lifespan once per request,
+    which made this a hard rule; client shutdown still lives in serve()
+    rather than a lifespan, and this test keeps it that way.
     """
     for _ in range(3):
-        async with create_connected_server_and_client_session(patents.mcp) as client:
+        async with connect() as client:
             result = await client.call_tool("get_cpc_info", {"cpc_code": "G06"})
-            assert not result.isError
+            assert not result.is_error
 
     # The shared HTTP clients must still be open for real work to continue.
     assert not patents.ppubs_client.client.is_closed
@@ -227,7 +244,7 @@ async def test_concurrent_sessions_are_independent():
     results = {}
 
     async def run(label):
-        async with create_connected_server_and_client_session(patents.mcp) as client:
+        async with connect() as client:
             result = await client.call_tool("get_cpc_info", {"cpc_code": "G06"})
             results[label] = json.loads(result.content[0].text)["code"]
 
@@ -281,3 +298,59 @@ def test_stateless_is_the_default():
     """HTTP serving is stateless unless --stateful is passed."""
     assert patents.build_arg_parser().parse_args([]).stateful is False
     assert patents.build_arg_parser().parse_args(["--stateful"]).stateful is True
+
+
+@pytest.mark.unit
+def test_http_settings_follow_the_flags():
+    """Parsed flags become the keyword arguments run_streamable_http_async takes."""
+    args = patents.build_arg_parser().parse_args(
+        ["--transport", "streamable-http", "--host", "0.0.0.0", "--port", "9001",
+         "--path", "/patents", "--stateful", "--json-response"]
+    )
+    assert patents.http_settings(args) == {
+        "host": "0.0.0.0",
+        "port": 9001,
+        "streamable_http_path": "/patents",
+        "stateless_http": False,
+        "json_response": True,
+    }
+
+
+@pytest.mark.unit
+def test_main_hands_transport_settings_to_serve(monkeypatch):
+    """main() passes the transport and its settings into serve() via anyio.run.
+
+    mcp 2 has no mcp.settings to mutate, so this is the only path by which
+    --host/--port/--path/--stateful/--json-response reach the transport.
+    """
+    calls = {}
+    monkeypatch.setattr(patents.sys, "argv",
+                        ["patent-mcp-server", "--transport", "streamable-http", "--port", "9002"])
+    monkeypatch.setattr(patents.anyio, "run", lambda fn, *a: calls.update(fn=fn, args=a))
+
+    patents.main()
+
+    assert calls["fn"] is patents.serve
+    transport, http = calls["args"]
+    assert transport == "streamable-http"
+    assert http["port"] == 9002
+    assert http["stateless_http"] is True
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_serve_passes_http_settings_and_cleans_up(monkeypatch):
+    """serve() forwards the settings to the HTTP runner and always runs cleanup."""
+    from unittest.mock import AsyncMock
+
+    run_http = AsyncMock()
+    cleanup = AsyncMock()
+    monkeypatch.setattr(patents.mcp, "run_streamable_http_async", run_http)
+    monkeypatch.setattr(patents, "cleanup", cleanup)
+
+    settings = {"host": "127.0.0.1", "port": 9003, "streamable_http_path": "/mcp",
+                "stateless_http": True, "json_response": False}
+    await patents.serve("streamable-http", settings)
+
+    run_http.assert_awaited_once_with(**settings)
+    cleanup.assert_awaited_once()

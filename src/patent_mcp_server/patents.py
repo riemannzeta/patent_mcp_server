@@ -28,7 +28,7 @@ import sys
 from typing import Any, Dict, List, Optional, Union
 
 import anyio
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from mcp.types import ToolAnnotations
 from pydantic import ValidationError
 
@@ -64,8 +64,8 @@ from patent_mcp_server.uspto.office_action_client import OfficeActionClient
 from patent_mcp_server.uspto.enriched_citation_client import EnrichedCitationClient
 from patent_mcp_server.patentsview.patentsview_client import PatentsViewClient
 
-# Initialize FastMCP server
-mcp = FastMCP(
+# Initialize the MCP server
+mcp = MCPServer(
     "uspto_patent_tools",
     instructions=(
         "Tools for researching US patents AND US federal trademarks. "
@@ -78,12 +78,6 @@ mcp = FastMCP(
         "get_trademark_status_code. Use check_api_status to see which "
         "sources are configured and available."
     ),
-    # Transport defaults; main() overrides these from command-line flags.
-    host=config.MCP_HOST,
-    port=config.MCP_PORT,
-    streamable_http_path=config.MCP_PATH,
-    stateless_http=config.MCP_STATELESS,
-    json_response=config.MCP_JSON_RESPONSE,
 )
 
 # Every tool here reads from USPTO and writes nothing, so clients that honor
@@ -91,16 +85,22 @@ mcp = FastMCP(
 # per-call confirmation. openWorldHint is true because results come from a
 # live external service.
 READ_ONLY = ToolAnnotations(
-    readOnlyHint=True,
-    destructiveHint=False,
-    idempotentHint=True,
-    openWorldHint=True,
+    read_only_hint=True,
+    destructive_hint=False,
+    idempotent_hint=True,
+    open_world_hint=True,
 )
 
 
 def tool(**kwargs):
-    """Register a read-only tool with the server."""
-    return mcp.tool(annotations=READ_ONLY, **kwargs)
+    """Register a read-only tool with the server.
+
+    structured_output is off: every tool returns a plain dict, which mcp 2
+    would otherwise send twice (as JSON text and again as
+    structured_content) against an output schema of "any object". Measured
+    at 2.0x wire size on documents and searches for no added typing.
+    """
+    return mcp.tool(annotations=READ_ONLY, structured_output=False, **kwargs)
 
 
 def legacy_tool(**kwargs):
@@ -144,10 +144,10 @@ async def cleanup():
     """Close every USPTO HTTP client.
 
     Runs once when the server stops, inside the same event loop the clients
-    were used on. Note this deliberately is *not* wired up as a FastMCP
-    lifespan: in stateless HTTP mode the low-level server — and therefore its
-    lifespan — is entered once per request, which would close these clients
-    after the first tool call.
+    were used on, from serve(). It is deliberately not a server lifespan:
+    under mcp 1 stateless HTTP entered the lifespan once per request, which
+    would have closed these clients after the first tool call; mcp 2 runs
+    the lifespan once, but serve()'s finally already covers both transports.
     """
     logger.info("Shutting down USPTO Patent MCP server, cleaning up resources...")
     try:
@@ -2643,15 +2643,34 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
-async def serve(transport: str) -> None:
+def http_settings(args: argparse.Namespace) -> Dict[str, Any]:
+    """The streamable-http keyword arguments for parsed command-line flags.
+
+    mcp 2 takes transport settings on run_streamable_http_async() rather
+    than on the server constructor, so main() threads them through serve().
+    """
+    return {
+        "host": args.host,
+        "port": args.port,
+        "streamable_http_path": args.path,
+        "stateless_http": not args.stateful,
+        "json_response": args.json_response,
+    }
+
+
+async def serve(transport: str, http: Optional[Dict[str, Any]] = None) -> None:
     """Run the server on ``transport`` and close the HTTP clients afterwards.
 
-    Cleanup lives here rather than in an atexit hook so it runs inside the
-    same event loop the clients were opened on.
+    ``http`` holds the streamable-http settings from http_settings(); it is
+    ignored for stdio. Cleanup lives here rather than in an atexit hook so
+    it runs inside the same event loop the clients were opened on. It is
+    also deliberately not a server lifespan: that was a hard requirement
+    under mcp 1 (stateless HTTP entered the lifespan once per request) and
+    remains the simpler choice under mcp 2, where the lifespan runs once.
     """
     try:
         if transport == "streamable-http":
-            await mcp.run_streamable_http_async()
+            await mcp.run_streamable_http_async(**(http or {}))
         else:
             await mcp.run_stdio_async()
     finally:
@@ -2661,14 +2680,6 @@ async def serve(transport: str) -> None:
 def main():
     """Initialize and run the server."""
     args = build_arg_parser().parse_args()
-
-    # FastMCP reads these when the transport starts, so setting them here
-    # lets the command line override the environment.
-    mcp.settings.host = args.host
-    mcp.settings.port = args.port
-    mcp.settings.streamable_http_path = args.path
-    mcp.settings.stateless_http = not args.stateful
-    mcp.settings.json_response = args.json_response
 
     if args.transport == "streamable-http":
         mode = "stateful" if args.stateful else "stateless"
@@ -2686,7 +2697,7 @@ def main():
         logger.info("Starting USPTO Patent & Trademark MCP server with stdio transport")
 
     try:
-        anyio.run(serve, args.transport)
+        anyio.run(serve, args.transport, http_settings(args))
     except KeyboardInterrupt:
         logger.info("Server stopped")
 
