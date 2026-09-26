@@ -175,6 +175,8 @@ async def test_search_assignments_success(tm_client):
 
     called_url = m.call_args[0][0]
     assert called_url == f"{config.TM_ASSIGNMENT_BASE_URL}{SEARCH_PATH}"
+    # CloudFront refuses POST on the v2 path since 2026-09; v3 is live.
+    assert "/api/v3/public/" in SEARCH_PATH
     body = m.call_args[0][1]
     assert {"property": "New Owner LLC", "searchBy": "assigneeName"} in body["searchCriteria"]
 

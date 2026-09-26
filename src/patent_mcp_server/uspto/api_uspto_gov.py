@@ -9,6 +9,7 @@ Note: Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
 The API endpoint is api.uspto.gov; data.uspto.gov is the web portal only.
 """
 
+import asyncio
 import base64
 import os
 from typing import Any, Optional, Dict, List, Union
@@ -24,7 +25,7 @@ from tenacity import (
 )
 
 from patent_mcp_server.util.logging import LoggingTransport
-from patent_mcp_server.util.errors import ApiError
+from patent_mcp_server.util.errors import ApiError, retry_after_seconds
 from patent_mcp_server.config import config
 from patent_mcp_server.constants import HTTPMethods, Defaults
 
@@ -123,31 +124,41 @@ class ApiUsptoClient:
 
         logger.info(f"Making {method} request to {url}")
 
-        try:
-            if method.upper() == HTTPMethods.GET:
-                response = await self.client.get(
-                    url,
-                    headers=headers,
-                    timeout=config.REQUEST_TIMEOUT
-                )
-            elif method.upper() == HTTPMethods.POST:
-                headers["Content-Type"] = "application/json"
-                response = await self.client.post(
-                    url,
-                    headers=headers,
-                    json=data,
-                    timeout=config.REQUEST_TIMEOUT
-                )
-            else:
-                logger.error(f"Unsupported HTTP method: {method}")
-                return ApiError.create(
-                    message=f"Unsupported HTTP method: {method}",
-                    status_code=400
-                )
+        if method.upper() not in (HTTPMethods.GET, HTTPMethods.POST):
+            logger.error(f"Unsupported HTTP method: {method}")
+            return ApiError.create(
+                message=f"Unsupported HTTP method: {method}",
+                status_code=400
+            )
 
-            response.raise_for_status()
-            logger.info(f"Request successful: {response.status_code}")
-            return response.json()
+        try:
+            for attempt in range(config.MAX_RETRIES):
+                if method.upper() == HTTPMethods.GET:
+                    response = await self.client.get(
+                        url,
+                        headers=headers,
+                        timeout=config.REQUEST_TIMEOUT
+                    )
+                else:
+                    headers["Content-Type"] = "application/json"
+                    response = await self.client.post(
+                        url,
+                        headers=headers,
+                        json=data,
+                        timeout=config.REQUEST_TIMEOUT
+                    )
+
+                # api.uspto.gov rate-limits per key; wait and try again
+                # rather than handing a burst of tool calls a 429 each.
+                if response.status_code == 429 and attempt < config.MAX_RETRIES - 1:
+                    delay = retry_after_seconds(response, attempt)
+                    logger.warning(f"ODP API rate limit (429); retrying in {delay:.0f}s")
+                    await asyncio.sleep(delay)
+                    continue
+
+                response.raise_for_status()
+                logger.info(f"Request successful: {response.status_code}")
+                return response.json()
 
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code

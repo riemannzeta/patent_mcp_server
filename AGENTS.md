@@ -44,7 +44,7 @@ src/patent_mcp_server/
 ├── util/{errors,response,validation,logging}.py
 └── json/search_query.json  # PPUBS request template
 test/unit/                  # Network-free, run by default
-test/test_tools*.py         # Integration tests, network required, opt-in via -m integration
+test/test_*.py              # Integration tests (live USPTO calls), opt-in via -m integration
 ```
 
 ## Conventions in one screen

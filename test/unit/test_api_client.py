@@ -416,3 +416,69 @@ async def test_download_file_network_error(api_client):
         result = await api_client.download_file("https://api.uspto.gov/x.pdf")
 
     assert result["error"] is True
+
+
+# ============================================================================
+# 429 handling
+# ============================================================================
+
+def _response(status: int, payload=None, headers=None):
+    response = MagicMock()
+    response.status_code = status
+    response.headers = headers or {}
+    response.text = "" if payload is None else str(payload)
+    response.json.return_value = payload if payload is not None else {}
+    if status >= 400:
+        response.raise_for_status.side_effect = httpx.HTTPStatusError(
+            str(status), request=MagicMock(), response=response
+        )
+    return response
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_make_request_retries_after_429(api_client):
+    """A 429 is retried after the Retry-After delay, then the 200 is returned."""
+    with patch.object(api_client.client, "get", new_callable=AsyncMock,
+                      side_effect=[_response(429, headers={"retry-after": "1"}),
+                                   _response(200, {"ok": True})]) as get, \
+         patch("patent_mcp_server.uspto.api_uspto_gov.asyncio.sleep",
+               new_callable=AsyncMock) as sleep:
+        result = await api_client.make_request("https://api.uspto.gov/x")
+
+    assert result == {"ok": True}
+    assert get.await_count == 2
+    sleep.assert_awaited_once_with(1.0)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_make_request_gives_up_after_repeated_429(api_client):
+    """MAX_RETRIES 429s in a row become an error dictionary, not an exception."""
+    from patent_mcp_server.config import config
+
+    responses = [_response(429, {"message": "Too Many Requests"})
+                 for _ in range(config.MAX_RETRIES)]
+    with patch.object(api_client.client, "get", new_callable=AsyncMock,
+                      side_effect=responses) as get, \
+         patch("patent_mcp_server.uspto.api_uspto_gov.asyncio.sleep",
+               new_callable=AsyncMock) as sleep:
+        result = await api_client.make_request("https://api.uspto.gov/x")
+
+    assert result["error"] is True
+    assert result["status_code"] == 429
+    assert get.await_count == config.MAX_RETRIES
+    assert sleep.await_count == config.MAX_RETRIES - 1
+
+
+@pytest.mark.unit
+def test_retry_after_seconds_prefers_header_and_caps_it():
+    from patent_mcp_server.config import config
+    from patent_mcp_server.util.errors import retry_after_seconds
+
+    assert retry_after_seconds(_response(429, headers={"retry-after": "3"}), 0) == 3.0
+    assert retry_after_seconds(_response(429, headers={"retry-after": "999"}), 0) == config.RETRY_MAX_WAIT
+    # No header: exponential backoff from RETRY_MIN_WAIT, capped
+    assert retry_after_seconds(_response(429), 0) == config.RETRY_MIN_WAIT
+    assert retry_after_seconds(_response(429), 1) == min(config.RETRY_MIN_WAIT * 2, config.RETRY_MAX_WAIT)
+    assert retry_after_seconds(_response(429), 10) == config.RETRY_MAX_WAIT

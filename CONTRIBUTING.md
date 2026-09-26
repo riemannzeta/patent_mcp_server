@@ -34,7 +34,7 @@ A weak report ("ppubs search returns wrong results") will get triaged but probab
 Before opening a PR:
 
 1. **All tests pass** — `uv run pytest` must be green. No skipping tests to make a PR mergeable.
-2. **New behavior has new tests** — unit tests live under `test/unit/` and mock the network. Integration tests live in `test/test_tools.py` / `test/test_tools_pytest.py` and run against the live USPTO APIs.
+2. **New behavior has new tests** — unit tests live under `test/unit/` and mock the network. Integration tests live in `test/test_tools.py`, `test/test_ptab_integration.py` and `test/test_trademark_integration.py` and run against the live USPTO APIs.
 3. **Docstrings updated** — especially the `USE THIS TOOL WHEN:` and `Args:` sections, since these are surfaced to MCP clients and LLMs.
 4. **Version bumped if user-visible** — patch bump in both `pyproject.toml` AND `src/patent_mcp_server/config.py` (`USER_AGENT`). See [`CLAUDE.md`](CLAUDE.md) for the full release workflow.
 5. **Touched a decommissioned API?** Follow the seven-step pattern documented in [`CLAUDE.md`](CLAUDE.md) → "Handling Decommissioned APIs."

@@ -1,35 +1,24 @@
-#!/usr/bin/env python3
 """
-Integration tests for USPTO Patent MCP Server tools.
+Integration tests for the patent tools (PPUBS and ODP).
 
-These are INTEGRATION tests that make real API calls to USPTO servers.
-Run directly with: python test/test_tools.py
-Or with pytest: pytest test/test_tools.py -v -m integration
-Skip with: pytest -m "not integration"
+These make real calls to ppubs.uspto.gov and api.uspto.gov, so they are
+deselected by default (pytest.ini) and need USPTO_API_KEY for the ODP
+half. Every test asserts on the result; a failure here means the live
+API contract moved. Outputs are saved under test/test_results/ for
+inspection.
+
+Run with: uv run pytest -m integration
+Everything, unit and live: uv run pytest -m ""
 """
-import asyncio
-import json
-import logging
-import sys
-import os
-import base64
-from pathlib import Path
-from datetime import datetime
 
 import pytest
+import base64
+from pathlib import Path
+import json
 
-# Mark all tests in this module as integration tests (when run via pytest)
-pytestmark = [pytest.mark.integration]
 
-# Set up detailed logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-
-# Create logger
-logger = logging.getLogger('test_tools')
+# Mark all tests in this module as integration tests
+pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
 # Import the tools from the main server
 from patent_mcp_server.patents import (
@@ -53,528 +42,381 @@ from patent_mcp_server.patents import (
     odp_get_documents,
     get_status_code,
     odp_search_datasets,
-    odp_get_dataset
+    odp_get_dataset,
+    odp_download_document,
+    ppubs_get_citing_patents,
 )
 
-# Define test parameters
-PATENT_NUMBER = "9876543"
-APP_NUMBER = "14412875"
+# Test constants
+PATENT_NUMBER = "6000000"
+APP_NUMBER = "16123456"
 RESULTS_DIR = Path("test/test_results")
 
-# Create results directory if it doesn't exist
-os.makedirs(RESULTS_DIR, exist_ok=True)
+# Ensure results directory exists
+RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-async def save_result(result, filename):
-    """Save test result to a file."""
-    filepath = RESULTS_DIR / filename
+
+# Fixtures
+
+@pytest.fixture
+def results_dir():
+    """Provide the results directory path."""
+    return RESULTS_DIR
+
+
+async def save_result(result: dict, filename: str, results_dir: Path):
+    """Helper to save test results to JSON."""
+    filepath = results_dir / filename
     with open(filepath, 'w') as f:
         json.dump(result, f, indent=2, default=str)
-    logger.info(f"Result saved to {filepath}")
 
-async def save_pdf(result, filename):
-    """Save PDF result to a file."""
+
+async def save_pdf(result: dict, filename: str, results_dir: Path) -> bool:
+    """Helper to save PDF results."""
     if result.get("success") and result.get("content"):
-        filepath = RESULTS_DIR / filename
+        filepath = results_dir / filename
         pdf_content = base64.b64decode(result["content"])
         with open(filepath, 'wb') as f:
             f.write(pdf_content)
-        logger.info(f"PDF saved to {filepath}")
         return True
     return False
 
-# Test functions for each tool
 
-async def test_ppubs_search_patents():
-    logger.info("Testing ppubs_search_patents...")
-    
-    # Test with a simple search query
-    start_time = datetime.now()
+# ===================================================================
+# Tests for ppubs.uspto.gov (Public Patent Search)
+# ===================================================================
+
+
+async def test_ppubs_search_patents(results_dir):
+    """Test searching for granted patents."""
     result = await ppubs_search_patents(
-        query=f'patentNumber:"{PATENT_NUMBER}"',
+        query=f"{PATENT_NUMBER}.pn.",
         limit=10
     )
-    duration = (datetime.now() - start_time).total_seconds()
-    
-    logger.info(f"ppubs_search_patents completed in {duration:.2f} seconds")
-    
-    # Save result
-    await save_result(result, "ppubs_search_patents.json")
-    
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
-    
-    num_found = result.get("numFound", 0)
-    logger.info(f"Found {num_found} patents")
-    return num_found > 0
 
-async def test_ppubs_search_applications():
-    logger.info("Testing ppubs_search_applications...")
-    
-    # Test with a simple search query for applications
-    start_time = datetime.now()
+    await save_result(result, "ppubs_search_patents.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result.get("total", 0) > 0, "Expected to find at least one patent"
+    hit = result["results"][0]
+    assert hit["guid"] == f"US-{PATENT_NUMBER}-A"
+    # Hits are slimmed: no references-cited lists, no empty fields
+    assert "urpn" not in hit and "urpnCode" not in hit
+    assert all(v not in (None, "", [], {}) for v in hit.values())
+
+
+
+async def test_ppubs_search_applications(results_dir):
+    """Test searching for published patent applications."""
     result = await ppubs_search_applications(
         query='artificial intelligence',
         limit=10
     )
-    duration = (datetime.now() - start_time).total_seconds()
-    
-    logger.info(f"ppubs_search_applications completed in {duration:.2f} seconds")
-    
-    # Save result
-    await save_result(result, "ppubs_search_applications.json")
-    
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
-    
-    num_found = result.get("numFound", 0)
-    logger.info(f"Found {num_found} patent applications")
-    return num_found > 0
 
-async def test_ppubs_get_full_document():
-    logger.info("Testing ppubs_get_full_document...")
-    
-    # First get a GUID and source_type by searching
+    await save_result(result, "ppubs_search_applications.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result.get("total", 0) > 0, "Expected to find at least one application"
+
+
+
+async def test_ppubs_get_full_document(results_dir):
+    """Test retrieving a full patent document by GUID."""
+    # First search for a patent
     search_result = await ppubs_search_patents(
-        query=f'patentNumber:"{PATENT_NUMBER}"',
+        query=f"{PATENT_NUMBER}.pn.",
         limit=1
     )
-    
-    if search_result.get("error", False):
-        logger.error(f"Error during search: {search_result.get('message', 'Unknown error')}")
-        return False
-    
-    # Extract GUID and source_type from search result
-    patents = search_result.get("patents", search_result.get("docs", []))
-    if not patents:
-        logger.error(f"No patents found with number {PATENT_NUMBER}")
-        return False
-    
+
+    assert not search_result.get("error", False), "Search failed"
+
+    patents = search_result.get("results", [])
+    assert len(patents) > 0, "No patents found"
+
     patent = patents[0]
     guid = patent.get("guid")
     source_type = patent.get("type")
-    
-    logger.info(f"Found patent with GUID: {guid}, type: {source_type}")
-    
-    # Get full document
-    start_time = datetime.now()
-    result = await ppubs_get_full_document(guid=guid, source_type=source_type)
-    duration = (datetime.now() - start_time).total_seconds()
-    
-    logger.info(f"ppubs_get_full_document completed in {duration:.2f} seconds")
-    
-    # Save result
-    await save_result(result, "ppubs_get_full_document.json")
-    
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
-    
-    logger.info(f"Successfully retrieved full document for {guid}")
-    return True
 
-async def test_ppubs_get_patent_by_number():
-    logger.info("Testing ppubs_get_patent_by_number...")
-    
-    # Test with the specific patent number
-    start_time = datetime.now()
+    # Get full document, claims only
+    result = await ppubs_get_full_document(
+        guid=guid, source_type=source_type, sections=["claims"]
+    )
+
+    await save_result(result, "ppubs_get_full_document.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["guid"] == guid
+    assert result["claimsHtml"]
+    assert "descriptionHtml" not in result
+    assert result["_sections"] == ["claims"]
+
+
+
+async def test_ppubs_get_patent_by_number(results_dir):
+    """Test retrieving a patent by its number."""
     result = await ppubs_get_patent_by_number(patent_number=PATENT_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
-    
-    logger.info(f"ppubs_get_patent_by_number completed in {duration:.2f} seconds")
-    
-    # Save result
-    await save_result(result, "ppubs_get_patent_by_number.json")
-    
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
-    
-    logger.info(f"Successfully retrieved patent {PATENT_NUMBER}")
-    return True
 
-async def test_ppubs_download_patent_pdf():
-    logger.info("Testing ppubs_download_patent_pdf...")
-    
-    # Test with the specific patent number
-    start_time = datetime.now()
+    await save_result(result, "ppubs_get_patent_by_number.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["guid"] == f"US-{PATENT_NUMBER}-A"
+    for section in ("abstractHtml", "claimsHtml", "descriptionHtml"):
+        assert result.get(section), f"{section} missing from the full document"
+    # Slimmed: no empty fields, no search-highlight fields
+    assert all(v not in (None, "", [], {}) for v in result.values())
+    assert not [k for k in result if "KwicHits" in k or "Highlights" in k]
+
+
+async def test_ppubs_get_patent_by_number_sections(results_dir):
+    """`sections` returns the front page and claims without the description."""
+    result = await ppubs_get_patent_by_number(
+        patent_number=PATENT_NUMBER, sections=["biblio", "claims"]
+    )
+
+    await save_result(result, "ppubs_get_patent_by_number_sections.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["claimsHtml"]
+    assert result["usRefGroup"], "front page should list the references cited"
+    assert "descriptionHtml" not in result and "abstractHtml" not in result
+    assert result["_sections"] == ["biblio", "claims"]
+
+
+@pytest.mark.parametrize("raw,guid", [
+    ("US 6,000,000 A", "US-6000000-A"),
+    ("D845123", "US-D845123-S"),
+    ("RE49123", "US-RE49123-E"),
+])
+async def test_ppubs_get_patent_by_number_accepts_prefixes_and_kind_codes(raw, guid):
+    """Formatted, design and reissue numbers resolve to the right document."""
+    result = await ppubs_get_patent_by_number(patent_number=raw, sections=["biblio"])
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["guid"] == guid
+
+
+async def test_ppubs_get_citing_patents(results_dir):
+    """Forward citations come back as slimmed search hits."""
+    result = await ppubs_get_citing_patents(patent_number=PATENT_NUMBER, limit=5)
+
+    await save_result(result, "ppubs_get_citing_patents.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["total"] > 0, "US 6,000,000 has forward citations"
+    assert result["metadata"]["query"] == f"{PATENT_NUMBER}.urpn."
+    assert result["metadata"]["cited_patent"] == PATENT_NUMBER
+    for hit in result["results"]:
+        assert hit["guid"] != f"US-{PATENT_NUMBER}-A"
+        assert "urpn" not in hit
+
+
+
+@pytest.mark.slow
+async def test_ppubs_download_patent_pdf(results_dir):
+    """Test downloading a patent as PDF."""
     result = await ppubs_download_patent_pdf(patent_number=PATENT_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
-    
-    logger.info(f"ppubs_download_patent_pdf completed in {duration:.2f} seconds")
-    
+
     # Save PDF if successful
-    success = await save_pdf(result, f"US-{PATENT_NUMBER}-B2.pdf")
-    
-    # Also save the JSON response metadata
-    await save_result(result, "ppubs_download_patent_pdf.json")
-    
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
-    
-    logger.info(f"Successfully downloaded PDF for patent {PATENT_NUMBER}")
-    return success
+    success = await save_pdf(result, f"US-{PATENT_NUMBER}-B2.pdf", results_dir)
+    await save_result(result, "ppubs_download_patent_pdf.json", results_dir)
 
-async def test_odp_get_application():
-    logger.info("Testing odp_get_application...")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert success, "Failed to save PDF"
 
-    # Test with the application number
-    start_time = datetime.now()
+
+# ===================================================================
+# Tests for api.uspto.gov (Open Data Portal API)
+# ===================================================================
+
+
+async def test_odp_get_application(results_dir):
+    """Test retrieving patent application data."""
     result = await odp_get_application(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_application completed in {duration:.2f} seconds")
+    await save_result(result, "get_app.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved application {APP_NUMBER}")
-    return True
 
-async def test_odp_search_applications():
-    logger.info("Testing odp_search_applications...")
-
-    # Test with a simple search query
-    start_time = datetime.now()
+async def test_odp_search_applications(results_dir):
+    """Test searching applications."""
     result = await odp_search_applications(
         application_number=APP_NUMBER,
         limit=10
     )
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_search_applications completed in {duration:.2f} seconds")
+    await save_result(result, "search_applications.json", results_dir)
 
-    # Save result
-    await save_result(result, "search_applications.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result.get("total", 0) > 0, "Expected to find at least one application"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    results = result.get("results", [])
-    total = result.get("total", 0)
-    logger.info(f"Found {total} applications")
-    return total > 0
 
-async def test_odp_get_application_metadata():
-    logger.info("Testing odp_get_application_metadata...")
-
-    # Test with the application number
-    start_time = datetime.now()
+async def test_odp_get_application_metadata(results_dir):
+    """Test retrieving application metadata."""
     result = await odp_get_application_metadata(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_application_metadata completed in {duration:.2f} seconds")
+    await save_result(result, "get_app_metadata.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app_metadata.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved metadata for application {APP_NUMBER}")
-    return True
 
-async def test_odp_get_adjustment():
-    logger.info("Testing odp_get_adjustment...")
-
-    # Test with the application number
-    start_time = datetime.now()
+async def test_odp_get_adjustment(results_dir):
+    """Test retrieving patent term adjustment data."""
     result = await odp_get_adjustment(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_adjustment completed in {duration:.2f} seconds")
+    await save_result(result, "get_app_adjustment.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app_adjustment.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved adjustment data for application {APP_NUMBER}")
-    return True
 
-async def test_odp_get_assignment():
-    logger.info("Testing odp_get_assignment...")
-
-    # Test with the application number
-    start_time = datetime.now()
+async def test_odp_get_assignment(results_dir):
+    """Test retrieving assignment data."""
     result = await odp_get_assignment(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_assignment completed in {duration:.2f} seconds")
+    await save_result(result, "get_app_assignment.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app_assignment.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved assignment data for application {APP_NUMBER}")
-    return True
 
-async def test_odp_get_attorney():
-    logger.info("Testing odp_get_attorney...")
-
-    # Test with the application number
-    start_time = datetime.now()
+async def test_odp_get_attorney(results_dir):
+    """Test retrieving attorney/agent data."""
     result = await odp_get_attorney(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_attorney completed in {duration:.2f} seconds")
+    await save_result(result, "get_app_attorney.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app_attorney.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved attorney data for application {APP_NUMBER}")
-    return True
 
-async def test_odp_get_continuity():
-    logger.info("Testing odp_get_continuity...")
-
-    # Test with the application number
-    start_time = datetime.now()
+async def test_odp_get_continuity(results_dir):
+    """Test retrieving continuity data."""
     result = await odp_get_continuity(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_continuity completed in {duration:.2f} seconds")
+    await save_result(result, "get_app_continuity.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app_continuity.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved continuity data for application {APP_NUMBER}")
-    return True
 
-async def test_odp_get_foreign_priority():
-    logger.info("Testing odp_get_foreign_priority...")
-
-    # Test with the application number
-    start_time = datetime.now()
+async def test_odp_get_foreign_priority(results_dir):
+    """Test retrieving foreign priority data."""
     result = await odp_get_foreign_priority(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_foreign_priority completed in {duration:.2f} seconds")
+    await save_result(result, "get_app_foreign_priority.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app_foreign_priority.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved foreign priority data for application {APP_NUMBER}")
-    return True
 
-async def test_odp_get_transactions():
-    logger.info("Testing odp_get_transactions...")
-
-    # Test with the application number
-    start_time = datetime.now()
+async def test_odp_get_transactions(results_dir):
+    """Test retrieving transaction data."""
     result = await odp_get_transactions(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_transactions completed in {duration:.2f} seconds")
+    await save_result(result, "get_app_transactions.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app_transactions.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved transaction data for application {APP_NUMBER}")
-    return True
 
-async def test_odp_get_documents():
-    logger.info("Testing odp_get_documents...")
-
-    # Test with the application number
-    start_time = datetime.now()
+async def test_odp_get_documents(results_dir):
+    """The file wrapper lists newest first, with codes counted in metadata."""
     result = await odp_get_documents(app_num=APP_NUMBER)
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_get_documents completed in {duration:.2f} seconds")
+    await save_result(result, "get_app_documents.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_app_documents.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["total"] > 0 and result["count"] > 0
+    assert result["metadata"]["documents_in_wrapper"] == result["total"]
+    assert sum(result["metadata"]["code_counts"].values()) == result["total"]
+    doc = result["results"][0]
+    for key in ("documentIdentifier", "documentCode", "officialDate", "directionCategory", "formats"):
+        assert key in doc, f"{key} missing from document summary"
+    assert "downloadOptionBag" not in doc
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved document data for application {APP_NUMBER}")
-    return True
+async def test_odp_get_documents_filtered_by_code(results_dir):
+    """document_code narrows the listing to the office actions."""
+    result = await odp_get_documents(app_num=APP_NUMBER, document_code="ctnf,ctfr,noa")
 
-async def test_get_status_code():
-    logger.info("Testing get_status_code...")
+    await save_result(result, "get_app_documents_filtered.json", results_dir)
 
-    # Test with a valid status code "30" = "Docketed New Case - Ready for Examination"
-    start_time = datetime.now()
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["total"] > 0, "expected at least one office action or allowance"
+    assert {d["documentCode"] for d in result["results"]} <= {"CTNF", "CTFR", "NOA"}
+    assert result["total"] < result["metadata"]["documents_in_wrapper"]
+
+
+@pytest.mark.slow
+async def test_odp_download_document(results_dir):
+    """A listed office action downloads as a real PDF."""
+    listing = await odp_get_documents(app_num=APP_NUMBER, document_code="CTNF", limit=1)
+    assert not listing.get("error", False), f"Error: {listing.get('message', 'Unknown error')}"
+    assert listing["results"], "no non-final rejection in the wrapper"
+    document_id = listing["results"][0]["documentIdentifier"]
+
+    result = await odp_download_document(app_num=APP_NUMBER, document_id=document_id)
+
+    saved = await save_pdf(result, f"{APP_NUMBER}-{document_id}.pdf", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert saved, "Failed to save PDF"
+    pdf = base64.b64decode(result["content"])
+    assert pdf[:5] == b"%PDF-", "download is not a PDF"
+    assert result["size_bytes"] == len(pdf) > 10_000
+    assert result["filename"] == f"{APP_NUMBER}-{document_id}.pdf"
+
+
+
+async def test_get_status_code(results_dir):
+    """Test retrieving status code info."""
+    # Use a valid status code "30" = "Docketed New Case - Ready for Examination"
     result = await get_status_code(code="30")
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"get_status_code completed in {duration:.2f} seconds")
+    await save_result(result, "get_status_codes.json", results_dir)
 
-    # Save result
-    await save_result(result, "get_status_codes.json")
+    assert not result.get("error", False), f"Error: {result.get('error', 'Unknown error')}"
+    assert result.get("code") == "30"
+    assert "description" in result
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('error', 'Unknown error')}")
-        return False
 
-    logger.info(f"Successfully retrieved status code info: {result.get('description')}")
-    return True
 
-async def test_odp_search_datasets():
-    logger.info("Testing odp_search_datasets...")
-
-    # Test with a simple search for patent datasets
-    start_time = datetime.now()
+async def test_odp_search_datasets(results_dir):
+    """Test searching bulk datasets."""
     result = await odp_search_datasets(
         query="patent",
         limit=10
     )
-    duration = (datetime.now() - start_time).total_seconds()
 
-    logger.info(f"odp_search_datasets completed in {duration:.2f} seconds")
+    await save_result(result, "search_datasets.json", results_dir)
 
-    # Save result
-    await save_result(result, "search_datasets.json")
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
 
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
+    # Live shape (2026-09-26): {"count": N, "bulkDataProductBag": [...]}
+    products = result.get("bulkDataProductBag", [])
+    assert len(products) > 0, "Expected to find dataset products"
+    assert result["count"] >= len(products)
+    assert products[0]["productIdentifier"]
+    assert products[0]["productTitleText"]
 
-    products = result.get("products", [])
-    total = len(products)
-    logger.info(f"Found {total} dataset products")
 
-    # Save product ID for next test if possible
-    if total > 0:
-        # Get the first product short name for the next test
-        product_id = products[0].get("productShortName", "")
-        if product_id:
-            logger.info(f"Found product ID for next test: {product_id}")
-            return product_id
 
-    return False
+async def test_odp_get_dataset(results_dir):
+    """A product found by search can be fetched by its identifier."""
+    search_result = await odp_search_datasets(query="patent", limit=1)
+    products = search_result.get("bulkDataProductBag", [])
+    assert products, "search returned no products to look up"
+    product_id = products[0]["productIdentifier"]
 
-async def test_odp_get_dataset(product_id=None):
-    logger.info("Testing odp_get_dataset...")
+    result = await odp_get_dataset(product_id=product_id)
 
-    if not product_id:
-        logger.warning("No product ID provided, using a default value that may not exist")
-        product_id = "patent-pgn-2023"
+    await save_result(result, "get_dataset_product.json", results_dir)
 
-    # Test with the product ID
-    start_time = datetime.now()
-    result = await odp_get_dataset(
-        product_id=product_id
-    )
-    duration = (datetime.now() - start_time).total_seconds()
-
-    logger.info(f"odp_get_dataset completed in {duration:.2f} seconds")
-
-    # Save result
-    await save_result(result, "get_dataset_product.json")
-
-    # Log result summary
-    if result.get("error", False):
-        logger.error(f"Error: {result.get('message', 'Unknown error')}")
-        return False
-
-    logger.info(f"Successfully retrieved product data for {product_id}")
-    return True
-
-async def run_tests():
-    """Run all tool tests."""
-    logger.info("=== Starting tool tests ===")
-
-    # Create a test summary to report success/failure for each test
-    test_summary = {
-        "run_date": datetime.now().isoformat(),
-        "tests": {}
-    }
-
-    # Test Public Patent Search (ppubs.uspto.gov) tools
-    test_summary["tests"]["ppubs_search_patents"] = await test_ppubs_search_patents()
-    test_summary["tests"]["ppubs_search_applications"] = await test_ppubs_search_applications()
-    test_summary["tests"]["ppubs_get_full_document"] = await test_ppubs_get_full_document()
-    test_summary["tests"]["ppubs_get_patent_by_number"] = await test_ppubs_get_patent_by_number()
-    test_summary["tests"]["ppubs_download_patent_pdf"] = await test_ppubs_download_patent_pdf()
-
-    # Test Open Data Portal API (api.uspto.gov) tools
-    test_summary["tests"]["odp_get_application"] = await test_odp_get_application()
-    test_summary["tests"]["odp_search_applications"] = await test_odp_search_applications()
-    test_summary["tests"]["odp_get_application_metadata"] = await test_odp_get_application_metadata()
-    test_summary["tests"]["odp_get_adjustment"] = await test_odp_get_adjustment()
-    test_summary["tests"]["odp_get_assignment"] = await test_odp_get_assignment()
-    test_summary["tests"]["odp_get_attorney"] = await test_odp_get_attorney()
-    test_summary["tests"]["odp_get_continuity"] = await test_odp_get_continuity()
-    test_summary["tests"]["odp_get_foreign_priority"] = await test_odp_get_foreign_priority()
-    test_summary["tests"]["odp_get_transactions"] = await test_odp_get_transactions()
-    test_summary["tests"]["odp_get_documents"] = await test_odp_get_documents()
-    test_summary["tests"]["get_status_code"] = await test_get_status_code()
-
-    # Test datasets tools
-    product_id = await test_odp_search_datasets()
-    test_summary["tests"]["odp_search_datasets"] = bool(product_id)
-    test_summary["tests"]["odp_get_dataset"] = await test_odp_get_dataset(product_id)
-    
-    # Save test summary
-    await save_result(test_summary, "test_summary.json")
-    
-    # Calculate success rate
-    total_tests = len(test_summary["tests"])
-    successful_tests = sum(1 for result in test_summary["tests"].values() if result)
-    success_rate = successful_tests / total_tests * 100 if total_tests > 0 else 0
-    
-    logger.info(f"=== Test Summary ===")
-    logger.info(f"Total tests: {total_tests}")
-    logger.info(f"Successful tests: {successful_tests}")
-    logger.info(f"Success rate: {success_rate:.2f}%")
-    logger.info("=== Tests completed ===")
-
-if __name__ == "__main__":
-    try:
-        logger.info("Starting tool tests")
-        asyncio.run(run_tests())
-        logger.info("Tool tests completed")
-    except KeyboardInterrupt:
-        logger.info("Tests interrupted by user")
-    except Exception as e:
-        logger.error(f"Unhandled exception: {e}", exc_info=True)
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    bag = result.get("bulkDataProductBag", [])
+    assert len(bag) == 1, "expected exactly the requested product"
+    assert bag[0]["productIdentifier"] == product_id

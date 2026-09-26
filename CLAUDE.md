@@ -18,9 +18,9 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 
 **ODP file-wrapper documents (verified live 2026-09-26):** `GET /api/v1/patent/applications/{app}/documents` returns `documentBag` with `documentIdentifier`, `documentCode` and `downloadOptionBag`. The PDF lives at `/api/v1/download/applications/{app}/{documentIdentifier}.pdf`, which answers 302 to a signed `data-documents.uspto.gov` URL valid for 30 s; `ApiUsptoClient.download_file` follows it and caps the body at `Defaults.MAX_BINARY_BYTES`.
 
-**Trademark backend contracts (verified live 2026-06-10):**
+**Trademark backend contracts (verified live 2026-06-10; assignments re-verified 2026-09-26):**
 - **tmsearch** (`tmsearch_client.py`): `POST tmsearch.uspto.gov/prod-stage-v1-0-0/tmsearch`, Elasticsearch-style body, non-standard response envelope (`hits.totalValue`, hit `source`/`id`). No key; behind AWS WAF (currently permissive — `TMSEARCH_WAF_TOKEN` supported as escape hatch). Class filters need zero-padded 3-digit terms ("025").
-- **Assignments** (`tm_assignment_client.py`): `POST assignmentcenter.uspto.gov/ipas/search/api/v2/public/trademark/exportTradeMarkData` with `searchCriteria` list; no key. The legacy assignment-api.uspto.gov died with the Developer Hub on June 5, 2026.
+- **Assignments** (`tm_assignment_client.py`): `POST assignmentcenter.uspto.gov/ipas/search/api/v3/public/trademark/exportTradeMarkData` with `searchCriteria` list; no key. The v2 path is refused by CloudFront since 2026-09 ("supports only cachable requests"); v3 takes the same body and returns the same envelope (verified live 2026-09-26). To find the current path when it moves again: the web app is a module-federation shell — `/assets/federation.manifest.prod.json` → `/ipasSearch/browser/remoteEntry.json` → grep the exposed `searchModule-*.js` for `exportTradeMarkData`. The legacy assignment-api.uspto.gov died with the Developer Hub on June 5, 2026.
 - **TSDR** (`tsdr_client.py`): requires a TSDR-specific key from account.uspto.gov/profile/api-manager — the ODP key passes the gateway but 404s on the backend (`BACKEND RESPONSE STATUS: 404`); the client detects this and explains. Status uses `/info` + `Accept: application/json`; the document list at `/casedocs/{caseid}/info` is XML-ONLY (406 on JSON Accept) and is parsed via `_parse_document_list_xml`. Binary bundles are capped at `TrademarkDefaults.MAX_BINARY_BYTES` (full wrappers can exceed 10 MB) — filter by `document_type`/date. All endpoints verified live 2026-06-10 with a real TSDR key.
 
 ## Critical Rules
@@ -72,7 +72,7 @@ When a USPTO API is shut down, follow the established pattern (see PR #14 and th
 ### Test Organization
 
 - **Unit tests** (`test/unit/`): Run by default, mock external APIs
-- **Integration tests** (`test/test_tools.py`, `test/test_tools_pytest.py`): Require network access, skipped by default. Anything that touches the network must carry the `integration` marker, and every test must be able to fail — a script that logs errors instead of asserting is not a test (`test/test_patents.py` was one, ran live on every default invocation, and was removed in v1.2.0)
+- **Integration tests** (`test/test_tools.py`, `test/test_ptab_integration.py`, `test/test_trademark_integration.py`): Require network access and the API keys in `.env`, skipped by default; `uv run pytest -m ""` runs everything. Anything that touches the network must carry the `integration` marker, and every test must be able to fail — a script that logs errors instead of asserting is not a test (`test/test_patents.py` was one, ran live on every default invocation, and was removed in v1.2.0)
 - **Unavailability tests** (`test/unit/test_unavailable_tools.py`): Verify decommissioned tools return correct error structure
 
 ```bash

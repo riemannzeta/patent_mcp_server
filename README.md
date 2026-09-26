@@ -464,8 +464,11 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 - **Legacy tools hidden by default**: the 25 tools for shut-down APIs made up 39% of the schema text sent to every client (~6k tokens). Set `ENABLE_LEGACY_TOOLS=true` to register them; the functions, names and workaround messages are unchanged
 - **Read-only annotations** on every tool, so clients that honor them need not confirm each call
 - The competitor-portfolio, freedom-to-operate and patent-landscape prompts, the `patentsview_*` workaround messages and this README still taught the slash-prefix search syntax that stopped working in August (`AN/`, `IN/`, `CPC/`); all now use `.as.`, `.in.`, `.cpc.` and `@pd`
-- Removed `test/test_patents.py`: two script-style live checks that logged errors instead of asserting, so they always passed while calling USPTO and rewriting `json/` and `pdfs/` on every default `pytest` run, including CI. `test/test_tools_pytest.py` covers the same calls with asserts. The default suite now makes no network calls
-- Live-verified 2026-09-26: `.pn.` with D/RE prefixes, `.urpn.`, the ODP document listing and download redirect
+- Removed `test/test_patents.py`: two script-style live checks that logged errors instead of asserting, so they always passed while calling USPTO and rewriting `json/` and `pdfs/` on every default `pytest` run, including CI. The default suite now makes no network calls
+- **Fixed `tm_search_assignments`**: Assignment Center moved its search API from `/ipas/search/api/v2/` to `/v3/`, and CloudFront now refuses POST on the old path with a 403 HTML page. Same request body and response envelope; only the path changed
+- **429 handling** in the ODP and PTAB clients: a rate-limited call now waits (Retry-After, else exponential backoff) and retries up to `MAX_RETRIES` instead of returning the 429 to the caller. api.uspto.gov limits per key, so a burst of tool calls tripped it
+- Integration tests: `test/test_tools.py` and `test/test_tools_pytest.py` were duplicates; the pytest one survives under the shorter name, minus eight skipped PatentsView tests, with its `patentNumber:"…"` queries and `numFound` assertions (neither matched the live API or the tool envelope any more) fixed, and with live tests for `sections`, prefixed numbers, `ppubs_get_citing_patents`, the `odp_get_documents` filter and `odp_download_document`. `uv run pytest -m ""` runs the whole suite, unit and live, and passes
+- Live-verified 2026-09-26: `.pn.` with D/RE prefixes, `.urpn.`, the ODP document listing and download redirect, Assignment Center v3
 - Tool count: 38 registered by default (63 with `ENABLE_LEGACY_TOOLS`)
 
 ### v1.1.1
