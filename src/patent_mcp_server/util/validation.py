@@ -5,8 +5,19 @@ This module provides Pydantic models for validating input parameters
 to ensure data integrity and provide clear error messages.
 """
 
+import re
+
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
+
+
+# A US patent number as people and databases write it: an optional series
+# prefix (D design, RE reissue, PP plant, T defensive publication, H SIR,
+# X pre-1836, AI additional improvement), the digits, and an optional kind
+# code (B2, S, E, P3, ...). Separators and a leading "US" are stripped
+# before matching. PPUBS .pn. queries want prefix + digits and nothing else.
+_PATENT_NUMBER_RE = re.compile(r"^(RE|PP|AI|D|T|H|X)?(\d+)([A-Z]\d?)?$")
+_SEPARATORS_RE = re.compile(r"[\s,.\-/]+")
 
 
 class PatentNumberInput(BaseModel):
@@ -17,9 +28,24 @@ class PatentNumberInput(BaseModel):
     @field_validator('patent_number')
     @classmethod
     def validate_patent_number(cls, v: str) -> str:
-        """Validate and clean patent number."""
-        # Remove any non-numeric characters
-        cleaned = ''.join(c for c in str(v) if c.isdigit())
+        """Normalize a patent number to the form PPUBS indexes.
+
+        "US 9,876,543 B2" -> "9876543"; "US-D845123-S" -> "D845123";
+        "RE49123" -> "RE49123". Keeping only the digits would turn the
+        kind code into an extra digit and a design patent into an
+        unrelated 1900s utility patent.
+        """
+        compact = _SEPARATORS_RE.sub("", str(v).upper())
+        if compact.startswith("US"):
+            compact = compact[2:]
+
+        match = _PATENT_NUMBER_RE.match(compact)
+        if match:
+            prefix, digits, _kind = match.groups()
+            return f"{prefix or ''}{digits}"
+
+        # Not a recognizable patent number; fall back to the digits alone.
+        cleaned = ''.join(c for c in compact if c.isdigit())
         if not cleaned:
             raise ValueError("Patent number must contain at least one digit")
         return cleaned

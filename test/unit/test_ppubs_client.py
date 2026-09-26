@@ -561,6 +561,44 @@ async def test_run_query_does_not_mutate_template(ppubs_client):
 
 
 @pytest.mark.unit
+@pytest.mark.asyncio
+@pytest.mark.parametrize("number", ["9876543", "D845123", "RE49123"])
+async def test_search_patent_by_number_uses_pn_field(number):
+    """The lookup issues a single ``<number>.pn.`` query.
+
+    ``patentNumber:"..."`` returns 0 results on the live API (2026-09-26),
+    so trying it first only added a wasted round trip.
+    """
+    from patent_mcp_server import patents
+
+    with patch.object(patents.ppubs_client, "run_query",
+                      new_callable=AsyncMock) as run_query:
+        run_query.return_value = MOCK_SEARCH_RESPONSE
+        result = await patents._search_patent_by_number(number)
+
+    assert result["success"] is True
+    assert result["patent"]["guid"] == "US-9876543-B2"
+    run_query.assert_awaited_once()
+    assert run_query.call_args.kwargs["query"] == f"{number}.pn."
+    assert run_query.call_args.kwargs["sources"] == [Sources.GRANTED_PATENTS]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_search_patent_by_number_not_found():
+    """An empty result set becomes a NOT_FOUND error, not an exception."""
+    from patent_mcp_server import patents
+
+    with patch.object(patents.ppubs_client, "run_query",
+                      new_callable=AsyncMock) as run_query:
+        run_query.return_value = {"numFound": 0, "docs": []}
+        result = await patents._search_patent_by_number("1")
+
+    assert result["error"] is True
+    run_query.assert_awaited_once()
+
+
+@pytest.mark.unit
 async def test_ppubs_download_patent_pdf_tool_passes_full_signature():
     """Regression: the tool must call download_image with all four arguments
     (guid, image_location, page_count, document_type) — it previously passed

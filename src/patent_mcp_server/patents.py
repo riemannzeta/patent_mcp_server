@@ -342,8 +342,14 @@ async def trademark_status_monitoring() -> str:
 # =====================================================================
 
 async def _search_patent_by_number(patent_number: str) -> Dict[str, Any]:
-    """Search for a patent by number and return the patent document metadata."""
-    query = f'patentNumber:"{patent_number}"'
+    """Search for a patent by number and return the patent document metadata.
+
+    Uses the ``.pn.`` field qualifier, which resolves utility, design (D),
+    reissue (RE) and plant (PP) numbers alike. The older
+    ``patentNumber:"..."`` form returns nothing on the live API (verified
+    2026-09-26), so it is no longer tried first.
+    """
+    query = f"{patent_number}.pn."
     logger.info(f"Searching for patent with query: {query}")
 
     result = await ppubs_client.run_query(
@@ -357,26 +363,7 @@ async def _search_patent_by_number(patent_number: str) -> Dict[str, Any]:
 
     patents = result.get(Fields.PATENTS, result.get(Fields.DOCS, []))
 
-    if patents and len(patents) > 0:
-        logger.info(f"Found patent: {patents[0].get(Fields.GUID)}")
-        return {"success": True, "patent": patents[0]}
-
-    # Try alternative query format
-    alternative_query = f'"{patent_number}".pn.'
-    logger.info(f"Trying alternative query: {alternative_query}")
-
-    result = await ppubs_client.run_query(
-        query=alternative_query,
-        sources=[Sources.GRANTED_PATENTS],
-        limit=1
-    )
-
-    if is_error(result):
-        return result
-
-    patents = result.get(Fields.PATENTS, result.get(Fields.DOCS, []))
-
-    if not patents or len(patents) == 0:
+    if not patents:
         return ApiError.not_found("Patent", patent_number)
 
     logger.info(f"Found patent: {patents[0].get(Fields.GUID)}")
@@ -678,7 +665,10 @@ async def ppubs_get_patent_by_number(patent_number: str) -> Dict[str, Any]:
     document including claims, description, and all sections.
 
     Args:
-        patent_number: Patent number without commas (e.g., "7123456" or "10000000")
+        patent_number: Patent number. Separators, a leading "US" and a
+               kind code are ignored, and design/reissue/plant prefixes
+               are kept: "7123456", "US 10,000,000 B2", "D845123",
+               "RE49123" all work.
 
     Returns:
         Complete patent document with full text of all sections.
@@ -710,7 +700,8 @@ async def ppubs_download_patent_pdf(patent_number: str) -> Dict[str, Any]:
     Note: Claude Desktop may not fully support PDF display.
 
     Args:
-        patent_number: Patent number without commas (e.g., "7123456")
+        patent_number: Patent number ("7123456", "US 10,000,000 B2",
+               "D845123" and "RE49123" all work).
 
     Returns:
         Dictionary with base64-encoded PDF data.
