@@ -93,7 +93,10 @@ class ResponseEnvelope:
             Standardized response
         """
         # PPUBS format: {numFound, perPage, page, patents: [...]}
-        results = raw_response.get("patents", [])
+        results = [
+            slim_search_hit(hit) if isinstance(hit, dict) else hit
+            for hit in raw_response.get("patents", [])
+        ]
         total = raw_response.get("numFound", len(results))
 
         return ResponseEnvelope.success(
@@ -445,6 +448,32 @@ def truncate_response(
 def _is_empty(value: Any) -> bool:
     """True for the placeholders PPUBS fills unused fields with."""
     return value is None or value == "" or value == [] or value == {}
+
+
+# Fields on a PPUBS search hit that outweigh the rest of the hit combined:
+# `urpn` lists every US reference the hit cites and `urpnCode` repeats it
+# (7 KB each on a typical hit against ~2 KB for everything else). They are
+# on the document's front page — ppubs_get_patent_by_number(sections=
+# ["biblio"]) — for callers that need them.
+SEARCH_HIT_DROP_FIELDS = frozenset({"urpn", "urpnCode"})
+
+
+def slim_search_hit(hit: Dict[str, Any]) -> Dict[str, Any]:
+    """Drop empty, highlight and references-cited fields from a search hit.
+
+    A raw hit has ~90 fields, a third of them empty, plus the search
+    highlight fields and the two references-cited lists. Removing them
+    cuts a hit to roughly a quarter of its size without losing anything a
+    search result is read for (identity, title, dates, parties, classes).
+    """
+    return {
+        key: value
+        for key, value in hit.items()
+        if not _is_empty(value)
+        and "KwicHits" not in key
+        and "Highlights" not in key
+        and key not in SEARCH_HIT_DROP_FIELDS
+    }
 
 
 def slim_document(

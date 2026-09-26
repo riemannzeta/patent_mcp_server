@@ -253,3 +253,47 @@ def test_slim_document_real_sample_fits_budget():
     assert estimate_tokens(lean) <= config.MAX_RESPONSE_TOKENS
     assert "claimsHtml" in lean and "descriptionHtml" not in lean
     assert DocumentSections.ALL == ["biblio", "abstract", "claims", "description"]
+
+
+# ============================================================================
+# slim_search_hit
+# ============================================================================
+
+from patent_mcp_server.util.response import SEARCH_HIT_DROP_FIELDS, slim_search_hit
+
+
+def _raw_hit() -> dict:
+    return {
+        "guid": "US-11940582-B2",
+        "inventionTitle": "Seismic data acquisition unit",
+        "datePublished": "2024-03-26T00:00:00Z",
+        "inventorsShort": "Smith; John",
+        "cpcInventiveFlattened": "G01V 1/38",
+        "urpn": ["US 9876543 B2 Lewis 20180100 H04L"] * 50,
+        "urpnCode": ["9876543"] * 50,
+        "assigneeName": [],
+        "applicantCity": None,
+        "inventionTitleKwicHits": [],
+        "applicationNumberHighlights": ["x"],
+    }
+
+
+@pytest.mark.unit
+def test_slim_search_hit_keeps_identity_and_drops_weight():
+    slim = slim_search_hit(_raw_hit())
+    assert set(slim) == {"guid", "inventionTitle", "datePublished",
+                         "inventorsShort", "cpcInventiveFlattened"}
+    assert SEARCH_HIT_DROP_FIELDS == {"urpn", "urpnCode"}
+
+
+@pytest.mark.unit
+def test_from_ppubs_slims_every_hit():
+    raw = {"numFound": 2, "perPage": 20, "page": 1, "totalPages": 1,
+           "patents": [_raw_hit(), _raw_hit()]}
+    envelope = ResponseEnvelope.from_ppubs(raw, 0, 20)
+    assert envelope["total"] == 2 and envelope["count"] == 2
+    for hit in envelope["results"]:
+        assert "urpn" not in hit and "applicantCity" not in hit
+        assert hit["guid"] == "US-11940582-B2"
+    # The raw response is left alone
+    assert "urpn" in raw["patents"][0]

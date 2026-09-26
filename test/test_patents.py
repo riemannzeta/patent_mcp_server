@@ -4,6 +4,13 @@ import json
 import logging
 import sys
 import os
+
+import pytest
+
+# Script-style live checks against ppubs.uspto.gov and api.uspto.gov that
+# write to json/ and pdfs/. They swallow their own errors, so pytest always
+# reported them green while they hit the network on every default run.
+pytestmark = pytest.mark.integration
 from datetime import datetime
 
 # Set up detailed logging
