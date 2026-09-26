@@ -183,6 +183,8 @@ Estimated size: about 40 changed lines in `src/`, 20 in tests, plus docs. The sp
 
 ## Follow-up: move the USPTO clients from `httpx` to `httpx2` (v1.4.0)
 
+*Status: done on 2026-09-26, the same day 1.3.0 shipped — the tripwires below never fired.*
+
 mcp 2 depends on `httpx2`, the successor to `httpx` from the same author, now published under the pydantic organization. The nine USPTO clients in `uspto/` stay on `httpx` 0.28 through the mcp 2 migration: the two packages share only `anyio`, `idna` and `certifi`, resolve side by side (`httpx` 0.28.1 with `httpx2` 2.13.1 in the spike), and the live PPUBS call through `httpx` beside `httpx2` proved they do not interfere at runtime. Keeping them apart keeps the mcp 2 diff to one concern, which matters because that PR's one hard-to-test risk is client compatibility.
 
 But `httpx` is not a place to stay. Its last release is 0.28.1 (December 2024) and `httpcore`'s is 1.0.9 (April 2025), while `httpx2` shipped three releases in the six weeks before this plan. The worst cases of staying, by impact:
