@@ -4,13 +4,14 @@ This file provides guidance for Claude Code and other AI assistants working on t
 
 ## Project Overview
 
-This is a Model Context Protocol (MCP) server that provides access to USPTO patent and trademark data through multiple APIs. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
+This is a Model Context Protocol (MCP) server that provides access to USPTO patent and trademark data through multiple APIs. The server is built on the MCP Python SDK 2.x (`MCPServer`) and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
 
 **Transports:** `stdio` by default (Claude Desktop/Code), or `--transport streamable-http` for remote hosting. HTTP mode is stateless by default so it scales across workers without session affinity. Two things to know before touching the server lifecycle:
-- **Do not move client shutdown into a FastMCP `lifespan`.** In stateless HTTP mode the low-level server is entered once *per request*, so a lifespan would close the nine httpx clients after the first tool call. Shutdown lives in `serve()` in `patents.py`, inside the same event loop the clients were opened on.
+- **Client shutdown lives in `serve()` in `patents.py`, not in a server `lifespan`.** Under mcp 1 this was a hard rule (stateless HTTP entered the lifespan once *per request*, which would have closed the nine httpx clients after the first tool call). mcp 2 runs the lifespan once, but `serve()`'s `finally` already covers both transports on the event loop the clients were opened on, so leave it there.
+- **mcp 2.x (`MCPServer`)** since v1.3.0: transport settings (`host`, `port`, `streamable_http_path`, `stateless_http`, `json_response`) go to `run_streamable_http_async()` via `http_settings(args)`, not to the constructor. Tools register through `tool()` / `legacy_tool()`, which set read-only annotations and `structured_output=False` (mcp 2 would otherwise send every dict result twice — measured 2.0x wire size). Protocol tests connect with `mcp.client.Client(patents.mcp)` in memory. Type fields are snake_case in Python (`read_only_hint`, `input_schema`, `is_error`) and camelCase on the wire.
 - **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
 
-**Current state (v1.2.1):** 38 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
+**Current state (v1.3.0):** 38 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
 - **Active:** PPUBS (6), ODP (13), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
 - **Legacy (API_UNAVAILABLE):** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16). Their functions stay in `patents.py` under `@legacy_tool()`, which registers them only when the flag is set; every active tool uses `@tool()`, which adds read-only annotations. Don't use a bare `@mcp.tool()`.
 
@@ -158,7 +159,7 @@ async def tool_name(...) -> Dict[str, Any]:
 ## Dependencies
 
 Managed via `pyproject.toml`. Key dependencies:
-- `mcp[cli]` - FastMCP server framework
+- `mcp` (2.x) - MCP server framework (`MCPServer`); the `[cli]` extra is empty in 2.x
 - `httpx` - Async HTTP client
 - `pydantic` - Data validation
 - `tenacity` - Retry logic

@@ -54,7 +54,7 @@ This summary is intentionally short — the source of truth is [`CLAUDE.md`](CLA
 - **Parameter naming**: `query` (not `q`), `app_num`, `patent_number`, `offset`, `limit`.
 - **Error shape**: every tool returns either `{"success": True, "results": ...}` or `{"error": True, "message": ..., "error_code": ...}`. Use `ApiError.create()` to build errors.
 - **Async everywhere**: all clients are async, all tools are `async def`.
-- **Don't introduce new dependencies without a clear reason.** `httpx`, `pydantic`, `tenacity`, `mcp[cli]` cover almost everything.
+- **Don't introduce new dependencies without a clear reason.** `httpx`, `pydantic`, `tenacity`, `mcp` cover almost everything.
 
 ## Code of conduct
 
