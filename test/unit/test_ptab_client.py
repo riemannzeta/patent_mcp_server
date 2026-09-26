@@ -7,7 +7,7 @@ search endpoints (no `/{id}` routes exist on ODP), and appeals living under
 """
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+import httpx2
 
 from patent_mcp_server.uspto.ptab_client import PTABClient
 from patent_mcp_server.constants import PTABFields
@@ -362,7 +362,7 @@ async def test_http_error_handling(ptab_client):
         mock_response.text = "Not Found"
         mock_response.json.return_value = {"error": "Not found"}
 
-        error = httpx.HTTPStatusError(
+        error = httpx2.HTTPStatusError(
             "Not Found", request=MagicMock(), response=mock_response
         )
         mock_get.side_effect = error
@@ -398,7 +398,7 @@ async def test_network_error_retry(ptab_client):
         mock_success.raise_for_status = MagicMock()
 
         mock_get.side_effect = [
-            httpx.NetworkError("Connection failed"),
+            httpx2.NetworkError("Connection failed"),
             mock_success,
         ]
 
@@ -430,10 +430,10 @@ async def test_close():
 @pytest.mark.asyncio
 async def test_make_request_retries_after_429(ptab_client):
     """A rate-limited call waits and retries instead of failing outright."""
-    import httpx
+    import httpx2
 
     limited = MagicMock(status_code=429, headers={"retry-after": "2"}, text="Too Many Requests")
-    limited.raise_for_status.side_effect = httpx.HTTPStatusError(
+    limited.raise_for_status.side_effect = httpx2.HTTPStatusError(
         "429", request=MagicMock(), response=limited
     )
     ok = MagicMock(status_code=200, headers={})

@@ -11,7 +11,7 @@ import json
 import asyncio
 from typing import Any, Optional, Dict, List, Union
 from datetime import datetime, timedelta
-import httpx
+import httpx2
 import logging
 from pathlib import Path
 from tenacity import (
@@ -54,10 +54,10 @@ class PpubsClient:
         }
 
         # Create a custom transport that logs all requests and responses
-        transport = httpx.AsyncHTTPTransport()
+        transport = httpx2.AsyncHTTPTransport()
         logging_transport = LoggingTransport(transport)
 
-        self.client = httpx.AsyncClient(
+        self.client = httpx2.AsyncClient(
             headers=self.headers,
             http2=True,
             follow_redirects=True,
@@ -146,7 +146,7 @@ class PpubsClient:
         logger.info("Establishing new session with USPTO Public Search")
         # Drop cookies belonging to the dead session before asking for a new
         # one. Serialized by the lock, so this happens once per refresh.
-        self.client.cookies = httpx.Cookies()
+        self.client.cookies = httpx2.Cookies()
 
         try:
             # First request to get cookies
@@ -209,19 +209,19 @@ class PpubsClient:
             min=config.RETRY_MIN_WAIT,
             max=config.RETRY_MAX_WAIT
         ),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
+        retry=retry_if_exception_type((httpx2.TimeoutException, httpx2.NetworkError)),
         reraise=True
     )
-    async def make_request(self, method: str, url: str, **kwargs) -> Union[httpx.Response, Dict[str, Any]]:
+    async def make_request(self, method: str, url: str, **kwargs) -> Union[httpx2.Response, Dict[str, Any]]:
         """Make a request with automatic retry for session expiration and network errors.
 
         Args:
             method: HTTP method (GET, POST, etc.)
             url: Target URL
-            **kwargs: Additional arguments to pass to httpx
+            **kwargs: Additional arguments to pass to httpx2
 
         Returns:
-            httpx.Response object or error dictionary
+            httpx2.Response object or error dictionary
         """
         try:
             # Capture the token this attempt is signed with, so that if it is
@@ -258,7 +258,7 @@ class PpubsClient:
 
             return response
 
-        except (httpx.TimeoutException, httpx.NetworkError) as e:
+        except (httpx2.TimeoutException, httpx2.NetworkError) as e:
             logger.warning(f"Network error (will retry): {str(e)}")
             raise  # Let tenacity handle the retry
         except Exception as e:

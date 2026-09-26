@@ -1,7 +1,7 @@
 """Unit tests for TmAssignmentClient (USPTO Assignment Center backend)."""
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+import httpx2
 
 from patent_mcp_server.uspto.tm_assignment_client import (
     TmAssignmentClient, SEARCH_PATH, MAX_ROWS_PER_REQUEST
@@ -23,7 +23,7 @@ async def tm_client():
 
 
 def _mock_response(status_code=200, json_data=None, text=""):
-    response = MagicMock(spec=httpx.Response)
+    response = MagicMock(spec=httpx2.Response)
     response.status_code = status_code
     response.text = text
     if json_data is not None:

@@ -220,9 +220,9 @@ async def test_get_by_serial(tmsearch_client):
 async def test_waf_rejection_returns_actionable_error(tmsearch_client, waf_status):
     """AWS WAF rejections (403 blocked / 202 challenge) get a hint."""
     from unittest.mock import MagicMock
-    import httpx
+    import httpx2
 
-    waf_response = MagicMock(spec=httpx.Response)
+    waf_response = MagicMock(spec=httpx2.Response)
     waf_response.status_code = waf_status
     waf_response.text = "<html>challenge</html>"
 
@@ -240,9 +240,9 @@ async def test_waf_rejection_returns_actionable_error(tmsearch_client, waf_statu
 async def test_non_json_200_is_waf_challenge(tmsearch_client):
     """A 200 with non-JSON content is reported as a WAF challenge."""
     from unittest.mock import MagicMock
-    import httpx
+    import httpx2
 
-    challenge = MagicMock(spec=httpx.Response)
+    challenge = MagicMock(spec=httpx2.Response)
     challenge.status_code = 200
     challenge.text = "<html>verify you are human</html>"
     challenge.raise_for_status.return_value = None

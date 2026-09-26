@@ -20,7 +20,7 @@ import asyncio
 import base64
 import xml.etree.ElementTree as ET
 from typing import Any, Optional, Dict, List, Union
-import httpx
+import httpx2
 import logging
 from tenacity import (
     retry,
@@ -57,10 +57,10 @@ class TSDRClient:
         }
 
         # Create a custom transport that logs all requests and responses
-        transport = httpx.AsyncHTTPTransport()
+        transport = httpx2.AsyncHTTPTransport()
         logging_transport = LoggingTransport(transport)
 
-        self.client = httpx.AsyncClient(
+        self.client = httpx2.AsyncClient(
             headers=self.headers,
             http2=True,
             follow_redirects=True,
@@ -83,14 +83,14 @@ class TSDRClient:
             min=config.RETRY_MIN_WAIT,
             max=config.RETRY_MAX_WAIT
         ),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
+        retry=retry_if_exception_type((httpx2.TimeoutException, httpx2.NetworkError)),
         reraise=True
     )
     async def _get(
         self,
         url: str,
         headers: Optional[Dict[str, str]] = None,
-    ) -> Union[httpx.Response, Dict[str, Any]]:
+    ) -> Union[httpx2.Response, Dict[str, Any]]:
         """Perform a GET with retry and 429 (rate limit) handling.
 
         TSDR enforces 60 req/min generally and 4 req/min for PDF/ZIP, so the
@@ -101,7 +101,7 @@ class TSDRClient:
             headers: Optional extra headers (merged over the client defaults)
 
         Returns:
-            httpx.Response on success/HTTP error, or an ApiError dict on
+            httpx2.Response on success/HTTP error, or an ApiError dict on
             unexpected failure.
         """
         try:
@@ -124,7 +124,7 @@ class TSDRClient:
 
             return response
 
-        except (httpx.TimeoutException, httpx.NetworkError) as e:
+        except (httpx2.TimeoutException, httpx2.NetworkError) as e:
             logger.warning(f"Network error (will retry): {str(e)}")
             raise  # Let tenacity handle the retry
         except Exception as e:

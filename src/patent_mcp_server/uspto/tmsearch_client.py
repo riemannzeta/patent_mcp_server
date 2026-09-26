@@ -22,7 +22,7 @@ set TMSEARCH_WAF_TOKEN to a browser session's "aws-waf-token" cookie value.
 """
 
 from typing import Any, Optional, Dict
-import httpx
+import httpx2
 import logging
 from tenacity import (
     retry,
@@ -69,10 +69,10 @@ class TmSearchClient:
             cookies["aws-waf-token"] = config.TMSEARCH_WAF_TOKEN
 
         # Create a custom transport that logs all requests and responses
-        transport = httpx.AsyncHTTPTransport()
+        transport = httpx2.AsyncHTTPTransport()
         logging_transport = LoggingTransport(transport)
 
-        self.client = httpx.AsyncClient(
+        self.client = httpx2.AsyncClient(
             headers=self.headers,
             cookies=cookies,
             http2=True,
@@ -217,7 +217,7 @@ class TmSearchClient:
             min=config.RETRY_MIN_WAIT,
             max=config.RETRY_MAX_WAIT
         ),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
+        retry=retry_if_exception_type((httpx2.TimeoutException, httpx2.NetworkError)),
         reraise=True
     )
     async def make_request(self, body: Dict[str, Any]) -> Dict[str, Any]:
@@ -272,7 +272,7 @@ class TmSearchClient:
                     error_code="WAF_CHALLENGE",
                 )
 
-        except httpx.HTTPStatusError as e:
+        except httpx2.HTTPStatusError as e:
             status_code = e.response.status_code
             logger.error(f"HTTP error: {status_code} - {e.response.text}")
             error = ApiError.from_http_error(
@@ -287,7 +287,7 @@ class TmSearchClient:
                 )
             return error
 
-        except (httpx.TimeoutException, httpx.NetworkError) as e:
+        except (httpx2.TimeoutException, httpx2.NetworkError) as e:
             logger.warning(f"Network error (will retry): {str(e)}")
             raise  # Let tenacity handle the retry
 

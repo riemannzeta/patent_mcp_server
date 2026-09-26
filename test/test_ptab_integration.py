@@ -24,7 +24,7 @@ from patent_mcp_server.patents import (
 #
 # loop_scope="module" shares one event loop across all tests in this file.
 # This prevents "Event loop is closed" errors from the module-level
-# ptab_client singleton (an httpx.AsyncClient bound to the first loop).
+# ptab_client singleton (an httpx2.AsyncClient bound to the first loop).
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="module")]
 
 
