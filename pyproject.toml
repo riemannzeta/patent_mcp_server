@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "patent-mcp-server"
-version = "1.2.0"
+version = "1.2.1"
 description = "Model Context Protocol server for USPTO patent and trademark data"
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
@@ -29,7 +29,9 @@ classifiers = [
 dependencies = [
     "h2>=4.2.0",
     "httpx>=0.28.1",
-    "mcp[cli]>=1.27",           # streamable-http transport with stateless_http
+    "mcp[cli]>=1.27,<2",        # >=1.27: streamable-http with stateless_http;
+                                # <2: mcp 2.x renamed mcp.server.fastmcp to
+                                # mcp.server.mcpserver and changed other APIs
     "pydantic>=2.0.0",
     "python-dotenv>=1.2.2",      # CVE-2026-28684 fix
     "python-multipart>=0.0.27",  # CVE-2026-24486, CVE-2026-40347, CVE-2026-42561 fix
