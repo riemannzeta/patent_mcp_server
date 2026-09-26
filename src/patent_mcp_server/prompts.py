@@ -57,9 +57,10 @@ Use ppubs_search_patents with .in. and .as. qualifiers:
 Review what prior art examiners have cited:
 
 ```
-Use odp_get_documents on related applications:
-- Office actions in the file wrapper list cited references
-- Follow citation chains backward and forward
+Use odp_get_documents(app_num, document_code="892,1449,CTNF,CTFR"):
+- 892 forms list the examiner's citations; 1449 forms the applicant's
+- Read a form or office action with odp_download_document(app_num, document_id)
+- Follow citations forward with ppubs_get_citing_patents(patent_number)
 (Note: the dedicated citation APIs were decommissioned in early 2026.)
 ```
 
@@ -110,10 +111,12 @@ Use odp_get_application (with application number) to get file wrapper data:
 
 ## Step 4: Review Office Actions
 ```
-Use odp_get_documents and odp_get_transactions:
-- Find office action documents in the file wrapper
-- Understand rejection bases (102, 103, 112) from the documents
-- Review applicant's arguments and claim amendments
+Use odp_get_documents(app_num, document_code="CTNF,CTFR,NOA,REM,CLM"):
+- CTNF/CTFR are the non-final and final rejections, REM the applicant's
+  arguments, CLM the claims as amended
+- Read each with odp_download_document(app_num, document_id)
+- Understand rejection bases (102, 103, 112) and how claims were amended
+- odp_get_transactions gives the dated event list alongside
 (Note: the dedicated Office Action APIs were decommissioned in early 2026.)
 ```
 
@@ -349,8 +352,8 @@ Use odp_get_application_metadata and odp_get_transactions:
 
 ## Step 6: Review Prosecution History
 ```
-Use odp_get_documents:
-- Find office actions in the file wrapper
+Use odp_get_documents(app_num, document_code="CTNF,CTFR,REM,CLM"):
+- Read office actions and responses with odp_download_document
 - Note any estoppel from claim amendments
 - Review applicant's arguments for claim interpretation
 ```

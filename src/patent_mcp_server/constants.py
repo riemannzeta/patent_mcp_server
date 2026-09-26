@@ -64,6 +64,13 @@ class Defaults:
     SEARCH_LIMIT_MAX = 500
     API_LIMIT = 25
     DATASET_LIMIT = 10
+    # File-wrapper listings: a wrapper can hold 200+ documents at ~450
+    # characters each, so page through them.
+    DOCUMENT_LIST_LIMIT = 50
+    # Cap on binary (PDF) payloads returned through MCP as base64. Office
+    # actions are usually well under 1 MB; a full specification with
+    # drawings can be several.
+    MAX_BINARY_BYTES = 4_000_000
     REQUEST_TIMEOUT = 30.0
     RETRY_DELAY = 1.0
     MAX_RETRIES = 3

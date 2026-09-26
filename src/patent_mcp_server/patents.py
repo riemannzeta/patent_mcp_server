@@ -453,7 +453,8 @@ async def check_api_status() -> Dict[str, Any]:
             "note": (
                 "Legacy endpoints at developer.uspto.gov were decommissioned "
                 "in early 2026. Migration to ODP (api.uspto.gov) is pending. "
-                "Use odp_get_documents as a workaround."
+                "Use odp_get_documents to find office actions and "
+                "odp_download_document to read them."
             ),
         },
         "tsdr": {
@@ -801,6 +802,63 @@ async def ppubs_download_patent_pdf(patent_number: str) -> Dict[str, Any]:
     )
 
 
+@tool()
+async def ppubs_get_citing_patents(
+    patent_number: str,
+    offset: int = 0,
+    limit: int = 20,
+    sort: str = "date_publ desc",
+) -> Dict[str, Any]:
+    """Find later granted patents that cite a patent (forward citations).
+
+    USE THIS TOOL WHEN: You want to know who built on a patent, gauge its
+    influence, or find later art in the same space. This is the working
+    replacement for the decommissioned Enriched Citation API. For the
+    references a patent itself cites (backward citations), read its front
+    page instead: ppubs_get_patent_by_number(number, sections=["biblio"])
+    returns them in usRefGroup, foreignRefGroup and otherRefPub.
+
+    Searches the references-cited field (.urpn.) of granted patents.
+    Published applications do not index that field, so citing
+    applications that have not yet issued are not included. Verified live
+    2026-09-26.
+
+    Args:
+        patent_number: The cited patent ("7123456", "US 10,000,000 B2",
+               "D845123" and "RE49123" all work)
+        offset: Starting position for pagination (default: 0)
+        limit: Maximum results to return (default: 20, max: 500)
+        sort: Sort order (default: "date_publ desc", newest citing patent first)
+
+    Returns:
+        Normalized search response; `total` is the forward-citation count
+        and each result is a citing patent with GUID, title, dates,
+        inventors and classification.
+    """
+    try:
+        patent_number = validate_patent_number(str(patent_number))
+    except ValueError as e:
+        return ApiError.validation_error(str(e), "patent_number")
+
+    query = f"{patent_number}.urpn."
+    result = await ppubs_client.run_query(
+        query=query,
+        start=offset,
+        limit=min(limit, 500),
+        sort=sort,
+        sources=[Sources.GRANTED_PATENTS],
+    )
+
+    if is_error(result):
+        return result
+
+    response = ResponseEnvelope.from_ppubs(result, offset, limit)
+    response.setdefault("metadata", {}).update(
+        {"cited_patent": patent_number, "query": query}
+    )
+    return check_and_truncate(response)
+
+
 # =====================================================================
 # ODP Tools - USPTO Open Data Portal (api.uspto.gov)
 # =====================================================================
@@ -980,12 +1038,54 @@ async def odp_get_transactions(app_num: str) -> Dict[str, Any]:
     return check_and_truncate(ResponseEnvelope.from_odp(result))
 
 
+def _summarize_document(doc: Dict[str, Any]) -> Dict[str, Any]:
+    """One file-wrapper document without its download URLs.
+
+    The URLs are derivable (odp_download_document builds them from the
+    application number and documentIdentifier), and dropping them halves
+    the size of a listing.
+    """
+    options = doc.get("downloadOptionBag") or []
+    summary = {k: v for k, v in doc.items() if k != "downloadOptionBag"}
+    summary["formats"] = [o.get("mimeTypeIdentifier") for o in options]
+    pages = [o.get("pageTotalQuantity") for o in options if o.get("pageTotalQuantity")]
+    if pages:
+        summary["pageTotalQuantity"] = pages[0]
+    return summary
+
+
 @tool()
-async def odp_get_documents(app_num: str) -> Dict[str, Any]:
-    """Get list of documents in the application file wrapper.
+async def odp_get_documents(
+    app_num: str,
+    document_code: Optional[str] = None,
+    direction: Optional[str] = None,
+    offset: int = 0,
+    limit: int = Defaults.DOCUMENT_LIST_LIMIT,
+) -> Dict[str, Any]:
+    """List the documents in an application's file wrapper (prosecution history).
+
+    USE THIS TOOL WHEN: You need to find office actions, responses,
+    notices of allowance, claims, IDS forms or examiner citations for an
+    application, then read one with odp_download_document.
 
     Args:
         app_num: Application number without slashes (e.g., "14412875")
+        document_code: Comma-separated USPTO document codes to keep. Common
+               ones: CTNF (non-final rejection), CTFR (final rejection),
+               NOA (notice of allowance), REM (applicant remarks/arguments),
+               CLM (claims), SPEC (specification), IDS and 1449 (applicant
+               citations), 892 (examiner citations), ADS, N417 (EFS receipt).
+               `metadata.code_counts` in any response lists every code in
+               the wrapper.
+        direction: "INCOMING" (from applicant), "OUTGOING" (from USPTO) or
+               "INTERNAL" (examiner search notes etc.)
+        offset: Starting position within the filtered list (default: 0)
+        limit: Max documents to return (default: 50)
+
+    Returns:
+        Documents newest first, each with documentIdentifier (pass it to
+        odp_download_document), documentCode, description, officialDate,
+        directionCategory, page count and available formats.
     """
     try:
         app_num = validate_app_number(str(app_num))
@@ -998,7 +1098,81 @@ async def odp_get_documents(app_num: str) -> Dict[str, Any]:
     if is_error(result):
         return result
 
-    return check_and_truncate(ResponseEnvelope.from_odp(result))
+    documents = result.get("documentBag") or []
+    code_counts: Dict[str, int] = {}
+    for doc in documents:
+        code = doc.get("documentCode") or "?"
+        code_counts[code] = code_counts.get(code, 0) + 1
+
+    if document_code:
+        wanted = {c.strip().upper() for c in document_code.split(",") if c.strip()}
+        documents = [d for d in documents if (d.get("documentCode") or "").upper() in wanted]
+    if direction:
+        documents = [
+            d for d in documents
+            if (d.get("directionCategory") or "").upper() == direction.strip().upper()
+        ]
+
+    page = [_summarize_document(d) for d in documents[offset:offset + limit]]
+
+    response = ResponseEnvelope.success(
+        results=page,
+        source="odp",
+        count=len(page),
+        total=len(documents),
+        offset=offset,
+        limit=limit,
+        metadata={
+            "application_number": app_num,
+            "documents_in_wrapper": len(result.get("documentBag") or []),
+            "code_counts": dict(sorted(code_counts.items())),
+        },
+    )
+    return check_and_truncate(response)
+
+
+@tool()
+async def odp_download_document(app_num: str, document_id: str) -> Dict[str, Any]:
+    """Download one file-wrapper document as a PDF (base64 encoded).
+
+    USE THIS TOOL WHEN: odp_get_documents gave you a documentIdentifier
+    and you need to read the office action, response, notice of
+    allowance or other paper itself. This is the working replacement for
+    the decommissioned Office Action text APIs.
+
+    Args:
+        app_num: Application number without slashes (e.g., "16123456")
+        document_id: documentIdentifier from odp_get_documents
+               (e.g., "K87AK41FRXEAPX5")
+
+    Returns:
+        {"success": True, "filename", "content_type", "size_bytes",
+        "content"} with the PDF as base64. Documents over 4 MB are refused
+        with RESPONSE_TOO_LARGE; office actions are usually under 1 MB.
+        Requires USPTO_API_KEY.
+    """
+    try:
+        app_num = validate_app_number(str(app_num))
+    except ValueError as e:
+        return ApiError.validation_error(str(e), "app_num")
+
+    document_id = str(document_id).strip().upper()
+    if not document_id.isalnum():
+        return ApiError.validation_error(
+            "document_id must be the alphanumeric documentIdentifier from "
+            "odp_get_documents", "document_id",
+        )
+
+    url = f"{config.API_BASE_URL}/api/v1/download/applications/{app_num}/{document_id}.pdf"
+    result = await api_client.download_file(url)
+
+    if is_error(result):
+        return result
+
+    result["application_number"] = app_num
+    result["document_id"] = document_id
+    result["filename"] = f"{app_num}-{document_id}.pdf"
+    return result
 
 
 @tool()
@@ -2079,11 +2253,12 @@ async def get_office_action_text(
             "Office Action text API is temporarily unavailable. The legacy "
             "endpoints at developer.uspto.gov were decommissioned in early 2026 "
             "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use odp_get_documents to list file wrapper documents including "
-            "office actions, then download them from Patent Center."
+            "Use odp_get_documents(app_num, document_code=\"CTNF,CTFR\") to find "
+            "office actions, then odp_download_document(app_num, document_id) "
+            "to read one."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": "Use odp_get_documents(app_num) to find office action documents in the file wrapper.",
+        "workaround": "odp_get_documents(app_num, document_code=\"CTNF,CTFR\"), then odp_download_document(app_num, document_id).",
     }
 
 
@@ -2153,11 +2328,13 @@ async def get_office_action_citations(
             "Office Action citations API is temporarily unavailable. The legacy "
             "endpoints at developer.uspto.gov were decommissioned in early 2026 "
             "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Try get_enriched_citations for citation data, or use "
-            "odp_get_documents to find PTO-892/PTO-1449 forms in the file wrapper."
+            "Use ppubs_get_citing_patents(patent_number) for forward citations, "
+            "ppubs_get_patent_by_number(patent_number, sections=[\"biblio\"]) for "
+            "the references it cites (usRefGroup), or odp_get_documents(app_num, "
+            "document_code=\"892,1449\") for the citation forms in the file wrapper."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": "Use get_enriched_citations(patent_number) or odp_get_documents(app_num).",
+        "workaround": "ppubs_get_citing_patents(patent_number) for forward citations; ppubs_get_patent_by_number(patent_number, sections=[\"biblio\"]) for backward citations.",
     }
 
 
@@ -2187,11 +2364,11 @@ async def get_office_action_rejections(
             "Office Action rejections API is temporarily unavailable. The legacy "
             "endpoints at developer.uspto.gov were decommissioned in early 2026 "
             "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use odp_get_documents to find office action documents in the file "
-            "wrapper and download them from Patent Center for rejection details."
+            "Use odp_get_documents(app_num, document_code=\"CTNF,CTFR\") to find the "
+            "rejections, then odp_download_document(app_num, document_id) to read them."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": "Use odp_get_documents(app_num) to find office action documents.",
+        "workaround": "odp_get_documents(app_num, document_code=\"CTNF,CTFR\"), then odp_download_document(app_num, document_id).",
     }
 
 
@@ -2212,8 +2389,9 @@ async def get_enriched_citations(
 
     IMPORTANT: The legacy Enriched Citation API (developer.uspto.gov) was
     decommissioned in early 2026 and has NOT yet been migrated to the ODP.
-    This tool is temporarily unavailable. Use patentsview_get_patent for
-    basic citation data instead.
+    This tool is unavailable. Use ppubs_get_citing_patents for forward
+    citations and ppubs_get_patent_by_number(sections=["biblio"]) for the
+    references a patent cites.
 
     Args:
         patent_number: Patent number
@@ -2229,11 +2407,13 @@ async def get_enriched_citations(
             "Enriched Citation API is temporarily unavailable. The legacy "
             "endpoints at developer.uspto.gov were decommissioned in early 2026 "
             "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use patentsview_get_patent for basic citation data, or "
-            "odp_get_documents to find PTO-892 citation forms in the file wrapper."
+            "Use ppubs_get_citing_patents(patent_number) for forward citations, "
+            "ppubs_get_patent_by_number(patent_number, sections=[\"biblio\"]) for "
+            "the references it cites (usRefGroup), or odp_get_documents(app_num, "
+            "document_code=\"892,1449\") for the citation forms in the file wrapper."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": "Use patentsview_get_patent(patent_number) for citation data.",
+        "workaround": "ppubs_get_citing_patents(patent_number) for forward citations; ppubs_get_patent_by_number(patent_number, sections=[\"biblio\"]) for backward citations.",
     }
 
 
@@ -2293,10 +2473,11 @@ async def get_citation_metrics(patent_number: str) -> Dict[str, Any]:
             "Citation metrics API is temporarily unavailable. The legacy "
             "endpoints at developer.uspto.gov were decommissioned in early 2026 "
             "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use patentsview_get_patent for basic citation counts."
+            "Use ppubs_get_citing_patents(patent_number) — its `total` is the "
+            "forward-citation count."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": "Use patentsview_get_patent(patent_number) for citation counts.",
+        "workaround": "ppubs_get_citing_patents(patent_number)[\"total\"] is the forward-citation count.",
     }
 
 

@@ -424,23 +424,24 @@ DATA_SOURCES = {
         "name": "USPTO Office Action APIs",
         "base_url": "N/A",
         "description": (
-            "TEMPORARILY UNAVAILABLE. Legacy endpoints at developer.uspto.gov "
-            "were decommissioned in early 2026. Migration to ODP (api.uspto.gov) "
-            "is pending. Use odp_get_documents to access office action documents "
-            "from the file wrapper as a workaround."
+            "UNAVAILABLE. Legacy endpoints at developer.uspto.gov were "
+            "decommissioned in early 2026 with no ODP replacement. The "
+            "documents themselves are in the file wrapper: "
+            "odp_get_documents(app_num, document_code='CTNF,CTFR') lists "
+            "the office actions and odp_download_document reads one as PDF."
         ),
         "coverage": {
-            "applications": "Unavailable pending ODP migration",
-            "citations": "Use odp_get_documents or ppubs tools",
-            "rejections": "Use odp_get_documents to find office action documents",
+            "applications": "Every application's file wrapper via ODP",
+            "citations": "892 (examiner) and 1449 (applicant) forms via odp_get_documents; forward citations via ppubs_get_citing_patents",
+            "rejections": "CTNF/CTFR documents via odp_get_documents + odp_download_document",
         },
         "rate_limits": "N/A",
         "auth_required": True,
         "best_for": [
-            "Office action full text (UNAVAILABLE - use odp_get_documents)",
-            "Examiner citation analysis (UNAVAILABLE - use odp_get_documents)",
-            "Rejection pattern analysis (UNAVAILABLE - use odp_get_documents)",
-            "Prosecution strategy research (use odp_get_transactions instead)",
+            "Office action full text (use odp_get_documents + odp_download_document)",
+            "Examiner citation analysis (892 forms via odp_get_documents)",
+            "Rejection pattern analysis (CTNF/CTFR via odp_get_documents)",
+            "Prosecution strategy research (odp_get_transactions for the timeline)",
         ],
     },
     "litigation": {
@@ -578,7 +579,9 @@ silently return 0 results, and `TTL/"phrase"` returns a server error.
 - `.spec.` - Specification/Description
 - `.in.` - Inventor Name
 - `.as.` - Assignee Name
-- `.pn.` - Patent Number
+- `.pn.` - Patent Number (works with D, RE and PP prefixes: `D845123.pn.`)
+- `.urpn.` - US references cited: patents that cite a given patent
+  (forward citations; granted patents only — see ppubs_get_citing_patents)
 - `.cpc.` - CPC Classification
 - `@pd` - Publication/issue date (format: YYYYMMDD)
 - `@ad` - Application date
@@ -587,6 +590,7 @@ silently return 0 results, and `TTL/"phrase"` returns a server error.
 - `"machine learning".ti.` - Title contains "machine learning"
 - `smith.in. AND IBM.as.` - Inventor Smith, assigned to IBM
 - `G06N3/08.cpc.` - Neural network patents
+- `9876543.urpn.` - Patents citing US 9,876,543
 - `@pd>="20230101"<="20231231"` - Patents issued in 2023
 - `photolithography.ti. AND @pd>="20200101"` - combined
 

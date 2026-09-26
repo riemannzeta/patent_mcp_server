@@ -793,3 +793,61 @@ async def test_ppubs_get_patent_by_number_passes_sections():
 
     get_document.assert_awaited_once_with(patent_doc["guid"], patent_doc["type"])
     assert set(result) == {"guid", "abstractHtml", "claimsHtml", "_sections"}
+
+
+# ============================================================================
+# Forward citations
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_ppubs_get_citing_patents_queries_urpn_field():
+    """Forward citations come from a `<number>.urpn.` search of granted patents."""
+    from patent_mcp_server import patents
+
+    with patch.object(patents.ppubs_client, "run_query",
+                      new_callable=AsyncMock) as run_query:
+        run_query.return_value = {
+            "numFound": 2, "perPage": 20, "page": 1, "totalPages": 1,
+            "patents": [{"guid": "US-11940582-B2"}, {"guid": "US-11108442-B1"}],
+        }
+        result = await patents.ppubs_get_citing_patents("US 9,876,543 B2", limit=20)
+
+    kwargs = run_query.call_args.kwargs
+    assert kwargs["query"] == "9876543.urpn."
+    assert kwargs["sources"] == [Sources.GRANTED_PATENTS]
+    assert kwargs["limit"] == 20
+    assert result["success"] is True
+    assert result["total"] == 2
+    assert [r["guid"] for r in result["results"]] == ["US-11940582-B2", "US-11108442-B1"]
+    assert result["metadata"]["cited_patent"] == "9876543"
+    assert result["metadata"]["query"] == "9876543.urpn."
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_ppubs_get_citing_patents_caps_limit_and_passes_offset():
+    from patent_mcp_server import patents
+
+    with patch.object(patents.ppubs_client, "run_query",
+                      new_callable=AsyncMock) as run_query:
+        run_query.return_value = {"numFound": 0, "patents": []}
+        await patents.ppubs_get_citing_patents("D845123", offset=40, limit=9999)
+
+    kwargs = run_query.call_args.kwargs
+    assert kwargs["query"] == "D845123.urpn."
+    assert kwargs["start"] == 40
+    assert kwargs["limit"] == 500
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_ppubs_get_citing_patents_rejects_bad_number():
+    from patent_mcp_server import patents
+
+    with patch.object(patents.ppubs_client, "run_query",
+                      new_callable=AsyncMock) as run_query:
+        result = await patents.ppubs_get_citing_patents("abc")
+
+    assert result["error"] is True
+    run_query.assert_not_awaited()

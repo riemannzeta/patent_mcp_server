@@ -9,6 +9,7 @@ Note: Requires an ODP API key obtained from https://data.uspto.gov ("My ODP").
 The API endpoint is api.uspto.gov; data.uspto.gov is the web portal only.
 """
 
+import base64
 import os
 from typing import Any, Optional, Dict, List, Union
 import httpx
@@ -172,6 +173,86 @@ class ApiUsptoClient:
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
             return ApiError.from_exception(e, f"Request to {url} failed")
+
+    async def download_file(
+        self,
+        url: str,
+        max_bytes: int = Defaults.MAX_BINARY_BYTES,
+    ) -> Dict[str, Any]:
+        """Fetch a binary document (a file-wrapper PDF) as base64.
+
+        ODP answers a document URL with a 302 to a signed
+        data-documents.uspto.gov link that is valid for 30 seconds; the
+        client follows it (verified live 2026-09-26). The body is read in
+        chunks and abandoned once it passes ``max_bytes``, since base64 of
+        a multi-megabyte PDF would swamp the MCP response.
+
+        Args:
+            url: Document URL on api.uspto.gov
+            max_bytes: Largest payload to return
+
+        Returns:
+            {"success": True, "content_type", "size_bytes", "content"} with
+            the base64 body, or an error dictionary
+        """
+        headers = {
+            "User-Agent": config.USER_AGENT,
+            "X-API-KEY": config.USPTO_API_KEY if config.USPTO_API_KEY else ""
+        }
+        logger.info(f"Downloading {url}")
+
+        try:
+            request = self.client.build_request(HTTPMethods.GET, url, headers=headers)
+            response = await self.client.send(request, stream=True)
+            try:
+                if response.status_code >= 400:
+                    text = (await response.aread()).decode("utf-8", errors="replace")
+                    logger.error(f"HTTP error: {response.status_code} - {text}")
+                    return ApiError.from_http_error(
+                        status_code=response.status_code, response_text=text
+                    )
+
+                declared = response.headers.get("content-length")
+                if declared and declared.isdigit() and int(declared) > max_bytes:
+                    return self._too_large(int(declared), max_bytes)
+
+                chunks: List[bytes] = []
+                size = 0
+                async for chunk in response.aiter_bytes():
+                    size += len(chunk)
+                    if size > max_bytes:
+                        return self._too_large(size, max_bytes)
+                    chunks.append(chunk)
+            finally:
+                await response.aclose()
+
+            content = b"".join(chunks)
+            logger.info(f"Downloaded {size} bytes from {url}")
+            return {
+                "success": True,
+                "content_type": response.headers.get("content-type", "application/pdf"),
+                "size_bytes": size,
+                "content": base64.b64encode(content).decode("ascii"),
+            }
+
+        except (httpx.TimeoutException, httpx.NetworkError) as e:
+            logger.error(f"Network error downloading {url}: {str(e)}")
+            return ApiError.from_exception(e, f"Download of {url} failed")
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            return ApiError.from_exception(e, f"Download of {url} failed")
+
+    @staticmethod
+    def _too_large(size: int, max_bytes: int) -> Dict[str, Any]:
+        return ApiError.create(
+            message=(
+                f"Document is {size:,} bytes (over the {max_bytes:,}-byte "
+                f"limit for base64 responses). Download it directly from "
+                f"Patent Center instead, or raise the limit in code."
+            ),
+            error_code="RESPONSE_TOO_LARGE",
+            details={"size_bytes": size, "max_bytes": max_bytes},
+        )
 
     async def close(self):
         """Close the client connections and clean up resources."""
