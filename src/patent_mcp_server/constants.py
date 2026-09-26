@@ -71,6 +71,30 @@ class Defaults:
     RATE_LIMIT_RETRY_DELAY = 5
 
 
+class DocumentSections:
+    """Named parts of a PPUBS full-text document (ppubs_get_* ``sections``).
+
+    A whole document runs 20-40k tokens, most of it descriptionHtml. Callers
+    that only need the claims or the front page can ask for those alone.
+    """
+    BIBLIO = "biblio"
+    ABSTRACT = "abstract"
+    CLAIMS = "claims"
+    DESCRIPTION = "description"
+    ALL = [BIBLIO, ABSTRACT, CLAIMS, DESCRIPTION]
+    # Raw *Html fields that carry each text section.
+    HTML_FIELDS = {
+        ABSTRACT: ("abstractHtml",),
+        CLAIMS: ("claimsHtml",),
+        DESCRIPTION: ("descriptionHtml", "briefHtml", "backgroundTextHtml"),
+    }
+    # Always kept, so a claims-only response still says which patent it is.
+    IDENTITY_FIELDS = (
+        "guid", "type", "inventionTitle", "datePublished",
+        "applicationNumber", "publicationReferenceDocumentNumber",
+    )
+
+
 class PTABTrialTypes:
     """PTAB trial type codes."""
     IPR = "IPR"  # Inter Partes Review

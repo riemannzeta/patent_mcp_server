@@ -737,3 +737,59 @@ async def test_caller_supplied_token_is_preserved(ppubs_client):
         )
 
         assert mock_request.call_args.kwargs["headers"]["X-Access-Token"] == "null"
+
+
+# ============================================================================
+# Full-document sections
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_ppubs_get_full_document_sections_are_applied():
+    """`sections` narrows the document and is echoed back."""
+    from patent_mcp_server import patents
+
+    raw = {"guid": "US-1-B2", "claimsHtml": "1. x", "descriptionHtml": "d",
+           "assigneeName": ["A"], "unused": None}
+    with patch.object(patents.ppubs_client, "get_document",
+                      new_callable=AsyncMock, return_value=raw):
+        result = await patents.ppubs_get_full_document("US-1-B2", "USPAT", ["claims"])
+
+    assert result["claimsHtml"] == "1. x"
+    assert result["guid"] == "US-1-B2"
+    assert "descriptionHtml" not in result and "assigneeName" not in result
+    assert result["_sections"] == ["claims"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_ppubs_get_full_document_rejects_unknown_section():
+    from patent_mcp_server import patents
+
+    with patch.object(patents.ppubs_client, "get_document",
+                      new_callable=AsyncMock) as get_document:
+        result = await patents.ppubs_get_full_document("US-1-B2", "USPAT", ["claimz"])
+
+    assert result["error"] is True
+    assert "claimz" in result["message"]
+    get_document.assert_not_awaited()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_ppubs_get_patent_by_number_passes_sections():
+    from patent_mcp_server import patents
+
+    patent_doc = MOCK_SEARCH_RESPONSE["docs"][0]
+    raw = {"guid": patent_doc["guid"], "abstractHtml": "a", "claimsHtml": "c",
+           "descriptionHtml": "d"}
+    with patch("patent_mcp_server.patents._search_patent_by_number",
+               new_callable=AsyncMock,
+               return_value={"success": True, "patent": patent_doc}), \
+         patch.object(patents.ppubs_client, "get_document",
+                      new_callable=AsyncMock, return_value=raw) as get_document:
+        result = await patents.ppubs_get_patent_by_number("US 9,876,543 B2",
+                                                          ["abstract", "claims"])
+
+    get_document.assert_awaited_once_with(patent_doc["guid"], patent_doc["type"])
+    assert set(result) == {"guid", "abstractHtml", "claimsHtml", "_sections"}

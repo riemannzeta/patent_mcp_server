@@ -12,6 +12,7 @@ import logging
 from typing import Any, Dict, List, Optional, Union
 
 from patent_mcp_server.config import config
+from patent_mcp_server.constants import DocumentSections
 
 logger = logging.getLogger('response_util')
 
@@ -439,6 +440,62 @@ def truncate_response(
             )
 
     return truncated
+
+
+def _is_empty(value: Any) -> bool:
+    """True for the placeholders PPUBS fills unused fields with."""
+    return value is None or value == "" or value == [] or value == {}
+
+
+def slim_document(
+    document: Dict[str, Any],
+    sections: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Drop what a reader never needs from a PPUBS full-text document.
+
+    A raw document has ~450 fields, two thirds of them empty, plus search
+    highlight fields (``*KwicHits``, ``*Highlights``) that only mean
+    something inside the PPUBS web app. Those always go. With ``sections``,
+    only the named text sections' HTML fields are kept, plus the
+    bibliographic fields when "biblio" is among them; the identity fields
+    (guid, title, dates) are kept regardless.
+
+    Args:
+        document: Raw document from PpubsClient.get_document
+        sections: Subset of DocumentSections.ALL, or None for everything
+
+    Returns:
+        A new dictionary; the input is not modified.
+    """
+    text_fields = {
+        field
+        for fields in DocumentSections.HTML_FIELDS.values()
+        for field in fields
+    }
+    if sections:
+        keep_text = {
+            field
+            for section in sections
+            for field in DocumentSections.HTML_FIELDS.get(section, ())
+        }
+        keep_biblio = DocumentSections.BIBLIO in sections
+    else:
+        keep_text = text_fields
+        keep_biblio = True
+
+    slim: Dict[str, Any] = {}
+    for key, value in document.items():
+        if _is_empty(value) or "KwicHits" in key or "Highlights" in key:
+            continue
+        if key in text_fields:
+            if key in keep_text:
+                slim[key] = value
+        elif keep_biblio or key in DocumentSections.IDENTITY_FIELDS:
+            slim[key] = value
+
+    if sections:
+        slim["_sections"] = list(sections)
+    return slim
 
 
 def check_and_truncate(

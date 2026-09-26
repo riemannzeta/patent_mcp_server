@@ -34,7 +34,7 @@ from pydantic import ValidationError
 
 from patent_mcp_server.config import config, LOOPBACK_HOSTS, VALID_TRANSPORTS
 from patent_mcp_server.constants import (
-    Sources, Fields, Defaults, PatentsViewEndpoints
+    Sources, Fields, Defaults, DocumentSections, PatentsViewEndpoints
 )
 from patent_mcp_server.util.errors import ApiError, is_error
 from patent_mcp_server.util.validation import (
@@ -42,7 +42,7 @@ from patent_mcp_server.util.validation import (
     validate_serial_number, validate_registration_number
 )
 from patent_mcp_server.util.response import (
-    ResponseEnvelope, check_and_truncate, estimate_tokens
+    ResponseEnvelope, check_and_truncate, estimate_tokens, slim_document
 )
 from patent_mcp_server.resources import (
     get_cpc_section_info, get_cpc_subsection_info,
@@ -584,16 +584,13 @@ async def get_status_code(code: str) -> Dict[str, Any]:
 async def ppubs_search_patents(
     query: str,
     offset: int = 0,
-    limit: int = 100,
+    limit: int = 20,
     sort: str = "date_publ desc",
 ) -> Dict[str, Any]:
     """Search granted US patents in Patent Public Search (ppubs.uspto.gov).
 
     USE THIS TOOL WHEN: You need full-text search of US patents with daily
     updates, or need access to the most recent patent filings.
-
-    PREFER OVER patentsview_search WHEN: You need the most current data
-    (PPUBS updates daily vs PatentsView periodic updates).
 
     Args:
         query: Search query using USPTO BRS syntax. Multi-word terms are
@@ -612,7 +609,9 @@ async def ppubs_search_patents(
                the latest grants first — narrow with field qualifiers
                to get relevant matches.
         offset: Starting position for pagination (default: 0)
-        limit: Maximum results to return (default: 100, max: 500)
+        limit: Maximum results to return (default: 20, max: 500). Results
+               over the token budget are cut to 20 anyway, so raise this
+               only when paging with `offset`.
         sort: Sort order (default: "date_publ desc")
 
     Returns:
@@ -638,7 +637,7 @@ async def ppubs_search_patents(
 async def ppubs_search_applications(
     query: str,
     offset: int = 0,
-    limit: int = 100,
+    limit: int = 20,
     sort: str = "date_publ desc",
 ) -> Dict[str, Any]:
     """Search published US patent applications in Patent Public Search.
@@ -654,7 +653,9 @@ async def ppubs_search_applications(
                suffixes (.ti., .ab., .in., .as., .cpc.) — the legacy
                slash-prefix forms (TTL/, IN/) no longer work.
         offset: Starting position for pagination (default: 0)
-        limit: Maximum results to return (default: 100, max: 500)
+        limit: Maximum results to return (default: 20, max: 500). Results
+               over the token budget are cut to 20 anyway, so raise this
+               only when paging with `offset`.
         sort: Sort order (default: "date_publ desc")
 
     Returns:
@@ -675,48 +676,83 @@ async def ppubs_search_applications(
     return check_and_truncate(response)
 
 
+def _validate_sections(sections: Optional[List[str]]) -> Optional[Dict[str, Any]]:
+    """Return a validation error for unknown section names, else None."""
+    unknown = [s for s in sections or [] if s not in DocumentSections.ALL]
+    if unknown:
+        return ApiError.validation_error(
+            f"Unknown section(s) {unknown}. Valid: {DocumentSections.ALL}",
+            "sections",
+        )
+    return None
+
+
 @tool()
-async def ppubs_get_full_document(guid: str, source_type: str) -> Dict[str, Any]:
+async def ppubs_get_full_document(
+    guid: str,
+    source_type: str,
+    sections: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     """Get complete patent document by GUID from PPUBS.
 
     USE THIS TOOL WHEN: You have a document GUID from search results
-    and need the full patent text including all claims and description.
+    and need the patent text. A whole document runs 20-40k tokens, most
+    of it the description — ask for `sections` when you need less.
 
     Args:
         guid: Document GUID (e.g., "US-9876543-B2")
         source_type: Document type - "USPAT" for patents, "US-PGPUB" for applications
+        sections: Which parts to return; omit for everything. Any of
+               "biblio" (front-page data: parties, dates, classification,
+               references cited), "abstract", "claims", "description".
+               ["biblio", "claims"] answers most questions in ~5k tokens.
 
     Returns:
-        Complete document with claims, description, drawings info, and metadata.
+        Document with the requested sections. Empty fields and search
+        highlight fields are dropped.
     """
+    if error := _validate_sections(sections):
+        return error
+
     result = await ppubs_client.get_document(guid, source_type)
 
     if is_error(result):
         return result
 
-    return check_and_truncate(result)
+    return check_and_truncate(slim_document(result, sections))
 
 
 @tool()
-async def ppubs_get_patent_by_number(patent_number: str) -> Dict[str, Any]:
+async def ppubs_get_patent_by_number(
+    patent_number: str,
+    sections: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     """Get a granted patent's full text by patent number.
 
-    USE THIS TOOL WHEN: You know the patent number and need the complete
-    document including claims, description, and all sections.
+    USE THIS TOOL WHEN: You know the patent number and need the patent
+    text. A whole document runs 20-40k tokens, most of it the
+    description — ask for `sections` when you need less.
 
     Args:
         patent_number: Patent number. Separators, a leading "US" and a
                kind code are ignored, and design/reissue/plant prefixes
                are kept: "7123456", "US 10,000,000 B2", "D845123",
                "RE49123" all work.
+        sections: Which parts to return; omit for everything. Any of
+               "biblio" (front-page data: parties, dates, classification,
+               references cited), "abstract", "claims", "description".
+               ["biblio", "claims"] answers most questions in ~5k tokens.
 
     Returns:
-        Complete patent document with full text of all sections.
+        Patent document with the requested sections. Empty fields and
+        search highlight fields are dropped.
     """
     try:
         patent_number = validate_patent_number(str(patent_number))
     except ValueError as e:
         return ApiError.validation_error(str(e), "patent_number")
+    if error := _validate_sections(sections):
+        return error
 
     search_result = await _search_patent_by_number(patent_number)
 
@@ -729,7 +765,7 @@ async def ppubs_get_patent_by_number(patent_number: str) -> Dict[str, Any]:
     if is_error(result):
         return result
 
-    return check_and_truncate(result)
+    return check_and_truncate(slim_document(result, sections))
 
 
 @tool()

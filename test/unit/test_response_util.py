@@ -149,3 +149,107 @@ def test_from_ptab_unwraps_document_and_appeal_databags():
         assert env["source"] == "ptab"
         assert env["results"] == [{"x": 1}]
         assert env["total"] == 1
+
+
+# ============================================================================
+# slim_document
+# ============================================================================
+
+from patent_mcp_server.constants import DocumentSections
+from patent_mcp_server.util.response import slim_document
+
+
+def _raw_document() -> dict:
+    """A PPUBS document in miniature: text sections, biblio, empties, kwic."""
+    return {
+        "guid": "US-9876543-B2",
+        "type": "USPAT",
+        "inventionTitle": "Widget",
+        "datePublished": "2018-01-23T00:00:00Z",
+        "assigneeName": ["Acme"],
+        "usRefGroup": ["US 7000000 B2"],
+        "abstractHtml": "<p>abstract</p>",
+        "claimsHtml": "1. A widget.",
+        "descriptionHtml": "<p>long</p>",
+        "briefHtml": "<p>brief</p>",
+        "backgroundTextHtml": "",
+        "applicantCity": None,
+        "cpcAdditional": [],
+        "continuityData": {},
+        "applicationFilingDateKwicHits": [1],
+        "applicationNumberHighlights": ["x"],
+    }
+
+
+@pytest.mark.unit
+def test_slim_document_drops_empties_and_highlights():
+    slim = slim_document(_raw_document())
+    for gone in ("backgroundTextHtml", "applicantCity", "cpcAdditional",
+                 "continuityData", "applicationFilingDateKwicHits",
+                 "applicationNumberHighlights"):
+        assert gone not in slim
+    # Everything with content survives when no sections are named
+    for kept in ("guid", "assigneeName", "usRefGroup", "abstractHtml",
+                 "claimsHtml", "descriptionHtml", "briefHtml"):
+        assert kept in slim
+    assert "_sections" not in slim
+
+
+@pytest.mark.unit
+def test_slim_document_claims_only_keeps_identity():
+    slim = slim_document(_raw_document(), ["claims"])
+    assert slim["claimsHtml"] == "1. A widget."
+    assert slim["guid"] == "US-9876543-B2"
+    assert slim["inventionTitle"] == "Widget"
+    for gone in ("abstractHtml", "descriptionHtml", "briefHtml",
+                 "assigneeName", "usRefGroup"):
+        assert gone not in slim
+    assert slim["_sections"] == ["claims"]
+
+
+@pytest.mark.unit
+def test_slim_document_biblio_excludes_text_sections():
+    slim = slim_document(_raw_document(), ["biblio"])
+    assert slim["assigneeName"] == ["Acme"]
+    assert slim["usRefGroup"] == ["US 7000000 B2"]
+    for gone in ("abstractHtml", "claimsHtml", "descriptionHtml", "briefHtml"):
+        assert gone not in slim
+
+
+@pytest.mark.unit
+def test_slim_document_description_covers_brief_and_background():
+    raw = _raw_document()
+    raw["backgroundTextHtml"] = "<p>bg</p>"
+    slim = slim_document(raw, ["description"])
+    assert set(slim) >= {"descriptionHtml", "briefHtml", "backgroundTextHtml"}
+    assert "claimsHtml" not in slim
+
+
+@pytest.mark.unit
+def test_slim_document_does_not_mutate_input():
+    raw = _raw_document()
+    before = dict(raw)
+    slim_document(raw, ["claims"])
+    assert raw == before
+
+
+@pytest.mark.unit
+def test_slim_document_real_sample_fits_budget():
+    """The checked-in US 9,876,543 document: claims + biblio fit in 8k tokens."""
+    import json
+    from pathlib import Path
+    from patent_mcp_server.util.response import estimate_tokens
+
+    sample = Path(__file__).resolve().parents[2] / "json" / "patent_9876543_data.json"
+    if not sample.exists():
+        pytest.skip("sample document not checked out")
+    raw = json.loads(sample.read_text())
+
+    full = slim_document(raw)
+    assert len(full) < len(raw) // 2  # empties and kwic gone
+    assert estimate_tokens(full) < estimate_tokens(raw)
+
+    lean = slim_document(raw, ["biblio", "claims"])
+    assert estimate_tokens(lean) <= config.MAX_RESPONSE_TOKENS
+    assert "claimsHtml" in lean and "descriptionHtml" not in lean
+    assert DocumentSections.ALL == ["biblio", "abstract", "claims", "description"]
