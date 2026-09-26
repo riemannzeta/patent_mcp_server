@@ -1,7 +1,7 @@
 """Unit tests for PatentsViewClient."""
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+import httpx2
 
 from patent_mcp_server.patentsview.patentsview_client import PatentsViewClient
 from patent_mcp_server.constants import PatentsViewEndpoints
@@ -411,7 +411,7 @@ async def test_http_error_handling(patentsview_client):
         mock_response.headers = {"X-Status-Reason": "Invalid API Key"}
         mock_response.json.return_value = {"error": True}
 
-        error = httpx.HTTPStatusError("Forbidden", request=MagicMock(), response=mock_response)
+        error = httpx2.HTTPStatusError("Forbidden", request=MagicMock(), response=mock_response)
         mock_get.side_effect = error
 
         # Clear rate limit state first
@@ -433,7 +433,7 @@ async def test_http_400_error_uses_header_message(patentsview_client):
         mock_response.headers = {"X-Status-Reason": "Invalid query: missing required field 'q'"}
         mock_response.json.return_value = {"error": True}
 
-        error = httpx.HTTPStatusError("Bad Request", request=MagicMock(), response=mock_response)
+        error = httpx2.HTTPStatusError("Bad Request", request=MagicMock(), response=mock_response)
         mock_get.side_effect = error
 
         # Clear rate limit state first
@@ -459,7 +459,7 @@ async def test_http_error_without_header_uses_response_text(patentsview_client):
         mock_response.headers = {}  # No X-Status-Reason header
         mock_response.json.return_value = {"error": True}
 
-        error = httpx.HTTPStatusError("Internal Server Error", request=MagicMock(), response=mock_response)
+        error = httpx2.HTTPStatusError("Internal Server Error", request=MagicMock(), response=mock_response)
         mock_get.side_effect = error
 
         # Clear rate limit state first
@@ -484,7 +484,7 @@ async def test_http_error_json_parse_failure_uses_header(patentsview_client):
         mock_response.headers = {"X-Status-Reason": "Invalid request format"}
         mock_response.json.side_effect = ValueError("Invalid JSON")
 
-        error = httpx.HTTPStatusError("Bad Request", request=MagicMock(), response=mock_response)
+        error = httpx2.HTTPStatusError("Bad Request", request=MagicMock(), response=mock_response)
         mock_get.side_effect = error
 
         # Clear rate limit state first
@@ -621,7 +621,7 @@ async def test_rate_limit_429_handling(patentsview_client):
         mock_429_response = MagicMock()
         mock_429_response.status_code = 429
         mock_429_response.headers = {"Retry-After": "1"}
-        mock_429_response.raise_for_status = MagicMock(side_effect=httpx.HTTPStatusError(
+        mock_429_response.raise_for_status = MagicMock(side_effect=httpx2.HTTPStatusError(
             "Rate Limited", request=MagicMock(), response=mock_429_response
         ))
 

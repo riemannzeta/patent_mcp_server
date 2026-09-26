@@ -1,7 +1,7 @@
 """Unit tests for ApiUsptoClient."""
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+import httpx2
 
 from patent_mcp_server.uspto.api_uspto_gov import ApiUsptoClient
 from patent_mcp_server.constants import HTTPMethods
@@ -181,7 +181,7 @@ async def test_make_request_http_error_404(api_client):
         mock_response.text = "Not Found"
         mock_response.json.return_value = MOCK_ERROR_NOT_FOUND
 
-        error = httpx.HTTPStatusError("Not Found", request=MagicMock(), response=mock_response)
+        error = httpx2.HTTPStatusError("Not Found", request=MagicMock(), response=mock_response)
         mock_get.side_effect = error
 
         result = await api_client.make_request("http://test.com")
@@ -201,7 +201,7 @@ async def test_make_request_http_error_401(api_client):
         mock_response.text = "Unauthorized"
         mock_response.json.return_value = MOCK_ERROR_UNAUTHORIZED
 
-        error = httpx.HTTPStatusError("Unauthorized", request=MagicMock(), response=mock_response)
+        error = httpx2.HTTPStatusError("Unauthorized", request=MagicMock(), response=mock_response)
         mock_get.side_effect = error
 
         result = await api_client.make_request("http://test.com")
@@ -223,7 +223,7 @@ async def test_make_request_network_error_retry(api_client):
         mock_success.raise_for_status = MagicMock()
 
         mock_get.side_effect = [
-            httpx.NetworkError("Connection failed"),
+            httpx2.NetworkError("Connection failed"),
             mock_success
         ]
 
@@ -247,7 +247,7 @@ async def test_make_request_timeout_error_retry(api_client):
         mock_success.raise_for_status = MagicMock()
 
         mock_get.side_effect = [
-            httpx.TimeoutException("Request timeout"),
+            httpx2.TimeoutException("Request timeout"),
             mock_success
         ]
 
@@ -334,7 +334,7 @@ async def test_context_manager_cleanup():
 # ============================================================================
 
 def _streaming_response(status: int, chunks, headers=None):
-    """A stand-in for the response httpx.AsyncClient.send(stream=True) returns."""
+    """A stand-in for the response httpx2.AsyncClient.send(stream=True) returns."""
     response = MagicMock()
     response.status_code = status
     response.headers = headers or {}
@@ -412,7 +412,7 @@ async def test_download_file_http_error(api_client):
 @pytest.mark.asyncio
 async def test_download_file_network_error(api_client):
     with patch.object(api_client.client, "send", new_callable=AsyncMock,
-                      side_effect=httpx.ConnectError("down")):
+                      side_effect=httpx2.ConnectError("down")):
         result = await api_client.download_file("https://api.uspto.gov/x.pdf")
 
     assert result["error"] is True
@@ -429,7 +429,7 @@ def _response(status: int, payload=None, headers=None):
     response.text = "" if payload is None else str(payload)
     response.json.return_value = payload if payload is not None else {}
     if status >= 400:
-        response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        response.raise_for_status.side_effect = httpx2.HTTPStatusError(
             str(status), request=MagicMock(), response=response
         )
     return response

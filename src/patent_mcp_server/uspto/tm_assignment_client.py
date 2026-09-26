@@ -18,7 +18,7 @@ No API key is required.
 """
 
 from typing import Any, Optional, Dict, List, Union
-import httpx
+import httpx2
 import logging
 from tenacity import (
     retry,
@@ -68,10 +68,10 @@ class TmAssignmentClient:
         }
 
         # Create a custom transport that logs all requests and responses
-        transport = httpx.AsyncHTTPTransport()
+        transport = httpx2.AsyncHTTPTransport()
         logging_transport = LoggingTransport(transport)
 
-        self.client = httpx.AsyncClient(
+        self.client = httpx2.AsyncClient(
             headers=self.headers,
             http2=True,
             follow_redirects=True,
@@ -150,14 +150,14 @@ class TmAssignmentClient:
             min=config.RETRY_MIN_WAIT,
             max=config.RETRY_MAX_WAIT
         ),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
+        retry=retry_if_exception_type((httpx2.TimeoutException, httpx2.NetworkError)),
         reraise=True
     )
-    async def _post(self, url: str, body: Dict[str, Any]) -> Union[httpx.Response, Dict[str, Any]]:
+    async def _post(self, url: str, body: Dict[str, Any]) -> Union[httpx2.Response, Dict[str, Any]]:
         """Perform a POST with retry; returns the response or an error dict."""
         try:
             return await self.client.post(url, json=body, timeout=config.REQUEST_TIMEOUT)
-        except (httpx.TimeoutException, httpx.NetworkError) as e:
+        except (httpx2.TimeoutException, httpx2.NetworkError) as e:
             logger.warning(f"Network error (will retry): {str(e)}")
             raise  # Let tenacity handle the retry
         except Exception as e:

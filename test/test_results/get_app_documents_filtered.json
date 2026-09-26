@@ -1,0 +1,90 @@
+{
+  "success": true,
+  "source": "odp",
+  "count": 3,
+  "total": 3,
+  "offset": 0,
+  "limit": 50,
+  "has_more": false,
+  "results": [
+    {
+      "applicationNumberText": "16123456",
+      "officialDate": "2020-10-20T07:19:47.000-0400",
+      "documentIdentifier": "KGC5TXULLDFLYX9",
+      "documentCode": "NOA",
+      "documentCodeDescriptionText": "Notice of Allowance and Fees Due (PTOL-85)",
+      "directionCategory": "OUTGOING",
+      "formats": [
+        "PDF"
+      ],
+      "pageTotalQuantity": 2
+    },
+    {
+      "applicationNumberText": "16123456",
+      "officialDate": "2020-09-23T10:47:08.000-0400",
+      "documentIdentifier": "KFCN8CLBRXEAPX3",
+      "documentCode": "NOA",
+      "documentCodeDescriptionText": "Notice of Allowance and Fees Due (PTOL-85)",
+      "directionCategory": "OUTGOING",
+      "formats": [
+        "PDF",
+        "MS_WORD",
+        "XML"
+      ],
+      "pageTotalQuantity": 7
+    },
+    {
+      "applicationNumberText": "16123456",
+      "officialDate": "2020-03-27T08:15:37.000-0400",
+      "documentIdentifier": "K87AK41FRXEAPX5",
+      "documentCode": "CTNF",
+      "documentCodeDescriptionText": "Non-Final Rejection",
+      "directionCategory": "OUTGOING",
+      "formats": [
+        "PDF",
+        "MS_WORD",
+        "XML"
+      ],
+      "pageTotalQuantity": 9
+    }
+  ],
+  "metadata": {
+    "application_number": "16123456",
+    "documents_in_wrapper": 52,
+    "code_counts": {
+      "1449": 3,
+      "892": 1,
+      "A...": 1,
+      "ABST": 1,
+      "ADS": 1,
+      "APP.FILE.REC": 1,
+      "BIB": 1,
+      "CLM": 2,
+      "CTNF": 1,
+      "DRW.NONBW": 1,
+      "DRW.SUPP": 1,
+      "FOR": 2,
+      "FWCLM": 1,
+      "IDS": 2,
+      "IFEE": 1,
+      "IIFW": 1,
+      "INTV.SUM.APP": 1,
+      "ISSUE.NTF": 1,
+      "M327": 1,
+      "N417": 4,
+      "NOA": 2,
+      "NTC.PUB": 1,
+      "OATH": 1,
+      "PA..": 1,
+      "PD.FILED.E": 1,
+      "REM": 1,
+      "SCORE": 1,
+      "SPEC": 1,
+      "SRFW": 2,
+      "SRNT": 3,
+      "TRAN.LET": 4,
+      "TRNA": 1,
+      "WFEE": 5
+    }
+  }
+}

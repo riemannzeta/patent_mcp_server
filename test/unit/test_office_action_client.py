@@ -1,7 +1,7 @@
 """Unit tests for OfficeActionClient."""
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+import httpx2
 
 from patent_mcp_server.uspto.office_action_client import OfficeActionClient
 
@@ -195,7 +195,7 @@ async def test_http_error_handling(oa_client):
         mock_response.text = "Not Found"
         mock_response.json.return_value = {"error": "Not found"}
 
-        error = httpx.HTTPStatusError("Not Found", request=MagicMock(), response=mock_response)
+        error = httpx2.HTTPStatusError("Not Found", request=MagicMock(), response=mock_response)
         mock_get.side_effect = error
 
         result = await oa_client._make_request("/test")
@@ -214,7 +214,7 @@ async def test_network_error_retry(oa_client):
         mock_success.raise_for_status = MagicMock()
 
         mock_get.side_effect = [
-            httpx.NetworkError("Connection failed"),
+            httpx2.NetworkError("Connection failed"),
             mock_success
         ]
 

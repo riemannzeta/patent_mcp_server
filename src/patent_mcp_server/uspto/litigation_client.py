@@ -14,7 +14,7 @@ corresponding MCP tools in patents.py return API_UNAVAILABLE (see issue #16).
 
 import logging
 from typing import Any, Optional, Dict, List
-import httpx
+import httpx2
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -44,10 +44,10 @@ class LitigationClient:
             "Accept": "application/json",
         }
 
-        transport = httpx.AsyncHTTPTransport()
+        transport = httpx2.AsyncHTTPTransport()
         logging_transport = LoggingTransport(transport)
 
-        self.client = httpx.AsyncClient(
+        self.client = httpx2.AsyncClient(
             headers=self.headers,
             http2=True,
             follow_redirects=True,
@@ -68,7 +68,7 @@ class LitigationClient:
             min=config.RETRY_MIN_WAIT,
             max=config.RETRY_MAX_WAIT
         ),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
+        retry=retry_if_exception_type((httpx2.TimeoutException, httpx2.NetworkError)),
         reraise=True
     )
     async def _make_request(
@@ -101,7 +101,7 @@ class LitigationClient:
             response.raise_for_status()
             return response.json()
 
-        except httpx.HTTPStatusError as e:
+        except httpx2.HTTPStatusError as e:
             status_code = e.response.status_code
             logger.error(f"HTTP error: {status_code} - {e.response.text}")
 
@@ -118,7 +118,7 @@ class LitigationClient:
                     response_text=e.response.text
                 )
 
-        except (httpx.TimeoutException, httpx.NetworkError) as e:
+        except (httpx2.TimeoutException, httpx2.NetworkError) as e:
             logger.warning(f"Network error (will retry): {str(e)}")
             raise
 

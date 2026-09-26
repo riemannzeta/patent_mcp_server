@@ -1,7 +1,7 @@
 """Unit tests for PpubsClient."""
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock, Mock
-import httpx
+import httpx2
 from datetime import datetime, timedelta
 import json
 import asyncio
@@ -256,7 +256,7 @@ async def test_make_request_network_error_retry(ppubs_client):
         # First attempt: network error
         # Second attempt: success
         mock_request.side_effect = [
-            httpx.NetworkError("Connection failed"),
+            httpx2.NetworkError("Connection failed"),
             MagicMock(status_code=200, text='{"result": "success"}')
         ]
 
@@ -275,7 +275,7 @@ async def test_make_request_timeout_error_retry(ppubs_client):
         # First attempt: timeout
         # Second attempt: success
         mock_request.side_effect = [
-            httpx.TimeoutException("Request timeout"),
+            httpx2.TimeoutException("Request timeout"),
             MagicMock(status_code=200, text='{"result": "success"}')
         ]
 
