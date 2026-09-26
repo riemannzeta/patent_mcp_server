@@ -181,6 +181,37 @@ Estimated size: about 40 changed lines in `src/`, 20 in tests, plus docs. The sp
 - A client turns out to render `structured_content` and ignore the text: then `structured_output=False` would blank that client's view, and the setting should flip back on with a tighter budget in `check_and_truncate`. Check by calling one tool from Claude Code and Claude Desktop after Phase 1.
 - `uv run pytest` on Python 3.10 fails on a 2.x dependency (`anyio>=4.9`, `pydantic>=2.12`, `starlette>=0.48`): then the Python floor moves and the CI matrix with it, which is a larger change than this plan assumes.
 
+## Follow-up: move the USPTO clients from `httpx` to `httpx2` (v1.4.0)
+
+mcp 2 depends on `httpx2`, the successor to `httpx` from the same author, now published under the pydantic organization. The nine USPTO clients in `uspto/` stay on `httpx` 0.28 through the mcp 2 migration: the two packages share only `anyio`, `idna` and `certifi`, resolve side by side (`httpx` 0.28.1 with `httpx2` 2.13.1 in the spike), and the live PPUBS call through `httpx` beside `httpx2` proved they do not interfere at runtime. Keeping them apart keeps the mcp 2 diff to one concern, which matters because that PR's one hard-to-test risk is client compatibility.
+
+But `httpx` is not a place to stay. Its last release is 0.28.1 (December 2024) and `httpcore`'s is 1.0.9 (April 2025), while `httpx2` shipped three releases in the six weeks before this plan. The worst cases of staying, by impact:
+
+1. **An advisory on `httpx`, `httpcore` or `h11` with no fix in the 0.28 tree.** `pip-audit` and Dependabot would stay red, and the only cure would be this migration done in a hurry against the PPUBS session code. Exploitability is low (the clients only make outbound requests to USPTO), but a standing advisory on a server that holds API keys and can be exposed over HTTP is not something to carry.
+2. **A lockfile that will not resolve.** `httpx` pins `httpcore==1.*`. A future `mcp` or `httpx2` release that needs a shared package at a version `httpx` 0.28 cannot accept would block the mcp upgrade until this migration is done.
+3. **Python 3.14.** When `requires-python` lifts its `<3.14` cap, `httpx` 0.28.1 has never been tested there.
+
+### Cost
+
+Small. The codebase uses nine `httpx` names (`AsyncClient`, `AsyncHTTPTransport`, `AsyncBaseTransport`, `Response`, `Cookies`, `TimeoutException`, `NetworkError`, `ConnectError`, `HTTPStatusError`), and `httpx2` 2.13.1 provides each with the same signature, including `http2=` with the `h2` extra, `build_request` and `send(stream=True)` for document downloads, and `handle_async_request` on the transport for `LoggingTransport`. The unit tests reference those exception classes 67 times, all through the module name. The change is `import httpx` → `import httpx2 as httpx` in eleven files, or a full rename, plus `httpx2[http2]` in place of `httpx` and `h2` in `pyproject.toml`; the existing PPUBS concurrency tests guard the delicate part.
+
+### Plan
+
+Do it as v1.4.0, directly after v1.3.0 ships, as its own PR:
+
+1. `pyproject.toml`: replace `httpx>=0.28.1` and `h2>=4.2.0` with `httpx2[http2]>=2.13`; `uv lock`; confirm `httpx` and `httpcore` leave the lock entirely.
+2. Rename the import in the nine clients, `util/logging.py`, and the unit tests. Prefer the full rename (`httpx2.`) over an alias so `grep httpx\.` finds nothing stale.
+3. `uv run pytest`, then `uv run pytest -m ""` live: every client against its USPTO service, with the PPUBS session, PDF print job, TSDR XML document list, tmsearch WAF path, and the ODP document download redirect re-verified.
+4. Bump to 1.4.0; README and CLAUDE.md dependency notes; `/release`.
+
+### Tripwires
+
+Any of these makes the migration immediate rather than scheduled:
+
+- an advisory on `httpx`, `httpcore` or `h11` with no fix available in `httpx` 0.28's tree
+- a `uv lock` conflict between `httpx` and anything mcp 2 pulls in
+- a decision to support Python 3.14
+
 ## Sources
 
 - Migration guide: <https://py.sdk.modelcontextprotocol.io/v2/migration/>
