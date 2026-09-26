@@ -1,6 +1,6 @@
 # USPTO Patent & Trademark MCP Server
 
-A [FastMCP server](https://github.com/modelcontextprotocol/python-sdk/tree/main/src/mcp/server/fastmcp) for accessing United States Patent and Trademark Office (USPTO) patent **and trademark** data through multiple APIs including the [Patent Public Search](https://www.uspto.gov/patents/search/patent-public-search) API, the [Open Data Portal (ODP) API](https://data.uspto.gov/home), PTAB API v3, the [TSDR](https://tsdr.uspto.gov/) trademark status API, and [USPTO trademark search](https://tmsearch.uspto.gov/). Using this server, Claude Desktop can pull data from USPTO APIs, search through PTAB proceedings and decisions, research prosecution history, run trademark clearance searches, track trademark status, and more:
+An [MCP server](https://github.com/modelcontextprotocol/python-sdk) (Python SDK 2.x, `MCPServer`) for accessing United States Patent and Trademark Office (USPTO) patent **and trademark** data through multiple APIs including the [Patent Public Search](https://www.uspto.gov/patents/search/patent-public-search) API, the [Open Data Portal (ODP) API](https://data.uspto.gov/home), PTAB API v3, the [TSDR](https://tsdr.uspto.gov/) trademark status API, and [USPTO trademark search](https://tmsearch.uspto.gov/). Using this server, Claude Desktop can pull data from USPTO APIs, search through PTAB proceedings and decisions, research prosecution history, run trademark clearance searches, track trademark status, and more:
 
 ![Screen Capture of Claude Desktop using Patents MCP Server](screencap.gif)
 
@@ -43,7 +43,7 @@ It runs locally over stdio for Claude Desktop and Claude Code, or over HTTP as a
 
 ## Prerequisites
 
-- **Python 3.10-3.13** (3.12 recommended)
+- **Python 3.10-3.13** (3.12 recommended); the server builds on the MCP Python SDK 2.x (`mcp>=2,<3`)
 - **Claude Desktop** (for integration). Other models and MCP clients have not been tested.
 - **[UV](https://docs.astral.sh/uv/)** for Python version and dependency management
 
@@ -455,7 +455,13 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.2.1 (Current)
+### v1.3.0 (Current)
+- **MCP Python SDK 2.x**: the server now builds on `mcp>=2,<3` (`MCPServer`, the renamed `FastMCP`), which lifts the `mcp<2` pin v1.2.1 added. Tool names, arguments and results are unchanged; the `--host/--port/--path/--stateful/--json-response` flags and `MCP_*` variables keep their meaning. Under the hood the transport settings move from the server constructor to `run_streamable_http_async()`, the protocol tests use mcp 2's in-memory `Client`, and the dependency drops the `[cli]` extra (empty in 2.x)
+- **Structured output off**: mcp 2 sends every dict result twice by default, as JSON text and again as `structured_content`, against an output schema of "any object" — measured at 2.0x wire size on documents and searches. Tools register with `structured_output=False`, so results travel once, as before
+- Pinned `click>=8.3.3` (PYSEC-2026-2132; a transitive dependency via uvicorn that predates this release) so `pip-audit` is clean on the new tree
+- Verified 2026-09-26: unit suite on mcp 2.2.0; the live suite (unit plus integration, nothing deselected); a clean `uvx` install from the built wheel; stdio and streamable-http smoke tests through mcp 2's own client
+
+### v1.2.1
 - **Fixed fresh installs**: `mcp[cli]>=1.27` resolved to mcp 2.x, which renamed `mcp.server.fastmcp` to `mcp.server.mcpserver`, so `uvx patent-mcp-server` and `pip install patent-mcp-server` crashed on import (`ModuleNotFoundError: No module named 'mcp.server.fastmcp'`). mcp 2.0.0 shipped on 2026-07-28, so v1.1.1 and v1.2.0 were both affected; the checked-in `uv.lock` (mcp 1.28.1) hid it from local runs and CI. The dependency is now `mcp[cli]>=1.27,<2`. Migrating to the mcp 2 API is a separate piece of work
 
 ### v1.2.0
