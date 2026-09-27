@@ -693,6 +693,39 @@ def get_prompt(name: str) -> dict:
     return {"error": f"Unknown prompt: {name}"}
 
 
+def render_prompt(name: str, **subject: str) -> str:
+    """Return a prompt's content with the caller's subject filled in.
+
+    ``subject`` holds the prompt's arguments by label ("Patent number",
+    "Company", ...). Blank values are dropped; when at least one remains,
+    a "Subject" section naming them is placed ahead of the workflow so the
+    model starts the steps with the specifics rather than asking for them.
+
+    Args:
+        name: Key in PROMPTS
+        **subject: Label -> value pairs, in display order
+
+    Returns:
+        The prompt text, with a Subject section when any value was given
+    """
+    content = get_prompt(name)["content"]
+    given = {label: value.strip() for label, value in subject.items() if value and value.strip()}
+    if not given:
+        return content
+
+    lines = ["## Subject", ""]
+    lines += [f"- **{label}:** {value}" for label, value in given.items()]
+    lines += ["", "Use these specifics in the steps below instead of asking for them.", ""]
+    subject_block = "\n".join(lines)
+
+    # Templates open with a "# Title" line; keep it first.
+    stripped = content.lstrip("\n")
+    title, newline, rest = stripped.partition("\n")
+    if title.startswith("# "):
+        return f"{title}\n\n{subject_block}\n{rest.lstrip(chr(10))}"
+    return f"{subject_block}\n{stripped}"
+
+
 def list_prompts() -> dict:
     """List all available prompts."""
     return {

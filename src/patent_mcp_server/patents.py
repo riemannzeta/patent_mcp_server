@@ -25,12 +25,12 @@ import argparse
 import json
 import logging
 import sys
-from typing import Any, Dict, List, Optional, Union
+from typing import Annotated, Any, Dict, List, Optional, Union
 
 import anyio
 from mcp.server.mcpserver import MCPServer
 from mcp.types import ToolAnnotations
-from pydantic import ValidationError
+from pydantic import Field, ValidationError
 
 from patent_mcp_server.config import config, LOOPBACK_HOSTS, VALID_TRANSPORTS
 from patent_mcp_server.constants import (
@@ -53,13 +53,14 @@ from patent_mcp_server.resources import (
     get_trademark_status_code_info, get_all_trademark_classes,
     get_all_trademark_status_codes
 )
-from patent_mcp_server.prompts import get_prompt, list_prompts, PROMPTS
+from patent_mcp_server.prompts import get_prompt, list_prompts, render_prompt, PROMPTS
 from patent_mcp_server.uspto.ppubs_uspto_gov import PpubsClient
 from patent_mcp_server.uspto.api_uspto_gov import ApiUsptoClient
 from patent_mcp_server.uspto.ptab_client import PTABClient
 from patent_mcp_server.uspto.tsdr_client import TSDRClient
 from patent_mcp_server.uspto.tmsearch_client import TmSearchClient
 from patent_mcp_server.uspto.tm_assignment_client import TmAssignmentClient
+from patent_mcp_server.uspto.cpc_scheme_client import CpcSchemeClient, normalize_cpc_symbol
 from patent_mcp_server.uspto.office_action_client import OfficeActionClient
 from patent_mcp_server.uspto.enriched_citation_client import EnrichedCitationClient
 from patent_mcp_server.patentsview.patentsview_client import PatentsViewClient
@@ -139,6 +140,9 @@ tsdr_client = TSDRClient()
 tmsearch_client = TmSearchClient()
 tm_assignment_client = TmAssignmentClient()
 
+# CPC scheme pages (group-level classification titles)
+cpc_scheme_client = CpcSchemeClient()
+
 
 async def cleanup():
     """Close every USPTO HTTP client.
@@ -160,6 +164,7 @@ async def cleanup():
         await tsdr_client.close()
         await tmsearch_client.close()
         await tm_assignment_client.close()
+        await cpc_scheme_client.close()
         logger.info("Cleanup completed successfully")
     except Exception as e:
         logger.error(f"Error during cleanup: {str(e)}")
@@ -171,16 +176,12 @@ async def cleanup():
 
 @mcp.resource("patents://cpc/{code}")
 async def resource_cpc_classification(code: str) -> str:
-    """Get CPC classification code information.
+    """Get CPC classification information for a code at any depth.
 
-    Returns details about a CPC (Cooperative Patent Classification) code
-    including section, class, and subclass information.
+    Sections and classes come from the bundled table; subclasses and
+    groups from USPTO's CPC scheme page (see get_cpc_info).
     """
-    if len(code) == 1:
-        info = get_cpc_section_info(code)
-    else:
-        info = get_cpc_subsection_info(code)
-    return json.dumps(info, indent=2)
+    return json.dumps(await get_cpc_info(code), indent=2)
 
 
 @mcp.resource("patents://cpc")
@@ -275,94 +276,191 @@ async def resource_trademark_status_code(code: str) -> str:
 # MCP Prompts - Workflow templates accessible via / commands
 # =====================================================================
 
+def _subject(labels: Dict[str, str], values: Dict[str, Any]) -> Dict[str, str]:
+    """Map a prompt's argument names to display labels, in declared order."""
+    return {label: values.get(arg) or "" for arg, label in labels.items()}
+
+
 @mcp.prompt()
-async def prior_art_search() -> str:
+async def prior_art_search(
+    invention: Annotated[str, Field(description="The invention or claim language to search against, in a sentence or two")] = "",
+    keywords: Annotated[str, Field(description="Comma-separated search terms and synonyms")] = "",
+    cpc_codes: Annotated[str, Field(description="Comma-separated CPC codes already known to be relevant")] = "",
+) -> str:
     """Guide for conducting a comprehensive prior art search.
 
     USE THIS PROMPT WHEN: You need to find existing patents and publications
     relevant to an invention for patentability assessment or invalidity analysis.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        invention: The invention or claim language to search against, in a sentence or two
+        keywords: Comma-separated search terms and synonyms
+        cpc_codes: Comma-separated CPC codes already known to be relevant
     """
-    return get_prompt("prior_art_search")["content"]
+    return render_prompt("prior_art_search", **_subject({"invention": "Invention", "keywords": "Keywords", "cpc_codes": "CPC codes"}, locals()))
 
 
 @mcp.prompt()
-async def patent_validity_analysis() -> str:
+async def patent_validity_analysis(
+    patent_number: Annotated[str, Field(description="The patent under review, e.g. 9876543 or US 10,000,000 B2")] = "",
+) -> str:
     """Guide for analyzing patent validity and prosecution history.
 
     USE THIS PROMPT WHEN: You need to assess the strength and validity
     of a patent by reviewing its prosecution history and any challenges.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        patent_number: The patent under review, e.g. 9876543 or US 10,000,000 B2
     """
-    return get_prompt("patent_validity")["content"]
+    return render_prompt("patent_validity", **_subject({"patent_number": "Patent number"}, locals()))
 
 
 @mcp.prompt()
-async def competitor_portfolio_analysis() -> str:
+async def competitor_portfolio_analysis(
+    company: Annotated[str, Field(description="The company whose portfolio to analyze, with any known name variants")] = "",
+    technology: Annotated[str, Field(description="Optional technology area or CPC codes to concentrate on")] = "",
+) -> str:
     """Guide for analyzing a company's patent portfolio.
 
     USE THIS PROMPT WHEN: You need to understand a competitor's IP position,
     technology focus areas, and patent strategy.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        company: The company whose portfolio to analyze, with any known name variants
+        technology: Optional technology area or CPC codes to concentrate on
     """
-    return get_prompt("competitor_portfolio")["content"]
+    return render_prompt("competitor_portfolio", **_subject({"company": "Company", "technology": "Technology focus"}, locals()))
 
 
 @mcp.prompt()
-async def ptab_proceeding_research() -> str:
+async def ptab_proceeding_research(
+    patent_number: Annotated[str, Field(description="Patent whose PTAB history to research")] = "",
+    proceeding_number: Annotated[str, Field(description="A specific trial, e.g. IPR2023-00001")] = "",
+    party: Annotated[str, Field(description="Petitioner or patent owner name")] = "",
+) -> str:
     """Guide for researching PTAB proceedings (IPR/PGR/CBM).
 
     USE THIS PROMPT WHEN: You need to research Patent Trial and Appeal Board
     proceedings, decisions, and outcomes for validity challenges.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        patent_number: Patent whose PTAB history to research
+        proceeding_number: A specific trial, e.g. IPR2023-00001
+        party: Petitioner or patent owner name
     """
-    return get_prompt("ptab_research")["content"]
+    return render_prompt("ptab_research", **_subject({"patent_number": "Patent number", "proceeding_number": "Proceeding number", "party": "Party"}, locals()))
 
 
 @mcp.prompt()
-async def freedom_to_operate() -> str:
+async def freedom_to_operate(
+    product: Annotated[str, Field(description="What is to be made, used or sold, with its key technical features")] = "",
+    cpc_codes: Annotated[str, Field(description="Comma-separated CPC codes already known to be relevant")] = "",
+) -> str:
     """Guide for freedom-to-operate (FTO) analysis.
 
     USE THIS PROMPT WHEN: You need to assess patent infringement risk
     for a product or technology before commercialization.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        product: What is to be made, used or sold, with its key technical features
+        cpc_codes: Comma-separated CPC codes already known to be relevant
     """
-    return get_prompt("freedom_to_operate")["content"]
+    return render_prompt("freedom_to_operate", **_subject({"product": "Product or technology", "cpc_codes": "CPC codes"}, locals()))
 
 
 @mcp.prompt()
-async def patent_landscape() -> str:
+async def patent_landscape(
+    technology: Annotated[str, Field(description="The field to map, in a phrase")] = "",
+    cpc_codes: Annotated[str, Field(description="Comma-separated CPC codes that bound the field")] = "",
+) -> str:
     """Guide for patent landscape analysis.
 
     USE THIS PROMPT WHEN: You need to map the competitive patent environment
     in a technology area to identify trends and opportunities.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        technology: The field to map, in a phrase
+        cpc_codes: Comma-separated CPC codes that bound the field
     """
-    return get_prompt("patent_landscape")["content"]
+    return render_prompt("patent_landscape", **_subject({"technology": "Technology area", "cpc_codes": "CPC codes"}, locals()))
 
 
 @mcp.prompt()
-async def trademark_clearance_search() -> str:
+async def trademark_clearance_search(
+    mark: Annotated[str, Field(description="The word mark or name to clear")] = "",
+    goods_services: Annotated[str, Field(description="What the mark will be used on")] = "",
+    classes: Annotated[str, Field(description="Comma-separated international class numbers, e.g. 9, 42")] = "",
+) -> str:
     """Guide for trademark clearance (knockout) searching.
 
     USE THIS PROMPT WHEN: You need to assess whether a proposed mark is
     available by finding existing federal trademarks that could block it.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        mark: The word mark or name to clear
+        goods_services: What the mark will be used on
+        classes: Comma-separated international class numbers, e.g. 9, 42
     """
-    return get_prompt("trademark_clearance")["content"]
+    return render_prompt("trademark_clearance", **_subject({"mark": "Proposed mark", "goods_services": "Goods and services", "classes": "Nice classes"}, locals()))
 
 
 @mcp.prompt()
-async def trademark_portfolio_review() -> str:
+async def trademark_portfolio_review(
+    owner: Annotated[str, Field(description="The company or person whose marks to review")] = "",
+) -> str:
     """Guide for reviewing a trademark portfolio.
 
     USE THIS PROMPT WHEN: You need to inventory a company's trademarks,
     check statuses and class coverage, and flag renewal deadlines.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        owner: The company or person whose marks to review
     """
-    return get_prompt("trademark_portfolio")["content"]
+    return render_prompt("trademark_portfolio", **_subject({"owner": "Owner"}, locals()))
 
 
 @mcp.prompt()
-async def trademark_status_monitoring() -> str:
+async def trademark_status_monitoring(
+    serial_numbers: Annotated[str, Field(description="Comma-separated application serial or registration numbers to track")] = "",
+    mark: Annotated[str, Field(description="A mark to watch for new conflicting filings")] = "",
+) -> str:
     """Guide for monitoring trademark status and conflicts.
 
     USE THIS PROMPT WHEN: You need to track application/registration status
     over time or watch for new conflicting filings and oppositions.
+
+    All arguments are optional; any given are placed in a Subject
+    section ahead of the workflow.
+
+    Args:
+        serial_numbers: Comma-separated application serial or registration numbers to track
+        mark: A mark to watch for new conflicting filings
     """
-    return get_prompt("trademark_monitoring")["content"]
+    return render_prompt("trademark_monitoring", **_subject({"serial_numbers": "Serial numbers", "mark": "Mark"}, locals()))
 
 
 # =====================================================================
@@ -424,6 +522,17 @@ async def check_api_status() -> Dict[str, Any]:
             "name": "Patent Public Search",
             "configured": True,
             "requires_auth": False,
+        },
+        "cpc_scheme": {
+            "name": "CPC scheme pages (www.uspto.gov classification)",
+            "configured": True,
+            "requires_auth": False,
+            "note": (
+                "Group-level CPC titles for get_cpc_info come from the static "
+                "scheme page per subclass at "
+                f"{config.CPC_SCHEME_BASE_URL}/cpc-{{subclass}}.html, cached in "
+                "process for a day. Verified live 2026-09-26."
+            ),
         },
         "ptab": {
             "name": "PTAB Trial API",
@@ -543,22 +652,69 @@ async def check_api_status() -> Dict[str, Any]:
 
 @tool()
 async def get_cpc_info(cpc_code: str) -> Dict[str, Any]:
-    """Look up CPC (Cooperative Patent Classification) code information.
+    """Look up a CPC (Cooperative Patent Classification) symbol at any depth.
 
-    USE THIS TOOL WHEN: You need to understand what technology area a CPC
-    code represents, or find related classification codes.
+    USE THIS TOOL WHEN: You need the title of a CPC code — section (G),
+    class (G06), subclass (G06N), main group (G06N 3/00) or subgroup
+    (G06N 3/08) — its place in the hierarchy, or the groups beneath it,
+    whether reading the codes on a patent or choosing codes for a
+    `.cpc.` search.
+
+    Sections and classes come from a bundled table. Subclasses and groups
+    come from USPTO's published CPC scheme page for the subclass (one
+    fetch per subclass per day, no key), so titles track the current CPC
+    version.
 
     Args:
-        cpc_code: CPC code to look up (e.g., "G06" for computing, "G06N3/08" for neural networks)
+        cpc_code: Any CPC symbol form: "G06N3/08", "G06N 3/08",
+               "H04B7/0417 20130101" (as PPUBS prints it), "G06N", "G06",
+               "G".
 
     Returns:
-        Classification details including section, title, and description.
-        For section codes (A-H, Y), returns subsection list.
+        Section: title, description and its classes. Class: section and
+        class titles. Subclass or group: `title`, `level`, `hierarchy`
+        from the subclass down to the code, direct `children`, and the
+        source page. If the scheme page cannot be fetched, the static
+        section and class titles come back with a `scheme_error`.
     """
-    if len(cpc_code) == 1:
-        return get_cpc_section_info(cpc_code)
-    else:
-        return get_cpc_subsection_info(cpc_code)
+    parts = normalize_cpc_symbol(cpc_code)
+    if not parts:
+        return ApiError.validation_error(
+            f"{cpc_code!r} is not a CPC symbol (e.g. G, G06, G06N, G06N 3/08)", "cpc_code"
+        )
+    if not parts["class"]:
+        return get_cpc_section_info(parts["section"])
+
+    static = get_cpc_subsection_info(parts["class"])
+    if "error" in static:
+        return static
+    result: Dict[str, Any] = {
+        "code": parts["display"],
+        "section": parts["section"],
+        "section_title": static["section_title"],
+        "class": parts["class"],
+        "class_title": static["subsection_title"],
+    }
+    if not parts["subclass"]:
+        return result
+
+    scheme = await cpc_scheme_client.lookup(parts["symbol"])
+    if is_error(scheme):
+        # A code the scheme does not contain is a wrong code: say so. Only
+        # a failure to fetch or parse the page falls back to static titles.
+        if scheme.get("status_code") == 404 or scheme.get("error_code") in ("NOT_FOUND", "VALIDATION_ERROR"):
+            scheme.setdefault("details", {})
+            scheme["details"]["static"] = result
+            return scheme
+        result["scheme_error"] = scheme
+        return result
+
+    result["subclass"] = parts["subclass"]
+    result["subclass_title"] = scheme["hierarchy"][0]["title"]
+    for key in ("symbol", "title", "cpc_specific", "level", "hierarchy",
+                "children", "child_count", "source"):
+        result[key] = scheme[key]
+    return result
 
 
 @tool()
