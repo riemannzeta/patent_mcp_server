@@ -11,11 +11,15 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 - **mcp 2.x (`MCPServer`)** since v1.3.0: transport settings (`host`, `port`, `streamable_http_path`, `stateless_http`, `json_response`) go to `run_streamable_http_async()` via `http_settings(args)`, not to the constructor. Tools register through `tool()` / `legacy_tool()`, which set read-only annotations and `structured_output=False` (mcp 2 would otherwise send every dict result twice — measured 2.0x wire size). Protocol tests connect with `mcp.client.Client(patents.mcp)` in memory. Type fields are snake_case in Python (`read_only_hint`, `input_schema`, `is_error`) and camelCase on the wire.
 - **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. The clients use `httpx2` (v1.4.0); `httpx` and `httpcore` are out of the tree, so don't reintroduce `import httpx`. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
 
-**Current state (v1.4.0):** 38 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
+**Current state (v1.5.0):** 38 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
 - **Active:** PPUBS (6), ODP (13), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
 - **Legacy (API_UNAVAILABLE):** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16). Their functions stay in `patents.py` under `@legacy_tool()`, which registers them only when the flag is set; every active tool uses `@tool()`, which adds read-only annotations. Don't use a bare `@mcp.tool()`.
 
 **PPUBS contracts (verified live 2026-09-26):** field qualifiers are dotted suffixes — `.pn.` (works with D/RE/PP prefixes), `.urpn.` (references cited; the basis of `ppubs_get_citing_patents`, granted patents only), `.ti.`, `.ab.`, `.in.`, `.as.`, `.cpc.`, `@pd`/`@ad`. The slash forms (`TTL/`, `AN/`, `CPC/`) and `patentNumber:"…"` return 0 results. `validate_patent_number` keeps the series prefix and strips separators, "US" and the kind code; don't reduce it to digits again. Full documents and search hits are slimmed in `util/response.py` (`slim_document`, `slim_search_hit`) — a raw document is ~24k tokens, a raw hit ~14 KB because of the `urpn`/`urpnCode` lists.
+
+**CPC scheme pages (verified live 2026-09-26):** `get_cpc_info` answers sections and classes from the static table in `resources.py` and everything deeper from USPTO's static page per subclass, `{CPC_SCHEME_BASE_URL}/cpc-{subclass}.html` (no key, no JSON API; the full scheme is ~260k symbols, too many to bundle). `cpc_scheme_client.py` parses `<table class="classItem" id="G06N3/08">` entries: title in `div.class-title` (`ipc-text`, or brace-wrapped `cpc-text` for CPC-only titles), `title="Indent level is N"` on subgroups, none on main groups and the subclass header. Pages are cached in process for `CpcDefaults.CACHE_SECONDS`. If the layout changes the client returns `PARSE_ERROR` and the tool falls back to the static titles with a `scheme_error`.
+
+**Prompts** take optional string arguments (`Annotated[str, Field(description=...)]`, which is how mcp 2 exposes descriptions); `render_prompt()` in `prompts.py` prepends a Subject section with whatever was given. Keep every argument optional so `/prompt` with no arguments still works.
 
 **ODP file-wrapper documents (verified live 2026-09-26):** `GET /api/v1/patent/applications/{app}/documents` returns `documentBag` with `documentIdentifier`, `documentCode` and `downloadOptionBag`. The PDF lives at `/api/v1/download/applications/{app}/{documentIdentifier}.pdf`, which answers 302 to a signed `data-documents.uspto.gov` URL valid for 30 s; `ApiUsptoClient.download_file` follows it and caps the body at `Defaults.MAX_BINARY_BYTES`.
 
@@ -105,6 +109,7 @@ src/patent_mcp_server/
 │   ├── tsdr_client.py      # TSDR trademark status/documents client (TSDR-specific key)
 │   ├── tmsearch_client.py  # Trademark search client (internal API, like PPUBS)
 │   ├── tm_assignment_client.py  # Trademark assignments (Assignment Center, no key)
+│   ├── cpc_scheme_client.py     # CPC group titles from USPTO scheme pages (no key)
 │   ├── office_action_client.py   # Legacy - decommissioned early 2026
 │   ├── enriched_citation_client.py  # Legacy - decommissioned early 2026
 │   └── litigation_client.py
