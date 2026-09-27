@@ -354,3 +354,46 @@ async def test_serve_passes_http_settings_and_cleans_up(monkeypatch):
 
     run_http.assert_awaited_once_with(**settings)
     cleanup.assert_awaited_once()
+
+
+# ============================================================================
+# Prompt arguments
+# ============================================================================
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prompts_advertise_described_optional_arguments():
+    """Every prompt lists its arguments with a description, none required."""
+    async with connect() as session:
+        result = await session.list_prompts()
+        assert len(result.prompts) == 9
+        for prompt in result.prompts:
+            assert prompt.arguments, f"{prompt.name} takes no arguments"
+            for arg in prompt.arguments:
+                assert arg.description, f"{prompt.name}.{arg.name} has no description"
+                assert not arg.required, f"{prompt.name}.{arg.name} is required"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prompt_renders_subject_from_arguments():
+    """Given arguments appear in a Subject section under the title; blanks are dropped."""
+    async with connect() as session:
+        result = await session.get_prompt(
+            "patent_validity_analysis", {"patent_number": "US 9,876,543 B2"}
+        )
+        text = result.messages[0].content.text
+        assert text.startswith("# Patent Validity Analysis")
+        assert "## Subject" in text
+        assert "- **Patent number:** US 9,876,543 B2" in text
+        assert text.index("## Subject") < text.index("## Step 1")
+
+        plain = await session.get_prompt("patent_validity_analysis", {})
+        assert "## Subject" not in plain.messages[0].content.text
+
+        partial = await session.get_prompt(
+            "trademark_clearance_search", {"mark": "ACME", "classes": " "}
+        )
+        subject = partial.messages[0].content.text.split("## Step 1")[0]
+        assert "- **Proposed mark:** ACME" in subject
+        assert "Nice classes" not in subject

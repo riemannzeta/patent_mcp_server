@@ -45,6 +45,7 @@ from patent_mcp_server.patents import (
     odp_get_dataset,
     odp_download_document,
     ppubs_get_citing_patents,
+    get_cpc_info,
 )
 
 # Test constants
@@ -420,3 +421,32 @@ async def test_odp_get_dataset(results_dir):
     bag = result.get("bulkDataProductBag", [])
     assert len(bag) == 1, "expected exactly the requested product"
     assert bag[0]["productIdentifier"] == product_id
+
+
+# ===================================================================
+# CPC scheme pages (www.uspto.gov classification)
+# ===================================================================
+
+
+async def test_get_cpc_info_group_title(results_dir):
+    """A subgroup resolves to its own title and hierarchy from the live scheme page."""
+    result = await get_cpc_info(cpc_code="G06N 3/08")
+
+    await save_result(result, "get_cpc_info_group.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["title"] == "Learning methods"
+    assert result["level"] == "subgroup"
+    assert [h["symbol"] for h in result["hierarchy"]] == ["G06N", "G06N 3/00", "G06N 3/02", "G06N 3/08"]
+    assert result["child_count"] > 0
+    assert result["class_title"] and result["subclass_title"]
+
+
+async def test_get_cpc_info_subclass_lists_main_groups(results_dir):
+    result = await get_cpc_info(cpc_code="A61K")
+
+    await save_result(result, "get_cpc_info_subclass.json", results_dir)
+
+    assert not result.get("error", False), f"Error: {result.get('message', 'Unknown error')}"
+    assert result["level"] == "subclass"
+    assert any(c["symbol"] == "A61K 31/00" for c in result["children"])

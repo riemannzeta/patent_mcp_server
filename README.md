@@ -182,6 +182,7 @@ API_BASE_URL=https://api.uspto.gov          # ODP API endpoint (NOT data.uspto.g
 TSDR_BASE_URL=https://tsdrapi.uspto.gov/ts/cd
 TMSEARCH_BASE_URL=https://tmsearch.uspto.gov
 TM_ASSIGNMENT_BASE_URL=https://assignmentcenter.uspto.gov
+CPC_SCHEME_BASE_URL=https://www.uspto.gov/web/patents/classification/cpc/html
 ```
 
 ## Claude Desktop Configuration
@@ -269,7 +270,7 @@ the command line wins where both are set.
 | Tool | Description |
 |------|-------------|
 | `check_api_status` | Check status of all USPTO APIs |
-| `get_cpc_info` | Get CPC classification information |
+| `get_cpc_info` | CPC title at any depth (section to subgroup) with hierarchy and children; groups come live from USPTO's scheme pages |
 | `get_status_code` | Look up USPTO status code meaning |
 | `get_trademark_class_info` | Look up a Nice/international trademark class (1-45) |
 | `get_trademark_status_code` | Look up a USPTO trademark status code meaning |
@@ -389,23 +390,23 @@ All 3 Enriched Citation tools return `API_UNAVAILABLE`. Forward citations come f
 ### Resources and Prompts
 
 The server also provides **MCP Resources** (accessible via @ mentions):
-- `patents://cpc/{code}` - CPC classification information
+- `patents://cpc/{code}` - CPC classification information at any depth (groups from USPTO's scheme pages)
 - `patents://status-codes` - USPTO status code definitions
 - `patents://sources` - Data source information
 - `patents://search-syntax` - Query syntax guide (patents and trademarks)
 - `trademarks://classes` - Nice/international trademark classes (1-45)
 - `trademarks://status-codes` - Trademark status code definitions
 
-And **MCP Prompts** (workflow templates):
-- `prior_art_search` - Comprehensive prior art search guide
-- `patent_validity` - Patent validity analysis workflow
-- `competitor_portfolio` - Competitor portfolio analysis (patents + trademarks)
-- `ptab_research` - PTAB proceeding research guide
-- `freedom_to_operate` - FTO analysis workflow
-- `patent_landscape` - Technology landscape mapping
-- `trademark_clearance_search` - Trademark clearance/knockout search guide
-- `trademark_portfolio_review` - Trademark portfolio and deadline review
-- `trademark_status_monitoring` - Trademark status and conflict watching
+And **MCP Prompts** (workflow templates). Each takes optional arguments; whatever you give is placed in a Subject section ahead of the steps, so the workflow starts with your specifics instead of asking for them:
+- `prior_art_search` (`invention`, `keywords`, `cpc_codes`) - Comprehensive prior art search guide
+- `patent_validity_analysis` (`patent_number`) - Patent validity analysis workflow
+- `competitor_portfolio_analysis` (`company`, `technology`) - Competitor portfolio analysis
+- `ptab_proceeding_research` (`patent_number`, `proceeding_number`, `party`) - PTAB proceeding research guide
+- `freedom_to_operate` (`product`, `cpc_codes`) - FTO analysis workflow
+- `patent_landscape` (`technology`, `cpc_codes`) - Technology landscape mapping
+- `trademark_clearance_search` (`mark`, `goods_services`, `classes`) - Trademark clearance/knockout search guide
+- `trademark_portfolio_review` (`owner`) - Trademark portfolio and deadline review
+- `trademark_status_monitoring` (`serial_numbers`, `mark`) - Trademark status and conflict watching
 
 ## Testing
 
@@ -455,7 +456,13 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.4.0 (Current)
+### v1.5.0 (Current)
+- **CPC titles below subclass level**: `get_cpc_info` (and `patents://cpc/{code}`) used a bundled table that stopped at the class level, so `G06N 3/08` came back as "Computing; Calculating; Counting". Subclasses, main groups and subgroups now come from USPTO's published CPC scheme page for the subclass (`www.uspto.gov/web/patents/classification/cpc/html/cpc-G06N.html`; no key), fetched once a day per subclass: `G06N 3/08` → "Learning methods", with the hierarchy `G06N › 3/00 › 3/02 › 3/08` and the subgroups beneath it. Accepts every form the other tools print (`G06N3/08`, `G06N 3/08`, `H04B7/0417 20130101`). A code the scheme does not contain returns `NOT_FOUND` with the subclass's main groups; if the page cannot be fetched, the static section and class titles come back with a `scheme_error`
+- **Prompt arguments**: all nine workflow prompts take optional arguments (patent number, company, mark, CPC codes, …). Whatever you give appears in a Subject section ahead of the steps; with no arguments the prompts read as before
+- New `CPC_SCHEME_BASE_URL` setting; new `cpc_scheme` entry in `check_api_status`
+- Verified live 2026-09-26: G06N 3/08, G06N, A61K, H04B 7/0417, and an unknown subclass and group
+
+### v1.4.0
 - **`httpx` → `httpx2`** for the nine USPTO clients and the logging transport. `httpx2` is the successor from the same author (now under the pydantic organization) and is what mcp 2 already depends on; `httpx` 0.28.1 (December 2024) and `httpcore` 1.0.9 (April 2025) have stopped moving. The API is the same for everything this code uses (`AsyncClient`, `AsyncHTTPTransport`, `Cookies`, `build_request`/`send(stream=True)`, the exception classes), so the change is a rename across 20 files; `httpx` and `httpcore` leave the dependency tree entirely. The PPUBS session handling, PDF print job, TSDR XML document list, tmsearch, Assignment Center v3 and the ODP document download redirect were each re-verified live on 2026-09-26 (whole suite, nothing deselected)
 
 ### v1.3.0

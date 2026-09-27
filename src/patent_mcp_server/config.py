@@ -39,6 +39,12 @@ class Config:
     # Office Action API
     OFFICE_ACTION_BASE_URL: str = os.getenv("OFFICE_ACTION_BASE_URL", "https://developer.uspto.gov")  # Legacy - decommissioned early 2026, pending ODP migration
 
+    # CPC scheme pages (v1.5.0): one static HTML page per subclass with the
+    # title of every main group and subgroup, e.g. .../cpc-G06N.html. No key.
+    CPC_SCHEME_BASE_URL: str = os.getenv(
+        "CPC_SCHEME_BASE_URL", "https://www.uspto.gov/web/patents/classification/cpc/html"
+    )
+
     # Trademark APIs (v1.0.0)
     TSDR_BASE_URL: str = os.getenv("TSDR_BASE_URL", "https://tsdrapi.uspto.gov/ts/cd")
     TMSEARCH_BASE_URL: str = os.getenv("TMSEARCH_BASE_URL", "https://tmsearch.uspto.gov")
@@ -74,7 +80,7 @@ class Config:
     MCP_JSON_RESPONSE: bool = os.getenv("MCP_JSON_RESPONSE", "false").lower() == "true"
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.4.0")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.5.0")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry

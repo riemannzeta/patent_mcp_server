@@ -78,6 +78,15 @@ class Defaults:
     RATE_LIMIT_RETRY_DELAY = 5
 
 
+class CpcDefaults:
+    """Defaults for CPC scheme lookups."""
+    # A subclass page changes only when USPTO publishes a new CPC version
+    # (a few times a year), so a day-long in-process cache is safe.
+    CACHE_SECONDS = 24 * 60 * 60
+    # ~700 subclasses exist; cap the cache well above any one session's use.
+    CACHE_MAX_SUBCLASSES = 200
+
+
 class DocumentSections:
     """Named parts of a PPUBS full-text document (ppubs_get_* ``sections``).
 
