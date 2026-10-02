@@ -55,7 +55,7 @@ test/test_*.py              # Integration tests (live USPTO calls), opt-in via -
 - **Error returns**: `{"error": True, "message": ..., "error_code": ...}` — build via `ApiError.create()`.
 - **Decommissioned APIs** return `error_code="API_UNAVAILABLE"` with a `workaround` field pointing at the active replacement.
 - **Everything is async.** Tool functions are `async def`; clients use `async with`.
-- **No new dependencies** without a clear reason. The existing four cover almost everything.
+- **No new dependencies** without a clear reason.
 
 ## What not to do
 

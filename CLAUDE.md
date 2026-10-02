@@ -7,7 +7,7 @@ This file provides guidance for Claude Code and other AI assistants working on t
 This is a Model Context Protocol (MCP) server that provides access to USPTO patent and trademark data through multiple APIs. The server is built on the MCP Python SDK 2.x (`MCPServer`) and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
 
 **Transports:** `stdio` by default (Claude Desktop/Code), or `--transport streamable-http` for remote hosting. HTTP mode is stateless by default so it scales across workers without session affinity. Two things to know before touching the server lifecycle:
-- **Client shutdown lives in `serve()` in `patents.py`, not in a server `lifespan`.** Under mcp 1 this was a hard rule (stateless HTTP entered the lifespan once *per request*, which would have closed the nine HTTP clients after the first tool call). mcp 2 runs the lifespan once, but `serve()`'s `finally` already covers both transports on the event loop the clients were opened on, so leave it there.
+- **Client shutdown lives in `serve()` in `patents.py`, not in a server `lifespan`.** Under mcp 1 this was a hard rule (stateless HTTP entered the lifespan once *per request*, which would have closed the HTTP clients after the first tool call). mcp 2 runs the lifespan once, but `serve()`'s `finally` already covers both transports on the event loop the clients were opened on, so leave it there.
 - **mcp 2.x (`MCPServer`)** since v1.3.0: transport settings (`host`, `port`, `streamable_http_path`, `stateless_http`, `json_response`) go to `run_streamable_http_async()` via `http_settings(args)`, not to the constructor. Tools register through `tool()` / `legacy_tool()`, which set read-only annotations and `structured_output=False` (mcp 2 would otherwise send every dict result twice — measured 2.0x wire size). Protocol tests connect with `mcp.client.Client(patents.mcp)` in memory. Type fields are snake_case in Python (`read_only_hint`, `input_schema`, `is_error`) and camelCase on the wire.
 - **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. The clients use `httpx2` (v1.4.0); `httpx` and `httpcore` are out of the tree, so don't reintroduce `import httpx`. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
 
@@ -28,15 +28,15 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 - **Assignments** (`tm_assignment_client.py`): `POST assignmentcenter.uspto.gov/ipas/search/api/v3/public/trademark/exportTradeMarkData` with `searchCriteria` list; no key. The v2 path is refused by CloudFront since 2026-09 ("supports only cachable requests"); v3 takes the same body and returns the same envelope (verified live 2026-09-26). To find the current path when it moves again: the web app is a module-federation shell — `/assets/federation.manifest.prod.json` → `/ipasSearch/browser/remoteEntry.json` → grep the exposed `searchModule-*.js` for `exportTradeMarkData`. The legacy assignment-api.uspto.gov died with the Developer Hub on June 5, 2026.
 - **TSDR** (`tsdr_client.py`): requires a TSDR-specific key from account.uspto.gov/profile/api-manager — the ODP key passes the gateway but 404s on the backend (`BACKEND RESPONSE STATUS: 404`); the client detects this and explains. Status uses `/info` + `Accept: application/json`; the document list at `/casedocs/{caseid}/info` is XML-ONLY (406 on JSON Accept) and is parsed via `_parse_document_list_xml`. Binary bundles are capped at `TrademarkDefaults.MAX_BINARY_BYTES` (full wrappers can exceed 10 MB) — filter by `document_type`/date. All endpoints verified live 2026-06-10 with a real TSDR key.
 
-## Critical Rules
+## Rules
 
 ### Before Committing Changes
 
-**IMPORTANT: Never commit and push changes without ensuring all tests pass.**
+Run the full test suite and get it green before every commit and push; CI runs the same suite on every push to `main`.
 
 ```bash
 uv run pytest
-# Expected: ~430 passed, ~56 deselected (integration tests skipped by default)
+# Expected: every collected test passes; integration tests are deselected by default
 ```
 
 If tests fail, fix them before committing. Do not skip or delete failing tests unless the functionality has been intentionally removed.
@@ -77,7 +77,7 @@ When a USPTO API is shut down, follow the established pattern (see PR #14 and th
 ### Test Organization
 
 - **Unit tests** (`test/unit/`): Run by default, mock external APIs
-- **Integration tests** (`test/test_tools.py`, `test/test_ptab_integration.py`, `test/test_trademark_integration.py`): Require network access and the API keys in `.env`, skipped by default; `uv run pytest -m ""` runs everything. Anything that touches the network must carry the `integration` marker, and every test must be able to fail — a script that logs errors instead of asserting is not a test (`test/test_patents.py` was one, ran live on every default invocation, and was removed in v1.2.0)
+- **Integration tests** (`test/test_tools.py`, `test/test_ptab_integration.py`, `test/test_trademark_integration.py`): Require network access and the API keys in `.env`, skipped by default; `uv run pytest -m ""` runs everything. Anything that touches the network must carry the `integration` marker, and every test must be able to fail — a script that logs errors instead of asserting is not a test.
 - **Unavailability tests** (`test/unit/test_unavailable_tools.py`): Verify decommissioned tools return correct error structure
 
 ```bash
@@ -112,7 +112,7 @@ src/patent_mcp_server/
 │   ├── cpc_scheme_client.py     # CPC group titles from USPTO scheme pages (no key)
 │   ├── office_action_client.py   # Legacy - decommissioned early 2026
 │   ├── enriched_citation_client.py  # Legacy - decommissioned early 2026
-│   └── litigation_client.py
+│   └── litigation_client.py     # Legacy - not offered on ODP (issue #16)
 └── patentsview/
     └── patentsview_client.py  # Legacy - shut down March 2026
 ```
@@ -165,7 +165,7 @@ async def tool_name(...) -> Dict[str, Any]:
 
 Managed via `pyproject.toml`. Key dependencies:
 - `mcp` (2.x) - MCP server framework (`MCPServer`); the `[cli]` extra is empty in 2.x
-- `httpx2` - Async HTTP client for the nine USPTO clients (successor to `httpx` from the same author; `httpx` 0.28 stopped in Dec 2024). Same API: `httpx2.AsyncClient`, `AsyncHTTPTransport`, `Cookies`, the exception classes
+- `httpx2` - Async HTTP client for the USPTO clients (successor to `httpx` from the same author; `httpx` 0.28 stopped in Dec 2024). Same API: `httpx2.AsyncClient`, `AsyncHTTPTransport`, `Cookies`, the exception classes
 - `pydantic` - Data validation
 - `tenacity` - Retry logic
 
