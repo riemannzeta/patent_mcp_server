@@ -192,3 +192,15 @@ Phase 1 shipped as planned, with four changes that live checks forced or allowed
 - **No `rangeFilters`.** Date ranges go into `q` as `field:[from TO to]`, as `odp_search_applications` already does; dates are validated as YYYY-MM-DD before they reach the query.
 
 Phases 2 and 3 remain open.
+
+## Implementation notes (Phase 2, 2026-10-14)
+
+The spike answered "yes", so `odp_download_document` gained `format="text"` instead of a new tool.
+
+- **Container.** `/xmlarchive` answers 302 to `data-documents.uspto.gov`, which this environment can reach. It returns a POSIX tar holding one XML file. Applicant papers also carry an `_svg.zip` of page images.
+- **Coverage.** XML was offered for CTNF, CTFR, NOA, PETDEC, REM, CLM, IDS, SPEC, ABST and PET.PCT papers back to 2011. Notices such as ISSUE.NTF have none and answer 404 "No files were found".
+- **Schemas.** Eleven samples used four schemas: ST96 `OutgoingDocument` (USPTO papers), ST96 `IncomingDocument`/`ClaimsDocument` (applicant papers since about 2018), an older `pat:` `IncomingDocument` (2016), and red-book `us-patent-application` claims (2012). One extractor keyed on local tag names handles all four, so no new dependency was needed.
+- **Quality.** USPTO papers come out clean. Applicant papers are OCR text; `OCRConfidenceData` wraps low-confidence characters inline, and old claims can include the page header in the first claim. Claim amendments keep `com:Ins`/`com:Del`, rendered `++…++`/`~~…~~`.
+- **Size.** A final rejection was 16k characters and a specification 59k. Pages of 24k characters fit the default 8,000-token response budget.
+
+Phase 3 remains open.

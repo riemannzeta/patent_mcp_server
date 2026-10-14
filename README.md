@@ -15,7 +15,7 @@ This server provides **40 tools** across six live USPTO data sources (25 more, f
 1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS
 2. **Full Text Documents** - Get the text of a patent by number, or just its claims, abstract or front page to save context
 3. **PDF Downloads** - Download patents as PDF files (Claude Desktop doesn't support this as a client currently)
-4. **Prosecution History** - Transactions, file-wrapper document lists filtered by type (office actions, responses, notices of allowance), and the documents themselves as PDF via ODP
+4. **Prosecution History** - Transactions, file-wrapper document lists filtered by type (office actions, responses, notices of allowance), and the documents themselves as plain text or PDF via ODP
 5. **Office Action Search** - Search 19.9M office actions (2007 on) by examiner language, rejection statute, art unit and date, with counts by document code and statute
 6. **Petition Decisions** - Search 1.1M decisions on patent petitions (revival, reinstatement, make special, supervisory review) by text, type, outcome and office
 7. **Patent Family Data** - Continuity information, foreign priority, and related applications
@@ -303,8 +303,8 @@ the command line wins where both are set.
 | `odp_get_foreign_priority` | Get foreign priority claims |
 | `odp_get_transactions` | Get prosecution transaction history |
 | `odp_get_documents` | List file wrapper documents, filtered by document code (CTNF, CTFR, NOA, REM, CLM, 892…) and direction |
-| `odp_download_document` | Download one file wrapper document as PDF (office actions, responses, notices) |
-| `odp_search_office_actions` | Search office actions across applications by text, document code, rejection statute, art unit and date; previews are cut at 500 characters, so read hits with `odp_download_document` |
+| `odp_download_document` | Read one file wrapper document as plain text (`format="text"`: office actions, remarks, claims with amendment markup) or as PDF |
+| `odp_search_office_actions` | Search office actions across applications by text, document code, rejection statute, art unit and date; previews are cut at 500 characters, so read hits with `odp_download_document(format="text")` |
 | `odp_search_petition_decisions` | Search petition decisions by text, petition type, outcome, deciding office and date, with outcome counts |
 | `odp_search_datasets` | Search bulk data products |
 | `odp_get_dataset` | Get dataset product details |
@@ -463,7 +463,12 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.6.0 (Current)
+### v1.7.0 (Current)
+- **Full text of file-wrapper papers**: `odp_download_document` takes `format="text"` and returns a paper's body as plain text from the XML USPTO publishes beside the PDF, so an office action (typically 10–20k characters) no longer has to be read as a base64 PDF. It covers office actions, notices of allowance, petition decisions, and applicant papers such as remarks (REM), claims (CLM) and IDS forms; amended claims keep their markup as `~~deleted~~` and `++inserted++`. Long papers come in 24k-character pages split at paragraph breaks (`text_offset` / `next_offset`). A document without XML returns `NO_TEXT_AVAILABLE`, and the PDF remains the default format
+- Parsed with the standard library; XML that declares entities is refused
+- Verified live 2026-10-14 on CTNF, CTFR, NOA, REM, CLM, IDS, PET.PCT, PETDEC and SPEC papers from 2011 to 2026
+
+### v1.6.0
 - **New `odp_search_office_actions`** searches ODP's Office Action dataset (19.9M actions mailed since mid-2007) by full text, document code, rejection statute (101/102/103/112/double patenting), art unit, date and patent number. Every response carries facet counts by document code and statute for the whole match set, so `limit=1` answers counting questions. The API returns only the first 500 characters of each action; a hit's `document_id` is the file-wrapper documentIdentifier, so `odp_download_document` reads the rest
 - **New `odp_search_petition_decisions`** searches 1.1M petition decisions (1991 on) by text, petition type code or words, outcome, deciding office, technology center, date and final-agency-action flag, with outcome, office and type facets. Query matches in the excerpt are marked «like this»; `include_full_text` adds each decision's full OCR text
 - The `get_office_action_text` and `search_office_actions` legacy stubs now point to the new tool; `check_api_status` lists both datasets as active

@@ -23,6 +23,7 @@ several workers and no session affinity.
 Version: 1.1.1
 """
 import argparse
+import base64
 import json
 import logging
 import sys
@@ -39,6 +40,9 @@ from patent_mcp_server.constants import (
     OfficeActionFields, PetitionDecisionFields,
 )
 from patent_mcp_server.util.errors import ApiError, is_error
+from patent_mcp_server.util.document_text import (
+    DocumentTextError, xml_from_archive, xml_to_text,
+)
 from patent_mcp_server.util.validation import (
     validate_patent_number, validate_app_number,
     validate_serial_number, validate_registration_number,
@@ -1315,24 +1319,43 @@ async def odp_get_documents(
 
 
 @tool()
-async def odp_download_document(app_num: str, document_id: str) -> Dict[str, Any]:
-    """Download one file-wrapper document as a PDF (base64 encoded).
+async def odp_download_document(
+    app_num: str,
+    document_id: str,
+    format: str = "pdf",
+    text_offset: int = 0,
+) -> Dict[str, Any]:
+    """Read one file-wrapper document, as plain text or as a PDF.
 
-    USE THIS TOOL WHEN: odp_get_documents gave you a documentIdentifier
-    and you need to read the office action, response, notice of
-    allowance or other paper itself. This is the working replacement for
-    the decommissioned Office Action text APIs.
+    USE THIS TOOL WHEN: odp_get_documents or odp_search_office_actions
+    gave you a document identifier and you need to read the office
+    action, applicant's remarks (REM), claims (CLM), notice of allowance,
+    petition decision or other paper itself.
+
+    Prefer format="text": it returns the paper's body as plain text (an
+    office action is typically 10-20k characters) from the XML USPTO
+    publishes with the document. Claim amendments keep their markup,
+    deletions as ~~text~~ and insertions as ++text++. Applicant papers
+    are OCR text and can carry OCR errors. Documents listed with an
+    "XML" format have text; others (older papers, drawings) return
+    NO_TEXT_AVAILABLE, and format="pdf" still works for them.
 
     Args:
         app_num: Application number without slashes (e.g., "16123456")
-        document_id: documentIdentifier from odp_get_documents
+        document_id: documentIdentifier from odp_get_documents, or
+               document_id from odp_search_office_actions
                (e.g., "K87AK41FRXEAPX5")
+        format: "text" (plain text) or "pdf" (base64 PDF, the default)
+        text_offset: With format="text", the character to start from.
+               Long papers come back in 24k-character pages; pass the
+               previous response's next_offset to continue.
 
     Returns:
-        {"success": True, "filename", "content_type", "size_bytes",
-        "content"} with the PDF as base64. Documents over 4 MB are refused
-        with RESPONSE_TOO_LARGE; office actions are usually under 1 MB.
-        Requires USPTO_API_KEY.
+        format="text": {"success": True, "text", "total_chars",
+        "text_offset", "next_offset" (None when done), "source_file"}.
+        format="pdf": {"success": True, "filename", "content_type",
+        "size_bytes", "content"} with the PDF as base64. Documents over
+        4 MB are refused with RESPONSE_TOO_LARGE. Requires USPTO_API_KEY.
     """
     try:
         app_num = validate_app_number(str(app_num))
@@ -1346,6 +1369,12 @@ async def odp_download_document(app_num: str, document_id: str) -> Dict[str, Any
             "odp_get_documents", "document_id",
         )
 
+    fmt = str(format or "pdf").strip().lower()
+    if fmt not in ("pdf", "text"):
+        return ApiError.validation_error('format must be "text" or "pdf"', "format")
+    if fmt == "text":
+        return await _download_document_text(app_num, document_id, text_offset)
+
     url = f"{config.API_BASE_URL}/api/v1/download/applications/{app_num}/{document_id}.pdf"
     result = await api_client.download_file(url)
 
@@ -1356,6 +1385,62 @@ async def odp_download_document(app_num: str, document_id: str) -> Dict[str, Any
     result["document_id"] = document_id
     result["filename"] = f"{app_num}-{document_id}.pdf"
     return result
+
+
+async def _download_document_text(
+    app_num: str, document_id: str, text_offset: int
+) -> Dict[str, Any]:
+    """odp_download_document(format="text"): fetch the xmlarchive, extract text.
+
+    The archive answers 302 to data-documents.uspto.gov like the PDF; a
+    document without XML answers 404 there ("No files were found").
+    Verified live 2026-10-14.
+    """
+    if text_offset < 0:
+        return ApiError.validation_error("text_offset must be 0 or more", "text_offset")
+
+    url = f"{config.API_BASE_URL}/api/v1/download/applications/{app_num}/{document_id}/xmlarchive"
+    result = await api_client.download_file(url)
+    if is_error(result):
+        if result.get("status_code") == 404:
+            return ApiError.create(
+                message=(
+                    f"Document {document_id} has no XML text. Older papers "
+                    "and drawings are published as images only; use "
+                    'format="pdf" to read it.'
+                ),
+                status_code=404,
+                error_code="NO_TEXT_AVAILABLE",
+            )
+        return result
+
+    try:
+        name, xml_bytes = xml_from_archive(base64.b64decode(result["content"]))
+        text = xml_to_text(xml_bytes)
+    except DocumentTextError as e:
+        return ApiError.create(
+            message=f"{e}. Use format=\"pdf\" to read the document.",
+            error_code="TEXT_EXTRACTION_FAILED",
+        )
+
+    page_chars = Defaults.DOCUMENT_TEXT_PAGE_CHARS
+    end = min(text_offset + page_chars, len(text))
+    if end < len(text):
+        # End the page at a paragraph break when one falls in its last fifth.
+        cut = text.rfind("\n\n", text_offset + page_chars * 4 // 5, end)
+        if cut != -1:
+            end = cut + 2
+    page = text[text_offset:end]
+    return {
+        "success": True,
+        "application_number": app_num,
+        "document_id": document_id,
+        "source_file": name,
+        "total_chars": len(text),
+        "text_offset": text_offset,
+        "next_offset": end if end < len(text) else None,
+        "text": page,
+    }
 
 
 @tool()
@@ -1581,7 +1666,7 @@ async def odp_search_office_actions(
 
     IMPORTANT: text_preview holds only the first 500 characters. The API
     searches the full text but returns no more. To read a hit, pass its
-    app_num and document_id to odp_download_document.
+    app_num and document_id to odp_download_document(format="text").
 
     Coverage: office actions mailed from mid-2007 on (19.9M records).
     Typed filters are AND-ed; pass a Lucene string in `query` for OR.
@@ -1675,7 +1760,7 @@ async def odp_search_office_actions(
         "facets": page["facets"],
         "text_note": (
             "text_preview is the first 500 characters; read the full action "
-            "with odp_download_document(app_num, document_id)."
+            "with odp_download_document(app_num, document_id, format=\"text\")."
         ),
     }
     if page["clamped_from"] is not None:
@@ -1753,8 +1838,8 @@ async def odp_search_petition_decisions(
         Decisions with record_id, app_num, patent_number, dates, petition
         type, outcome, deciding office, final_decision, text (an excerpt,
         with query matches marked «like this») and documents (pass a
-        documentIdentifier and app_num to odp_download_document for the
-        decision letter), plus metadata.facets.
+        documentIdentifier and app_num to odp_download_document with
+        format="text" for the decision letter), plus metadata.facets.
     """
     F = PetitionDecisionFields
     clauses: List[str] = []

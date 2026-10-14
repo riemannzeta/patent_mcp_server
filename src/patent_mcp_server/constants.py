@@ -74,6 +74,11 @@ class Defaults:
     # ODP office-action and petition-decision searches refuse a page over
     # 100 with a 400 (verified live 2026-10-14); the tools clamp instead.
     ODP_SEARCH_MAX_LIMIT = 100
+    # odp_download_document(format="text") pages long papers. 24k
+    # characters is ~6k tokens, inside MAX_RESPONSE_TOKENS' default of
+    # 8000 with room for the envelope; a typical office action is
+    # 10-20k characters, so most fit in one page.
+    DOCUMENT_TEXT_PAGE_CHARS = 24_000
     REQUEST_TIMEOUT = 30.0
     RETRY_DELAY = 1.0
     MAX_RETRIES = 3
