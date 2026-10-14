@@ -11,7 +11,8 @@ with multiple USPTO patent and trademark data APIs:
 5. tmsearch.uspto.gov - Full-text trademark search (internal API, TESS replacement)
 6. assignmentcenter.uspto.gov - Trademark assignment (ownership transfer) records
 7. PatentsView API - UNAVAILABLE (shut down March 2026; data migrated to ODP bulk datasets)
-8. Office Action APIs - UNAVAILABLE (decommissioned early 2026, pending ODP migration)
+8. Office Action citation/rejection APIs - UNAVAILABLE (decommissioned early 2026);
+   office action and petition decision search run on api.uspto.gov
 
 The server speaks stdio by default, for Claude Code/Cursor integration, and
 can also serve the MCP endpoint over streamable HTTP for remote deployments
@@ -34,15 +35,18 @@ from pydantic import Field, ValidationError
 
 from patent_mcp_server.config import config, LOOPBACK_HOSTS, VALID_TRANSPORTS
 from patent_mcp_server.constants import (
-    Sources, Fields, Defaults, DocumentSections, PatentsViewEndpoints
+    Sources, Fields, Defaults, DocumentSections, PatentsViewEndpoints,
+    OfficeActionFields, PetitionDecisionFields,
 )
 from patent_mcp_server.util.errors import ApiError, is_error
 from patent_mcp_server.util.validation import (
     validate_patent_number, validate_app_number,
-    validate_serial_number, validate_registration_number
+    validate_serial_number, validate_registration_number,
+    validate_iso_date, lucene_quote,
 )
 from patent_mcp_server.util.response import (
-    ResponseEnvelope, check_and_truncate, estimate_tokens, slim_document
+    ResponseEnvelope, check_and_truncate, estimate_tokens, slim_document,
+    slim_office_action, slim_petition_decision, facet_counts,
 )
 from patent_mcp_server.resources import (
     get_cpc_section_info, get_cpc_subsection_info,
@@ -71,7 +75,8 @@ mcp = MCPServer(
     instructions=(
         "Tools for researching US patents AND US federal trademarks. "
         "Patents: full-text search and PDFs (ppubs_*), file-wrapper "
-        "metadata, assignments and continuity (odp_*), and PTAB "
+        "metadata, assignments, continuity, office action and petition "
+        "decision search (odp_*), and PTAB "
         "proceedings (ptab_*). Trademarks: live status, documents, and "
         "mark images via TSDR (tsdr_*), full-text mark/owner search and "
         "assignment history (tm_*). Reference lookups: get_cpc_info, "
@@ -556,14 +561,36 @@ async def check_api_status() -> Dict[str, Any]:
             ),
         },
         "office_actions": {
-            "name": "Office Action APIs",
+            "name": "Office Action Search (ODP)",
+            "configured": bool(config.USPTO_API_KEY),
+            "api_key_set": bool(config.USPTO_API_KEY),
+            "status": "ACTIVE",
+            "note": (
+                "odp_search_office_actions on api.uspto.gov, verified live "
+                "2026-10-14. Text comes back cut at 500 characters; "
+                "odp_download_document reads the full action."
+            ),
+        },
+        "petition_decisions": {
+            "name": "Petition Decisions (ODP)",
+            "configured": bool(config.USPTO_API_KEY),
+            "api_key_set": bool(config.USPTO_API_KEY),
+            "status": "ACTIVE",
+            "note": (
+                "odp_search_petition_decisions on api.uspto.gov, verified "
+                "live 2026-10-14."
+            ),
+        },
+        "office_action_legacy": {
+            "name": "Office Action Citations and Rejections (developer.uspto.gov)",
             "configured": False,
             "status": "UNAVAILABLE",
             "note": (
                 "Legacy endpoints at developer.uspto.gov were decommissioned "
-                "in early 2026. Migration to ODP (api.uspto.gov) is pending. "
-                "Use odp_get_documents to find office actions and "
-                "odp_download_document to read them."
+                "in early 2026. get_office_action_citations and "
+                "get_office_action_rejections stay unavailable; use "
+                "odp_search_office_actions for rejection statutes and "
+                "odp_get_documents for 892 citation forms."
             ),
         },
         "tsdr": {
@@ -1369,11 +1396,7 @@ async def odp_search_applications(
         Normalized response with matching applications.
     """
     clauses: List[str] = []
-
-    def _quote(value: str) -> str:
-        # Lucene-safe quoted value: escape embedded quotes and backslashes.
-        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
-        return f'"{escaped}"'
+    _quote = lucene_quote
 
     if query:
         # Pass user query through verbatim — supports Lucene operators.
@@ -1426,6 +1449,394 @@ async def odp_search_applications(
         )
 
     return check_and_truncate(ResponseEnvelope.from_odp(result, offset, limit))
+
+
+# ---------------------------------------------------------------------
+# ODP Office Action Search and Petition Decisions (verified live 2026-10-14)
+# ---------------------------------------------------------------------
+
+_ODP_SORT_ORDERS = {"newest": "desc", "oldest": "asc"}
+
+_ODP_PROFILE_HINT = (
+    "ODP deactivates API keys whose data.uspto.gov customer profile is "
+    "incomplete. If this key worked before, sign in to data.uspto.gov and "
+    "fill in job title, organization and intended use."
+)
+
+
+def _date_range_clause(
+    field: str, date_from: Optional[str], date_to: Optional[str]
+) -> Optional[str]:
+    """`field:[from TO to]`, open-ended on either side; raises ValueError."""
+    if not (date_from or date_to):
+        return None
+    start = validate_iso_date(date_from) if date_from else "*"
+    end = validate_iso_date(date_to) if date_to else "*"
+    return f"{field}:[{start} TO {end}]"
+
+
+def _any_of_clause(field: str, csv: str) -> Optional[str]:
+    """`field:("A" OR "B")` from a comma-separated list."""
+    values = [v.strip() for v in csv.split(",") if v.strip()]
+    if not values:
+        return None
+    return f"{field}:(" + " OR ".join(lucene_quote(v) for v in values) + ")"
+
+
+async def _odp_record_search(
+    url: str,
+    clauses: List[str],
+    bag: str,
+    facets: tuple,
+    sort_field: str,
+    sort: str,
+    offset: int,
+    limit: int,
+) -> Dict[str, Any]:
+    """POST a Lucene search to an ODP record endpoint and page the result.
+
+    Returns {"records", "total", "facets", "limit", "clamped_from"} or an
+    error dictionary. A 404 means no match on these endpoints, so it comes
+    back as an empty page rather than an error.
+    """
+    order = _ODP_SORT_ORDERS.get((sort or "").strip().lower())
+    if order is None:
+        return ApiError.validation_error('sort must be "newest" or "oldest"', "sort")
+    if offset < 0:
+        return ApiError.validation_error("offset must be 0 or more", "offset")
+
+    requested = limit
+    limit = max(1, min(limit, Defaults.ODP_SEARCH_MAX_LIMIT))
+
+    body = {
+        "q": " AND ".join(clauses),
+        "facets": list(facets),
+        "sort": [{"field": sort_field, "order": order}],
+        "pagination": {"offset": offset, "limit": limit},
+    }
+    result = await api_client.make_request(url, method="POST", data=body)
+
+    if is_error(result):
+        status = result.get("status_code")
+        if status == 404:
+            return {"records": [], "total": 0, "facets": {}, "limit": limit,
+                    "clamped_from": requested if requested != limit else None}
+        if status in (401, 403):
+            result["hint"] = _ODP_PROFILE_HINT
+        return result
+
+    return {
+        "records": (result.get(bag) or [])[:limit],
+        "total": result.get("count", 0),
+        "facets": facet_counts(result.get("facets")),
+        "limit": limit,
+        "clamped_from": requested if requested != limit else None,
+    }
+
+
+async def _app_num_for_patent(patent_number: str) -> Dict[str, Any]:
+    """Resolve a patent number to its application number via ODP search."""
+    body = {
+        "q": f"applicationMetaData.patentNumber:{lucene_quote(patent_number)}",
+        "fields": ["applicationNumberText"],
+        "pagination": {"offset": 0, "limit": 1},
+    }
+    url = f"{config.API_BASE_URL}/api/v1/patent/applications/search"
+    result = await api_client.make_request(url, method="POST", data=body)
+    if is_error(result):
+        if result.get("status_code") == 404:
+            return ApiError.not_found("Patent", patent_number)
+        return result
+    bag = result.get("patentFileWrapperDataBag") or []
+    app_num = bag[0].get("applicationNumberText") if bag else None
+    if not app_num:
+        return ApiError.not_found("Patent", patent_number)
+    return {"success": True, "app_num": app_num}
+
+
+@tool()
+async def odp_search_office_actions(
+    query: Optional[str] = None,
+    app_num: Optional[str] = None,
+    patent_number: Optional[str] = None,
+    document_code: Optional[str] = None,
+    rejection_type: Optional[str] = None,
+    art_unit: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    record_id: Optional[str] = None,
+    sort: str = "newest",
+    offset: int = 0,
+    limit: int = 25,
+) -> Dict[str, Any]:
+    """Search office actions across all applications by what the examiner wrote.
+
+    USE THIS TOOL WHEN: You need to find office actions across many
+    applications by their text ("means-plus-function", "Alice",
+    "inherent anticipation"), by statute (101/102/103/112), by art unit
+    or by date, or to count them. metadata.facets gives document-code and
+    rejection-type counts for the whole match set, so limit=1 answers
+    "how many 101 rejections did art unit 3689 issue in 2026" in one call.
+    For one application's history, odp_get_documents is cheaper.
+
+    IMPORTANT: text_preview holds only the first 500 characters. The API
+    searches the full text but returns no more. To read a hit, pass its
+    app_num and document_id to odp_download_document.
+
+    Coverage: office actions mailed from mid-2007 on (19.9M records).
+    Typed filters are AND-ed; pass a Lucene string in `query` for OR.
+
+    Args:
+        query: Lucene query; bare words search everything, or name a field
+               such as officeActionText:"printed matter"
+        app_num: Application number without slashes (e.g. "18402543")
+        patent_number: Patent number; resolved to its application first
+        document_code: Comma-separated codes: CTNF (non-final rejection),
+               CTFR (final rejection), NOA (allowance), CTRS (restriction),
+               CTAV (advisory), APEA (examiner's answer), PETDEC
+        rejection_type: Comma-separated statutes, all of which must apply:
+               101, 102, 103, 112, DoublePatent, Other
+        art_unit: Group art unit (e.g. "3689")
+        date_from: Earliest mail (submission) date, YYYY-MM-DD
+        date_to: Latest mail (submission) date, YYYY-MM-DD
+        record_id: officeActionRecordIdentifier from an earlier result
+        sort: "newest" (default) or "oldest" by mail date
+        offset: Starting position (default: 0)
+        limit: Max results (default: 25, at most 100)
+
+    Returns:
+        Office actions with record_id, app_num, document_code, description,
+        submission_date, art_unit, title, rejection_types, document_id and
+        text_preview, plus metadata.facets.
+    """
+    F = OfficeActionFields
+    clauses: List[str] = []
+    try:
+        if query:
+            clauses.append(f"({query})")
+        if app_num:
+            clauses.append(f"{F.APPLICATION_NUMBER}:{lucene_quote(validate_app_number(str(app_num)))}")
+        if patent_number:
+            resolved = await _app_num_for_patent(validate_patent_number(str(patent_number)))
+            if is_error(resolved):
+                return resolved
+            clauses.append(f"{F.APPLICATION_NUMBER}:{lucene_quote(resolved['app_num'])}")
+        if document_code:
+            clause = _any_of_clause(F.DOCUMENT_CODE, document_code.upper())
+            if clause:
+                clauses.append(clause)
+        if rejection_type:
+            for value in (v.strip() for v in rejection_type.split(",")):
+                if not value:
+                    continue
+                canonical = F.REJECTION_TYPES.get(value.lower())
+                if canonical is None:
+                    return ApiError.validation_error(
+                        f"Unknown rejection_type {value!r}; use "
+                        + ", ".join(F.REJECTION_TYPES.values()),
+                        "rejection_type",
+                    )
+                clauses.append(f"{F.REJECTION_TYPE}:{lucene_quote(canonical)}")
+        if art_unit:
+            clauses.append(f"{F.ART_UNIT}:{lucene_quote(str(art_unit).strip())}")
+        date_clause = _date_range_clause(F.SUBMISSION_DATE, date_from, date_to)
+        if date_clause:
+            clauses.append(date_clause)
+        if record_id:
+            clauses.append(f"{F.RECORD_ID}:{lucene_quote(str(record_id).strip())}")
+    except ValueError as e:
+        return ApiError.validation_error(str(e))
+
+    if not clauses:
+        return ApiError.create(
+            message=(
+                "At least one filter is required. Provide query, app_num, "
+                "patent_number, document_code, rejection_type, art_unit, a "
+                "date range, or record_id."
+            ),
+            error_code="MISSING_FILTER",
+        )
+
+    page = await _odp_record_search(
+        url=f"{config.API_BASE_URL}/api/v1/patent/office-action/search",
+        clauses=clauses,
+        bag="officeActionDataBag",
+        facets=F.FACETS,
+        sort_field=F.SUBMISSION_DATE,
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
+    if is_error(page):
+        return page
+
+    metadata: Dict[str, Any] = {
+        "query": " AND ".join(clauses),
+        "facets": page["facets"],
+        "text_note": (
+            "text_preview is the first 500 characters; read the full action "
+            "with odp_download_document(app_num, document_id)."
+        ),
+    }
+    if page["clamped_from"] is not None:
+        metadata["limit_clamped_from"] = page["clamped_from"]
+
+    results = [slim_office_action(r) for r in page["records"]]
+    return check_and_truncate(ResponseEnvelope.success(
+        results=results,
+        source="odp",
+        total=page["total"],
+        offset=offset,
+        limit=page["limit"],
+        metadata=metadata,
+    ))
+
+
+@tool()
+async def odp_search_petition_decisions(
+    query: Optional[str] = None,
+    app_num: Optional[str] = None,
+    patent_number: Optional[str] = None,
+    petition_type: Optional[str] = None,
+    outcome: Optional[str] = None,
+    deciding_office: Optional[str] = None,
+    technology_center: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    final_only: bool = False,
+    record_id: Optional[str] = None,
+    include_full_text: bool = False,
+    sort: str = "newest",
+    offset: int = 0,
+    limit: int = 25,
+) -> Dict[str, Any]:
+    """Search USPTO decisions on patent petitions.
+
+    USE THIS TOOL WHEN: You need petition decisions on reviving abandoned
+    applications, reinstating patents after a missed maintenance fee,
+    delayed priority claims, petitions to make special, or supervisory
+    review of an examiner, or want to see how the Office of Petitions has
+    ruled on an argument (search its text with `query`). metadata.facets
+    gives outcome, deciding-office and petition-type counts for the whole
+    match set, so grant rates take one call.
+
+    Coverage: 1.1M decisions, 1991 on. The text is OCR and can be noisy
+    ("EENITED STATES"), so prefer single terms or proximity
+    (ocrSearchText:"unintentional delay"~3) to long exact phrases. Typed
+    filters are AND-ed; pass a Lucene string in `query` for OR.
+
+    Args:
+        query: Lucene query; bare words search everything, or name a field
+               such as ocrSearchText:"unintentional delay"
+        app_num: Application number without slashes
+        patent_number: Patent number
+        petition_type: Numeric petition type code (e.g. "533", reinstate
+               patent for delayed maintenance fee) or words from its
+               description (e.g. "revive")
+        outcome: GRANTED, GRANTED-IN-PART, DENIED or DISMISSED
+        deciding_office: e.g. "Office of Petitions", "Technology Center",
+               "International Division"
+        technology_center: e.g. "2600"
+        date_from: Earliest decision date, YYYY-MM-DD
+        date_to: Latest decision date, YYYY-MM-DD
+        final_only: Only decisions marked final agency action (in the data
+               so far, exactly the DENIED decisions)
+        record_id: petitionDecisionRecordIdentifier from an earlier result
+        include_full_text: Add each decision's full OCR text as full_text
+               (about 1.5-3k characters each, prefixed by the record's
+               metadata). Off by default.
+        sort: "newest" (default) or "oldest" by decision date
+        offset: Starting position (default: 0)
+        limit: Max results (default: 25, at most 100)
+
+    Returns:
+        Decisions with record_id, app_num, patent_number, dates, petition
+        type, outcome, deciding office, final_decision, text (an excerpt,
+        with query matches marked «like this») and documents (pass a
+        documentIdentifier and app_num to odp_download_document for the
+        decision letter), plus metadata.facets.
+    """
+    F = PetitionDecisionFields
+    clauses: List[str] = []
+    try:
+        if query:
+            clauses.append(f"({query})")
+        if app_num:
+            clauses.append(f"{F.APPLICATION_NUMBER}:{lucene_quote(validate_app_number(str(app_num)))}")
+        if patent_number:
+            clauses.append(f"{F.PATENT_NUMBER}:{lucene_quote(validate_patent_number(str(patent_number)))}")
+        if petition_type:
+            petition_type = str(petition_type).strip()
+            field = F.PETITION_TYPE_CODE if petition_type.isdigit() else F.PETITION_TYPE_TEXT
+            clauses.append(f"{field}:{lucene_quote(petition_type)}")
+        if outcome:
+            code = F.OUTCOME_CODES.get(str(outcome).strip().upper().replace(" ", "-"))
+            if code is None:
+                return ApiError.validation_error(
+                    "outcome must be one of " + ", ".join(F.OUTCOME_CODES),
+                    "outcome",
+                )
+            clauses.append(f"{F.OUTCOME_CODE}:{lucene_quote(code)}")
+        if deciding_office:
+            clauses.append(f"{F.DECIDING_OFFICE}:{lucene_quote(deciding_office.strip())}")
+        if technology_center:
+            clauses.append(f"{F.TECHNOLOGY_CENTER}:{lucene_quote(str(technology_center).strip())}")
+        date_clause = _date_range_clause(F.DECISION_DATE, date_from, date_to)
+        if date_clause:
+            clauses.append(date_clause)
+        if final_only:
+            clauses.append(f"{F.FINAL}:true")
+        if record_id:
+            clauses.append(f"{F.RECORD_ID}:{lucene_quote(str(record_id).strip())}")
+    except ValueError as e:
+        return ApiError.validation_error(str(e))
+
+    if not clauses:
+        return ApiError.create(
+            message=(
+                "At least one filter is required. Provide query, app_num, "
+                "patent_number, petition_type, outcome, deciding_office, "
+                "technology_center, a date range, final_only, or record_id."
+            ),
+            error_code="MISSING_FILTER",
+        )
+
+    page = await _odp_record_search(
+        url=f"{config.API_BASE_URL}/api/v1/petition/decisions/search",
+        clauses=clauses,
+        bag="petitionDecisionDataBag",
+        facets=F.FACETS,
+        sort_field=F.DECISION_DATE,
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
+    if is_error(page):
+        return page
+
+    results = []
+    for record in page["records"]:
+        hit = slim_petition_decision(record, include_full_text=include_full_text)
+        documents = [_summarize_document(d) for d in record.get("documentBag") or []]
+        if documents:
+            hit["documents"] = documents
+        results.append(hit)
+
+    metadata: Dict[str, Any] = {
+        "query": " AND ".join(clauses),
+        "facets": page["facets"],
+    }
+    if page["clamped_from"] is not None:
+        metadata["limit_clamped_from"] = page["clamped_from"]
+
+    return check_and_truncate(ResponseEnvelope.success(
+        results=results,
+        source="odp",
+        total=page["total"],
+        offset=offset,
+        limit=page["limit"],
+        metadata=metadata,
+    ))
 
 
 @tool()
@@ -2392,9 +2803,8 @@ async def get_office_action_text(
     and objections from prosecution.
 
     IMPORTANT: The legacy Office Action text APIs (developer.uspto.gov) were
-    decommissioned in early 2026 and have NOT yet been migrated to the ODP.
-    This tool is temporarily unavailable. Use odp_get_documents to list file
-    wrapper documents (including office actions) and download them instead.
+    decommissioned in early 2026. Use odp_search_office_actions(app_num=...)
+    to find the actions and odp_download_document to read one.
 
     Args:
         application_number: Application number (e.g., "16123456")
@@ -2406,15 +2816,14 @@ async def get_office_action_text(
     return {
         "error": True,
         "message": (
-            "Office Action text API is temporarily unavailable. The legacy "
-            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
-            "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use odp_get_documents(app_num, document_code=\"CTNF,CTFR\") to find "
-            "office actions, then odp_download_document(app_num, document_id) "
-            "to read one."
+            "The legacy Office Action text API at developer.uspto.gov was "
+            "decommissioned in early 2026. Use "
+            "odp_search_office_actions(app_num=...) to find the office "
+            "actions, then odp_download_document(app_num, document_id) to "
+            "read one."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": "odp_get_documents(app_num, document_code=\"CTNF,CTFR\"), then odp_download_document(app_num, document_id).",
+        "workaround": "odp_search_office_actions(app_num=...), then odp_download_document(app_num, document_id).",
     }
 
 
@@ -2431,8 +2840,8 @@ async def search_office_actions(
 ) -> Dict[str, Any]:
     """Search office actions across applications.
 
-    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned,
-    ODP migration pending. Use odp_get_documents or odp_get_transactions instead.
+    IMPORTANT: The legacy endpoint was decommissioned in early 2026. Use
+    odp_search_office_actions, which searches the ODP office action dataset.
 
     Args:
         query: Full-text search query
@@ -2447,14 +2856,13 @@ async def search_office_actions(
     return {
         "error": True,
         "message": (
-            "Office Action search API is temporarily unavailable. The legacy "
-            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
-            "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use odp_get_transactions to search prosecution history, or "
-            "odp_search_applications to find applications by examiner/art unit."
+            "The legacy Office Action search API at developer.uspto.gov was "
+            "decommissioned in early 2026. Use odp_search_office_actions, "
+            "which searches office action text, statutes, art units and "
+            "dates on the ODP (api.uspto.gov)."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": "Use odp_get_transactions(app_num) or odp_search_applications().",
+        "workaround": "Use odp_search_office_actions(query=..., art_unit=..., date_from=..., date_to=...).",
     }
 
 
@@ -2504,8 +2912,9 @@ async def get_office_action_rejections(
     USE THIS TOOL WHEN: You need structured data about claim rejections
     including rejection type (102, 103, 112) and affected claims.
 
-    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned,
-    ODP migration pending. Use odp_get_documents to find office actions.
+    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned.
+    odp_search_office_actions(app_num=...) gives each action's rejection
+    statutes, though not the claim-level detail.
 
     Args:
         application_number: Application number
@@ -2520,11 +2929,13 @@ async def get_office_action_rejections(
             "Office Action rejections API is temporarily unavailable. The legacy "
             "endpoints at developer.uspto.gov were decommissioned in early 2026 "
             "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use odp_get_documents(app_num, document_code=\"CTNF,CTFR\") to find the "
-            "rejections, then odp_download_document(app_num, document_id) to read them."
+            "Use odp_search_office_actions(app_num=...) for each office "
+            "action's rejection statutes (101/102/103/112), then "
+            "odp_download_document(app_num, document_id) to read the claim-level "
+            "detail."
         ),
         "error_code": "API_UNAVAILABLE",
-        "workaround": "odp_get_documents(app_num, document_code=\"CTNF,CTFR\"), then odp_download_document(app_num, document_id).",
+        "workaround": "odp_search_office_actions(app_num=...), then odp_download_document(app_num, document_id).",
     }
 
 

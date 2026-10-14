@@ -47,6 +47,8 @@ async def test_server_exposes_tools():
         assert "tsdr_get_trademark_status" in names
         assert "tm_search_trademarks" in names
         assert "check_api_status" in names
+        assert "odp_search_office_actions" in names
+        assert "odp_search_petition_decisions" in names
 
 
 @pytest.mark.unit

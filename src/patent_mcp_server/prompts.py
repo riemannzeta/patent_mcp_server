@@ -117,7 +117,9 @@ Use odp_get_documents(app_num, document_code="CTNF,CTFR,NOA,REM,CLM"):
 - Read each with odp_download_document(app_num, document_id)
 - Understand rejection bases (102, 103, 112) and how claims were amended
 - odp_get_transactions gives the dated event list alongside
-(Note: the dedicated Office Action APIs were decommissioned in early 2026.)
+- odp_search_office_actions(patent_number=...) lists the same actions with
+  their rejection statutes and a 500-character preview of each; its
+  `query` finds how examiners elsewhere treated the same claim language
 ```
 
 ## Step 5: Check PTAB Proceedings
@@ -354,6 +356,10 @@ Use odp_get_application_metadata and odp_get_transactions:
 ```
 Use odp_get_documents(app_num, document_code="CTNF,CTFR,REM,CLM"):
 - Read office actions and responses with odp_download_document
+- odp_search_office_actions(patent_number=...) summarizes the rejection
+  statutes across every action
+- odp_search_petition_decisions(patent_number=...) shows revivals and
+  reinstatements, which can matter for intervening rights
 - Note any estoppel from claim amendments
 - Review applicant's arguments for claim interpretation
 ```

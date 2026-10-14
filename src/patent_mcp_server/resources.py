@@ -421,27 +421,53 @@ DATA_SOURCES = {
         ],
     },
     "office_actions": {
-        "name": "USPTO Office Action APIs",
-        "base_url": "N/A",
+        "name": "USPTO Office Action Search (ODP)",
+        "base_url": "https://api.uspto.gov",
         "description": (
-            "UNAVAILABLE. Legacy endpoints at developer.uspto.gov were "
-            "decommissioned in early 2026 with no ODP replacement. The "
-            "documents themselves are in the file wrapper: "
-            "odp_get_documents(app_num, document_code='CTNF,CTFR') lists "
-            "the office actions and odp_download_document reads one as PDF."
+            "Live on ODP since 2026 (verified 2026-10-14). "
+            "odp_search_office_actions searches 19.9M office actions mailed "
+            "from 2007 on by full text, document code, rejection statute, "
+            "art unit and date. The API searches the full text but returns "
+            "only its first 500 characters; read the action itself with "
+            "odp_download_document(app_num, document_id). The legacy "
+            "developer.uspto.gov citation and rejection endpoints remain "
+            "decommissioned."
         ),
         "coverage": {
-            "applications": "Every application's file wrapper via ODP",
+            "applications": "Office actions mailed from 2007-07 on",
+            "rejections": "rejectionTypeBag per action: 101, 102, 103, 112, DoublePatent, Other",
             "citations": "892 (examiner) and 1449 (applicant) forms via odp_get_documents; forward citations via ppubs_get_citing_patents",
-            "rejections": "CTNF/CTFR documents via odp_get_documents + odp_download_document",
         },
-        "rate_limits": "N/A",
+        "rate_limits": "Requires ODP API key (register at data.uspto.gov), standard rate limits apply",
         "auth_required": True,
         "best_for": [
-            "Office action full text (use odp_get_documents + odp_download_document)",
+            "Finding office actions across applications by examiner language",
+            "Counting rejections by statute, art unit or date (metadata.facets)",
+            "Office action full text (odp_download_document with the hit's document_id)",
             "Examiner citation analysis (892 forms via odp_get_documents)",
-            "Rejection pattern analysis (CTNF/CTFR via odp_get_documents)",
-            "Prosecution strategy research (odp_get_transactions for the timeline)",
+        ],
+    },
+    "petition_decisions": {
+        "name": "USPTO Petition Decisions (ODP)",
+        "base_url": "https://api.uspto.gov",
+        "description": (
+            "Live on ODP (verified 2026-10-14). "
+            "odp_search_petition_decisions searches 1.1M decisions on patent "
+            "petitions from 1991 on by OCR text, petition type, outcome, "
+            "deciding office, technology center and date. Each hit lists "
+            "the decision letter's documentIdentifier for "
+            "odp_download_document."
+        ),
+        "coverage": {
+            "decisions": "Granted 881k, dismissed 224k, denied 7.5k, granted-in-part 1.9k",
+            "offices": "Office of Petitions, Technology Centers, International Division, Office of Data Management",
+        },
+        "rate_limits": "Requires ODP API key (register at data.uspto.gov), standard rate limits apply",
+        "auth_required": True,
+        "best_for": [
+            "Revival of abandoned applications and reinstatement after missed maintenance fees",
+            "Grant rates for a petition type (metadata.facets)",
+            "How the Office of Petitions has ruled on an argument",
         ],
     },
     "litigation": {
