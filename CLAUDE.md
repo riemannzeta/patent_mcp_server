@@ -11,8 +11,8 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 - **mcp 2.x (`MCPServer`)** since v1.3.0: transport settings (`host`, `port`, `streamable_http_path`, `stateless_http`, `json_response`) go to `run_streamable_http_async()` via `http_settings(args)`, not to the constructor. Tools register through `tool()` / `legacy_tool()`, which set read-only annotations and `structured_output=False` (mcp 2 would otherwise send every dict result twice — measured 2.0x wire size). Protocol tests connect with `mcp.client.Client(patents.mcp)` in memory. Type fields are snake_case in Python (`read_only_hint`, `input_schema`, `is_error`) and camelCase on the wire.
 - **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. The clients use `httpx2` (v1.4.0); `httpx` and `httpcore` are out of the tree, so don't reintroduce `import httpx`. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
 
-**Current state (v1.5.0):** 38 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
-- **Active:** PPUBS (6), ODP (13), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
+**Current state (v1.6.0):** 40 tools registered by default; 25 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
+- **Active:** PPUBS (6), ODP (15), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
 - **Legacy (API_UNAVAILABLE):** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16). Their functions stay in `patents.py` under `@legacy_tool()`, which registers them only when the flag is set; every active tool uses `@tool()`, which adds read-only annotations. Don't use a bare `@mcp.tool()`.
 
 **PPUBS contracts (verified live 2026-09-26):** field qualifiers are dotted suffixes — `.pn.` (works with D/RE/PP prefixes), `.urpn.` (references cited; the basis of `ppubs_get_citing_patents`, granted patents only), `.ti.`, `.ab.`, `.in.`, `.as.`, `.cpc.`, `@pd`/`@ad`. The slash forms (`TTL/`, `AN/`, `CPC/`) and `patentNumber:"…"` return 0 results. `validate_patent_number` keeps the series prefix and strips separators, "US" and the kind code; don't reduce it to digits again. Full documents and search hits are slimmed in `util/response.py` (`slim_document`, `slim_search_hit`) — a raw document is ~24k tokens, a raw hit ~14 KB because of the `urpn`/`urpnCode` lists.
@@ -22,6 +22,8 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 **Prompts** take optional string arguments (`Annotated[str, Field(description=...)]`, which is how mcp 2 exposes descriptions); `render_prompt()` in `prompts.py` prepends a Subject section with whatever was given. Keep every argument optional so `/prompt` with no arguments still works.
 
 **ODP file-wrapper documents (verified live 2026-09-26):** `GET /api/v1/patent/applications/{app}/documents` returns `documentBag` with `documentIdentifier`, `documentCode` and `downloadOptionBag`. The PDF lives at `/api/v1/download/applications/{app}/{documentIdentifier}.pdf`, which answers 302 to a signed `data-documents.uspto.gov` URL valid for 30 s; `ApiUsptoClient.download_file` follows it and caps the body at `Defaults.MAX_BINARY_BYTES`.
+
+**ODP office actions and petitions (verified live 2026-10-14):** `odp_search_office_actions` POSTs to `/api/v1/patent/office-action/search` (bag `officeActionDataBag`, 19.9M records from 2007-07); `odp_search_petition_decisions` POSTs to `/api/v1/petition/decisions/search` (bag `petitionDecisionDataBag`, 1.1M from 1991). Both take the file-wrapper search body (`q`, `facets`, `sort`, `pagination`), refuse `limit` over 100 with a 400 (the tools clamp), and answer "no match" with a 404 (the tools return an empty page). `officeActionText` is indexed in full but returned cut at 500 characters; `obsoleteDocumentIdentifier` is the file-wrapper `documentIdentifier` (12 of 12 sampled hits matched), so `odp_download_document` reads a hit. In petitions, filter outcome on the one-letter `decidedPetitionTypeCode` (A granted, B granted-in-part, C denied, D dismissed): the description field is analyzed, so "GRANTED" also matches GRANTED-IN-PART. `ocrSearchText` is a 500-character excerpt that becomes a highlighted snippet when `q` names it; `allSearchableFields` holds the record plus the decision's full OCR text. Field names live in `OfficeActionFields` and `PetitionDecisionFields` in `constants.py`; plan in `docs/plans/2026-10-14-odp-office-actions-and-petitions-plan.md`. The OA citation and rejection datasets also answer on ODP (`/api/v1/patent/oa/oa_{citations,rejections}/v2/records`, form-encoded Solr) but `OfficeActionClient` still targets the dead developer.uspto.gov paths.
 
 **Trademark backend contracts (verified live 2026-06-10; assignments re-verified 2026-09-26):**
 - **tmsearch** (`tmsearch_client.py`): `POST tmsearch.uspto.gov/prod-stage-v1-0-0/tmsearch`, Elasticsearch-style body, non-standard response envelope (`hits.totalValue`, hit `source`/`id`). No key; behind AWS WAF (currently permissive — `TMSEARCH_WAF_TOKEN` supported as escape hatch). Class filters need zero-padded 3-digit terms ("025").
@@ -77,7 +79,7 @@ When a USPTO API is shut down, follow the established pattern (see PR #14 and th
 ### Test Organization
 
 - **Unit tests** (`test/unit/`): Run by default, mock external APIs
-- **Integration tests** (`test/test_tools.py`, `test/test_ptab_integration.py`, `test/test_trademark_integration.py`): Require network access and the API keys in `.env`, skipped by default; `uv run pytest -m ""` runs everything. Anything that touches the network must carry the `integration` marker, and every test must be able to fail — a script that logs errors instead of asserting is not a test.
+- **Integration tests** (`test/test_tools.py`, `test/test_ptab_integration.py`, `test/test_trademark_integration.py`, `test/test_odp_oa_petitions_integration.py`): Require network access and the API keys in `.env`, skipped by default; `uv run pytest -m ""` runs everything. Anything that touches the network must carry the `integration` marker, and every test must be able to fail — a script that logs errors instead of asserting is not a test.
 - **Unavailability tests** (`test/unit/test_unavailable_tools.py`): Verify decommissioned tools return correct error structure
 
 ```bash
@@ -110,7 +112,7 @@ src/patent_mcp_server/
 │   ├── tmsearch_client.py  # Trademark search client (internal API, like PPUBS)
 │   ├── tm_assignment_client.py  # Trademark assignments (Assignment Center, no key)
 │   ├── cpc_scheme_client.py     # CPC group titles from USPTO scheme pages (no key)
-│   ├── office_action_client.py   # Legacy - decommissioned early 2026
+│   ├── office_action_client.py   # Legacy - developer.uspto.gov citations/rejections, decommissioned early 2026
 │   ├── enriched_citation_client.py  # Legacy - decommissioned early 2026
 │   └── litigation_client.py     # Legacy - not offered on ODP (issue #16)
 └── patentsview/

@@ -35,6 +35,7 @@ from tenacity import (
 
 from patent_mcp_server.util.logging import LoggingTransport
 from patent_mcp_server.util.errors import ApiError, retry_after_seconds
+from patent_mcp_server.util.validation import lucene_quote
 from patent_mcp_server.config import config
 from patent_mcp_server.constants import Defaults, PTABFields
 
@@ -91,12 +92,11 @@ class PTABClient:
     def _quote_value(value: str) -> str:
         r"""Lucene-safe quoted value: escape embedded backslashes and quotes.
 
-        Mirrors the quoting in ``odp_search_applications`` so a value
-        containing ``"`` or ``\`` cannot produce a malformed ``q`` string or
-        inject extra Lucene tokens.
+        Delegates to ``lucene_quote``, shared with the ODP search tools, so
+        a value containing ``"`` or ``\`` cannot produce a malformed ``q``
+        string or inject extra Lucene tokens.
         """
-        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
-        return f'"{escaped}"'
+        return lucene_quote(value)
 
     @classmethod
     def _build_q(

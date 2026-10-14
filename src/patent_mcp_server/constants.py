@@ -71,6 +71,9 @@ class Defaults:
     # actions are usually well under 1 MB; a full specification with
     # drawings can be several.
     MAX_BINARY_BYTES = 4_000_000
+    # ODP office-action and petition-decision searches refuse a page over
+    # 100 with a 400 (verified live 2026-10-14); the tools clamp instead.
+    ODP_SEARCH_MAX_LIMIT = 100
     REQUEST_TIMEOUT = 30.0
     RETRY_DELAY = 1.0
     MAX_RETRIES = 3
@@ -223,6 +226,56 @@ class PTABFields:
 
     # Decision issue date — trials/decisions and appeals/decisions
     DECISION_ISSUE_DATE = "decisionData.decisionIssueDate"
+
+
+class OfficeActionFields:
+    """ODP Office Action Search `q=` field names (verified live 2026-10-14).
+
+    Endpoint: POST /api/v1/patent/office-action/search (19.9M records,
+    earliest submissionDate 2007-07-27). officeActionText is indexed in
+    full but returned cut at 500 characters.
+    """
+    RECORD_ID = "officeActionRecordIdentifier"
+    APPLICATION_NUMBER = "applicationNumberText"
+    DOCUMENT_CODE = "documentCode"
+    REJECTION_TYPE = "rejectionTypeBag"
+    ART_UNIT = "groupArtUnitNumber"
+    SUBMISSION_DATE = "submissionDate"
+    TEXT = "officeActionText"
+    FACETS = ("documentCode", "rejectionTypeBag")
+    # Values rejectionTypeBag holds, keyed by lower case for lookup.
+    REJECTION_TYPES = {
+        v.lower(): v for v in ("101", "102", "103", "112", "DoublePatent", "Other")
+    }
+
+
+class PetitionDecisionFields:
+    """ODP Petition Decisions `q=` field names (verified live 2026-10-14).
+
+    Endpoint: POST /api/v1/petition/decisions/search (1.1M records,
+    earliest decisionDate 1991-01-10).
+    """
+    RECORD_ID = "petitionDecisionRecordIdentifier"
+    APPLICATION_NUMBER = "applicationNumberText"
+    PATENT_NUMBER = "patentNumber"
+    PETITION_TYPE_CODE = "decisionPetitionTypeCode"
+    PETITION_TYPE_TEXT = "decisionPetitionTypeCodeDescriptionText"
+    # The description field is analyzed text, so "GRANTED" also matches
+    # GRANTED-IN-PART; the one-letter code is exact.
+    OUTCOME_CODE = "decidedPetitionTypeCode"
+    OUTCOME_TEXT = "decidedPetitionTypeCodeDescriptionText"
+    DECIDING_OFFICE = "finalDecidingOfficeName"
+    TECHNOLOGY_CENTER = "technologyCenter"
+    DECISION_DATE = "decisionDate"
+    FINAL = "finalPetitionDecisionIndicator"
+    TEXT = "ocrSearchText"
+    FACETS = (OUTCOME_TEXT, DECIDING_OFFICE, PETITION_TYPE_CODE)
+    OUTCOME_CODES = {
+        "GRANTED": "A",
+        "GRANTED-IN-PART": "B",
+        "DENIED": "C",
+        "DISMISSED": "D",
+    }
 
 
 class TrademarkDefaults:

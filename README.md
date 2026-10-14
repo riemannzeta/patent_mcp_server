@@ -10,22 +10,24 @@ Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of 
 
 ## Features
 
-This server provides **38 tools** across six live USPTO data sources (25 more, for APIs USPTO has shut down, stay in the code behind `ENABLE_LEGACY_TOOLS`):
+This server provides **40 tools** across six live USPTO data sources (25 more, for APIs USPTO has shut down, stay in the code behind `ENABLE_LEGACY_TOOLS`):
 
 1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS
 2. **Full Text Documents** - Get the text of a patent by number, or just its claims, abstract or front page to save context
 3. **PDF Downloads** - Download patents as PDF files (Claude Desktop doesn't support this as a client currently)
 4. **Prosecution History** - Transactions, file-wrapper document lists filtered by type (office actions, responses, notices of allowance), and the documents themselves as PDF via ODP
-5. **Patent Family Data** - Continuity information, foreign priority, and related applications
-6. **Bulk Datasets** - Search and access USPTO bulk data products including PatentsView disambiguated data
-7. **Forward Citations** - Find the later patents that cite a patent
-8. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, goods/services, and class (clearance/knockout searches)
-9. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
-10. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
+5. **Office Action Search** - Search 19.9M office actions (2007 on) by examiner language, rejection statute, art unit and date, with counts by document code and statute
+6. **Petition Decisions** - Search 1.1M decisions on patent petitions (revival, reinstatement, make special, supervisory review) by text, type, outcome and office
+7. **Patent Family Data** - Continuity information, foreign priority, and related applications
+8. **Bulk Datasets** - Search and access USPTO bulk data products including PatentsView disambiguated data
+9. **Forward Citations** - Find the later patents that cite a patent
+10. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, goods/services, and class (clearance/knockout searches)
+11. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
+12. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
 
 It runs locally over stdio for Claude Desktop and Claude Code, or over HTTP as a shared, stateless service — see [Remote hosting over HTTP](#remote-hosting-over-http).
 
-> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. The 25 affected tools stay in the code but are not registered by default, since their schemas cost every client about 6k tokens per session and they can only fail; set `ENABLE_LEGACY_TOOLS=true` to register them, and each returns workaround guidance pointing to a live tool.
+> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026; office action search has since returned on ODP as `odp_search_office_actions`, but the citation and rejection tools have no replacement yet. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. The 25 affected tools stay in the code but are not registered by default, since their schemas cost every client about 6k tokens per session and they can only fail; set `ENABLE_LEGACY_TOOLS=true` to register them, and each returns workaround guidance pointing to a live tool.
 
 ## API Sources
 
@@ -39,7 +41,9 @@ It runs locally over stdio for Claude Desktop and Claude Code, or over HTTP as a
 | **assignmentcenter.uspto.gov** | Trademark ownership transfer records (1955-present) | No | Active |
 | **Patent Litigation API** | 74,000+ district court patent cases | N/A | Not offered on ODP (issue #16) |
 | **PatentsView API** | Disambiguated inventor/assignee data, advanced search | N/A | Shut down March 2026 |
-| **Office Action APIs** | Full-text office actions, citations, rejections | N/A | Decommissioned early 2026 |
+| **ODP Office Action Search** | Office actions 2007 on: text search, statutes, art units (text returned to 500 chars) | Yes (ODP API Key) | Active (2026-10) |
+| **ODP Petition Decisions** | Decisions on patent petitions, 1991 on | Yes (ODP API Key) | Active (2026-10) |
+| **Office Action APIs (developer.uspto.gov)** | Office action citations, claim-level rejections | N/A | Decommissioned early 2026 |
 
 ## Prerequisites
 
@@ -114,8 +118,9 @@ To use the api.uspto.gov tools (ODP, PTAB), you need an Open Data Portal API key
 1. Create a USPTO.gov account at [data.uspto.gov](https://data.uspto.gov) (requires ID.me verification)
 2. Once signed in, visit **"My ODP"** in the site navigation to get your API key
 3. See the [Getting Started guide](https://data.uspto.gov/apis/getting-started) for detailed instructions
+4. Complete your data.uspto.gov customer profile (job title, organization, intended use). ODP deactivates keys whose profile is incomplete, and a key that stops working with 401/403 usually means this.
 
-4. Create a `.env` file in the patent_mcp_server directory:
+5. Create a `.env` file in the patent_mcp_server directory:
    ```bash
    USPTO_API_KEY=your_actual_key_here
    ```
@@ -299,6 +304,8 @@ the command line wins where both are set.
 | `odp_get_transactions` | Get prosecution transaction history |
 | `odp_get_documents` | List file wrapper documents, filtered by document code (CTNF, CTFR, NOA, REM, CLM, 892…) and direction |
 | `odp_download_document` | Download one file wrapper document as PDF (office actions, responses, notices) |
+| `odp_search_office_actions` | Search office actions across applications by text, document code, rejection statute, art unit and date; previews are cut at 500 characters, so read hits with `odp_download_document` |
+| `odp_search_petition_decisions` | Search petition decisions by text, petition type, outcome, deciding office and date, with outcome counts |
 | `odp_search_datasets` | Search bulk data products |
 | `odp_get_dataset` | Get dataset product details |
 
@@ -368,14 +375,14 @@ All 14 PatentsView tools return `API_UNAVAILABLE` with workaround guidance. Pate
 
 #### Office Action APIs (Unavailable — decommissioned early 2026)
 
-All 4 Office Action tools return `API_UNAVAILABLE`. The documents themselves are in the file wrapper: `odp_get_documents(app_num, document_code="CTNF,CTFR")` lists the rejections and `odp_download_document` reads one.
+All 4 Office Action tools return `API_UNAVAILABLE`. `odp_search_office_actions` replaces the text and search tools; the citation and rejection datasets answer on ODP under new paths and wait on a client rewrite.
 
 | Tool | Workaround |
 |------|------------|
-| `get_office_action_text` | `odp_get_documents(document_code="CTNF,CTFR")` then `odp_download_document` |
-| `search_office_actions` | `odp_get_documents` or `odp_get_transactions` |
+| `get_office_action_text` | `odp_search_office_actions(app_num=...)` then `odp_download_document` |
+| `search_office_actions` | `odp_search_office_actions` |
 | `get_office_action_citations` | `odp_get_documents(document_code="892,1449")` then `odp_download_document` |
-| `get_office_action_rejections` | `odp_get_documents(document_code="CTNF,CTFR")` then `odp_download_document` |
+| `get_office_action_rejections` | `odp_search_office_actions(app_num=...)` for statutes, then `odp_download_document` |
 
 #### Enriched Citation APIs (Unavailable — decommissioned early 2026)
 
@@ -456,7 +463,15 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.5.0 (Current)
+### v1.6.0 (Current)
+- **New `odp_search_office_actions`** searches ODP's Office Action dataset (19.9M actions mailed since mid-2007) by full text, document code, rejection statute (101/102/103/112/double patenting), art unit, date and patent number. Every response carries facet counts by document code and statute for the whole match set, so `limit=1` answers counting questions. The API returns only the first 500 characters of each action; a hit's `document_id` is the file-wrapper documentIdentifier, so `odp_download_document` reads the rest
+- **New `odp_search_petition_decisions`** searches 1.1M petition decisions (1991 on) by text, petition type code or words, outcome, deciding office, technology center, date and final-agency-action flag, with outcome, office and type facets. Query matches in the excerpt are marked «like this»; `include_full_text` adds each decision's full OCR text
+- The `get_office_action_text` and `search_office_actions` legacy stubs now point to the new tool; `check_api_status` lists both datasets as active
+- 401/403 from these endpoints carry a hint about ODP's customer-profile requirement
+- Tool count: 40 registered by default (65 with `ENABLE_LEGACY_TOOLS`)
+- Verified live 2026-10-14
+
+### v1.5.0
 - **CPC titles below subclass level**: `get_cpc_info` (and `patents://cpc/{code}`) used a bundled table that stopped at the class level, so `G06N 3/08` came back as "Computing; Calculating; Counting". Subclasses, main groups and subgroups now come from USPTO's published CPC scheme page for the subclass (`www.uspto.gov/web/patents/classification/cpc/html/cpc-G06N.html`; no key), fetched once a day per subclass: `G06N 3/08` → "Learning methods", with the hierarchy `G06N › 3/00 › 3/02 › 3/08` and the subgroups beneath it. Accepts every form the other tools print (`G06N3/08`, `G06N 3/08`, `H04B7/0417 20130101`). A code the scheme does not contain returns `NOT_FOUND` with the subclass's main groups; if the page cannot be fetched, the static section and class titles come back with a `scheme_error`
 - **Prompt arguments**: all nine workflow prompts take optional arguments (patent number, company, mark, CPC codes, …). Whatever you give appears in a Subject section ahead of the steps; with no arguments the prompts read as before
 - New `CPC_SCHEME_BASE_URL` setting; new `cpc_scheme` entry in `check_api_status`

@@ -232,3 +232,28 @@ def validate_registration_number(registration_number: str) -> str:
         return validated.registration_number
     except Exception as e:
         raise ValueError(f"Invalid trademark registration number: {str(e)}")
+
+
+_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def lucene_quote(value: str) -> str:
+    r"""Quote a value for an ODP Lucene ``q`` string.
+
+    Escapes embedded backslashes and double quotes, so a value containing
+    ``"`` or ``\`` cannot end the phrase early and inject Lucene tokens.
+    """
+    escaped = str(value).replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def validate_iso_date(value: str) -> str:
+    """Check a YYYY-MM-DD date before it goes into a Lucene range clause.
+
+    Raises:
+        ValueError: If the value is not YYYY-MM-DD
+    """
+    value = str(value).strip()
+    if not _ISO_DATE_RE.match(value):
+        raise ValueError(f"Invalid date {value!r}: use YYYY-MM-DD")
+    return value

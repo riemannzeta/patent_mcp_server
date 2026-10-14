@@ -9,6 +9,7 @@ This module provides utilities for:
 
 import json
 import logging
+import re
 from typing import Any, Dict, List, Optional, Union
 
 from patent_mcp_server.config import config
@@ -525,6 +526,97 @@ def slim_document(
     if sections:
         slim["_sections"] = list(sections)
     return slim
+
+
+def _drop_empty(record: Dict[str, Any]) -> Dict[str, Any]:
+    return {k: v for k, v in record.items() if not _is_empty(v)}
+
+
+def slim_office_action(record: Dict[str, Any]) -> Dict[str, Any]:
+    """One ODP Office Action Search record under plain snake_case names.
+
+    ``obsoleteDocumentIdentifier`` is the file-wrapper documentIdentifier
+    (verified on application 18402543), so it comes out as ``document_id``
+    for odp_download_document. ``officeActionText`` comes out as
+    ``text_preview``: the API returns only its first 500 characters.
+    """
+    art_unit = record.get("groupArtUnitNumber")
+    return _drop_empty({
+        "record_id": record.get("officeActionRecordIdentifier"),
+        "app_num": record.get("applicationNumberText"),
+        "document_code": record.get("documentCode"),
+        "description": record.get("documentCodeDescriptionText"),
+        "submission_date": record.get("submissionDate"),
+        "filing_date": record.get("filingDate"),
+        "art_unit": str(art_unit) if art_unit is not None else None,
+        "title": record.get("inventionTitle"),
+        "rejection_types": record.get("rejectionTypeBag"),
+        "document_id": record.get("obsoleteDocumentIdentifier"),
+        "text_preview": record.get("officeActionText"),
+    })
+
+
+# ODP wraps each query match in ocrSearchText as
+# <b><span style='background-color: yellow;'>term</span></b>.
+_HIGHLIGHT_RE = re.compile(r"<b>\s*<span[^>]*>(.*?)</span>\s*</b>", re.DOTALL)
+
+
+def strip_highlights(text: Optional[str]) -> Optional[str]:
+    """Turn ODP's HTML match highlights into «term» markers."""
+    if not text:
+        return text
+    return _HIGHLIGHT_RE.sub(lambda m: f"\u00ab{m.group(1)}\u00bb", text)
+
+
+def slim_petition_decision(
+    record: Dict[str, Any],
+    include_full_text: bool = False,
+) -> Dict[str, Any]:
+    """One ODP Petition Decisions record under plain snake_case names.
+
+    ``allSearchableFields`` repeats the whole record and the decision's
+    full OCR text as one string, so it is dropped unless the caller asks
+    for the text. The file-wrapper documents are left to the caller.
+    """
+    slim = _drop_empty({
+        "record_id": record.get("petitionDecisionRecordIdentifier"),
+        "app_num": record.get("applicationNumberText"),
+        "patent_number": record.get("patentNumber"),
+        "decision_date": record.get("decisionDate"),
+        "decision_mail_date": record.get("decisionMailDate"),
+        "petition_mail_date": record.get("petitionMailDate"),
+        "petition_type_code": record.get("decisionPetitionTypeCode"),
+        "petition_type": record.get("decisionPetitionTypeCodeDescriptionText"),
+        "outcome": record.get("decidedPetitionTypeCodeDescriptionText"),
+        "deciding_office": record.get("finalDecidingOfficeName"),
+        "final_decision": record.get("finalPetitionDecisionIndicator"),
+        "court_action": record.get("courtActionIndicator"),
+        "technology_center": record.get("technologyCenter"),
+        "art_unit": record.get("groupArtUnitNumber"),
+        "entity_status": record.get("businessEntityStatusCategory"),
+        "title": record.get("inventionTitle"),
+        "inventors": record.get("inventorBag"),
+        "first_applicant": record.get("firstApplicantName"),
+        "application_status": record.get("applicationStatusDescriptionText"),
+        "text": strip_highlights(record.get("ocrSearchText")),
+    })
+    if include_full_text and record.get("allSearchableFields"):
+        slim["full_text"] = record["allSearchableFields"]
+    return slim
+
+
+def facet_counts(facets: Any) -> Dict[str, Dict[str, int]]:
+    """ODP facets ({field: [{value, count}]}) as {field: {value: count}}."""
+    if not isinstance(facets, dict):
+        return {}
+    return {
+        field: {
+            str(bucket.get("value")): bucket.get("count")
+            for bucket in buckets or []
+            if isinstance(bucket, dict)
+        }
+        for field, buckets in facets.items()
+    }
 
 
 def check_and_truncate(
