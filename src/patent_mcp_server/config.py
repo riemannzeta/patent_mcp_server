@@ -36,9 +36,6 @@ class Config:
     PATENTSVIEW_BASE_URL: str = os.getenv("PATENTSVIEW_BASE_URL", "https://search.patentsview.org")  # Legacy - shut down March 2026
     PATENTSVIEW_RATE_LIMIT: int = int(os.getenv("PATENTSVIEW_RATE_LIMIT", "45"))  # Legacy - shut down March 2026
 
-    # Office Action API
-    OFFICE_ACTION_BASE_URL: str = os.getenv("OFFICE_ACTION_BASE_URL", "https://developer.uspto.gov")  # Legacy - decommissioned early 2026, pending ODP migration
-
     # CPC scheme pages (v1.5.0): one static HTML page per subclass with the
     # title of every main group and subgroup, e.g. .../cpc-G06N.html. No key.
     CPC_SCHEME_BASE_URL: str = os.getenv(
@@ -80,7 +77,7 @@ class Config:
     MCP_JSON_RESPONSE: bool = os.getenv("MCP_JSON_RESPONSE", "false").lower() == "true"
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.7.0")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.8.0")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry

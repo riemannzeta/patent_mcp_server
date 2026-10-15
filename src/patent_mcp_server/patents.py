@@ -26,6 +26,7 @@ import argparse
 import base64
 import json
 import logging
+import re
 import sys
 from typing import Annotated, Any, Dict, List, Optional, Union
 
@@ -38,6 +39,8 @@ from patent_mcp_server.config import config, LOOPBACK_HOSTS, VALID_TRANSPORTS
 from patent_mcp_server.constants import (
     Sources, Fields, Defaults, DocumentSections, PatentsViewEndpoints,
     OfficeActionFields, PetitionDecisionFields,
+    OfficeActionRejectionFields, OfficeActionCitationFields,
+    OfficeActionDatasetDefaults,
 )
 from patent_mcp_server.util.errors import ApiError, is_error
 from patent_mcp_server.util.document_text import (
@@ -51,6 +54,7 @@ from patent_mcp_server.util.validation import (
 from patent_mcp_server.util.response import (
     ResponseEnvelope, check_and_truncate, estimate_tokens, slim_document,
     slim_office_action, slim_petition_decision, facet_counts,
+    group_rejection_rows, slim_oa_citation,
 )
 from patent_mcp_server.resources import (
     get_cpc_section_info, get_cpc_subsection_info,
@@ -69,7 +73,9 @@ from patent_mcp_server.uspto.tsdr_client import TSDRClient
 from patent_mcp_server.uspto.tmsearch_client import TmSearchClient
 from patent_mcp_server.uspto.tm_assignment_client import TmAssignmentClient
 from patent_mcp_server.uspto.cpc_scheme_client import CpcSchemeClient, normalize_cpc_symbol
-from patent_mcp_server.uspto.office_action_client import OfficeActionClient
+from patent_mcp_server.uspto.office_action_client import (
+    OfficeActionClient, REJECTIONS, CITATIONS,
+)
 from patent_mcp_server.uspto.enriched_citation_client import EnrichedCitationClient
 from patent_mcp_server.patentsview.patentsview_client import PatentsViewClient
 
@@ -585,16 +591,18 @@ async def check_api_status() -> Dict[str, Any]:
                 "live 2026-10-14."
             ),
         },
-        "office_action_legacy": {
-            "name": "Office Action Citations and Rejections (developer.uspto.gov)",
-            "configured": False,
-            "status": "UNAVAILABLE",
+        "office_action_datasets": {
+            "name": "Office Action Rejections and Citations (ODP)",
+            "configured": bool(config.USPTO_API_KEY),
+            "api_key_set": bool(config.USPTO_API_KEY),
+            "status": "ACTIVE",
             "note": (
-                "Legacy endpoints at developer.uspto.gov were decommissioned "
-                "in early 2026. get_office_action_citations and "
-                "get_office_action_rejections stay unavailable; use "
-                "odp_search_office_actions for rejection statutes and "
-                "odp_get_documents for 892 citation forms."
+                "get_office_action_rejections and get_office_action_citations "
+                "on api.uspto.gov/api/v1/patent/oa/, verified live "
+                "2026-10-15. Claim-level rows from 2012 on, about a week "
+                "behind the mail date. The developer.uspto.gov text and "
+                "search endpoints stay decommissioned; "
+                "odp_search_office_actions replaces them."
             ),
         },
         "tsdr": {
@@ -665,8 +673,8 @@ async def check_api_status() -> Dict[str, Any]:
         "legacy_tools": {
             "registered": config.ENABLE_LEGACY_TOOLS,
             "note": (
-                "The 25 tools for shut-down APIs (patentsview_*, office "
-                "action, enriched citation, litigation) are "
+                "The 23 tools for shut-down APIs (patentsview_*, office "
+                "action text and search, enriched citation, litigation) are "
                 + ("registered because ENABLE_LEGACY_TOOLS is set; each "
                    "returns API_UNAVAILABLE with workaround guidance."
                    if config.ENABLE_LEGACY_TOOLS else
@@ -2951,77 +2959,349 @@ async def search_office_actions(
     }
 
 
-@legacy_tool()
-async def get_office_action_citations(
-    application_number: str,
-    mail_date: Optional[str] = None,
-) -> Dict[str, Any]:
-    """Get prior art citations from office actions.
+def _oa_dataset_date_clause(
+    field: str, date_from: Optional[str], date_to: Optional[str]
+) -> Optional[str]:
+    """`field:[fromT00:00:00 TO toT23:59:59]`; the field is a datetime."""
+    if not (date_from or date_to):
+        return None
+    start = f"{validate_iso_date(date_from)}T00:00:00" if date_from else "*"
+    end = f"{validate_iso_date(date_to)}T23:59:59" if date_to else "*"
+    return f"{field}:[{start} TO {end}]"
 
-    USE THIS TOOL WHEN: You need to see what references the examiner
-    cited against an application.
 
-    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned,
-    ODP migration pending. Use get_enriched_citations as an alternative.
+def _oa_reference_clause(reference: str) -> str:
+    """Match a cited US patent or publication in the citation dataset.
 
-    Args:
-        application_number: Application number
-        mail_date: Optional filter by mail date (YYYY-MM-DD)
-
-    Returns:
-        Citations from Form PTO-892, PTO-1449, and office action text.
+    parsedReferenceIdentifier is blank on many rows, and referenceIdentifier
+    writes the number with or without separators ("US 2013/0120945 A1",
+    "US 20130120945 A1", "US 6,750,970 B2"), so the clause tries all three
+    (verified live 2026-10-15: 3 parsed rows, 7 in the union).
     """
-    return {
-        "error": True,
-        "message": (
-            "Office Action citations API is temporarily unavailable. The legacy "
-            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
-            "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use ppubs_get_citing_patents(patent_number) for forward citations, "
-            "ppubs_get_patent_by_number(patent_number, sections=[\"biblio\"]) for "
-            "the references it cites (usRefGroup), or odp_get_documents(app_num, "
-            "document_code=\"892,1449\") for the citation forms in the file wrapper."
-        ),
-        "error_code": "API_UNAVAILABLE",
-        "workaround": "ppubs_get_citing_patents(patent_number) for forward citations; ppubs_get_patent_by_number(patent_number, sections=[\"biblio\"]) for backward citations.",
+    F = OfficeActionCitationFields
+    text = re.sub(r"[\s,/\-]", "", reference.upper())
+    text = re.sub(r"^US", "", text)
+    text = re.sub(r"(?<=\d)[ABSEPH]\d?$", "", text)
+    if not text.isdigit():
+        return f"{F.REFERENCE_TEXT}:{lucene_quote(reference.strip())}"
+    forms = [f"{F.REFERENCE}:{lucene_quote(text)}", f"{F.REFERENCE_TEXT}:{text}"]
+    if len(text) == 11:  # publication: YYYY/NNNNNNN
+        forms.append(f"{F.REFERENCE_TEXT}:{lucene_quote(text[:4] + '/' + text[4:])}")
+    else:  # patent: 6,750,970
+        forms.append(f"{F.REFERENCE_TEXT}:{lucene_quote(f'{int(text):,}')}")
+    return "(" + " OR ".join(forms) + ")"
+
+
+async def _oa_dataset_page(
+    dataset: str, clauses: List[str], offset: int, limit: int
+) -> Dict[str, Any]:
+    """Query one office action dataset; returns the client's page plus the
+    clamped limit and the query, or an error dictionary."""
+    requested = limit
+    limit = max(1, min(int(limit), OfficeActionDatasetDefaults.LIMIT_MAX))
+    offset = max(0, int(offset))
+    criteria = " AND ".join(clauses)
+    page = await office_action_client.search_records(dataset, criteria, offset, limit)
+    if is_error(page):
+        if page.get("status_code") in (401, 403):
+            page["hint"] = _ODP_PROFILE_HINT
+        return page
+    page.update({
+        "criteria": criteria,
+        "offset": offset,
+        "limit": limit,
+        "clamped_from": requested if requested != limit else None,
+    })
+    return page
+
+
+async def _oa_app_clause(
+    field: str, application_number: Optional[str], patent_number: Optional[str]
+) -> Optional[Union[str, Dict[str, Any]]]:
+    """The application-number clause, resolving a patent number first.
+    Returns None, a clause, or an error dictionary; raises ValueError."""
+    if application_number:
+        return f"{field}:{lucene_quote(validate_app_number(str(application_number)))}"
+    if patent_number:
+        resolved = await _app_num_for_patent(validate_patent_number(str(patent_number)))
+        if is_error(resolved):
+            return resolved
+        return f"{field}:{lucene_quote(resolved['app_num'])}"
+    return None
+
+
+def _oa_page_metadata(page: Dict[str, Any], rows_returned: int) -> Dict[str, Any]:
+    metadata: Dict[str, Any] = {
+        "query": page["criteria"],
+        "rows_returned": rows_returned,
     }
+    if page["offset"] + rows_returned < page["total"]:
+        metadata["next_offset"] = page["offset"] + rows_returned
+    if page["clamped_from"] is not None:
+        metadata["limit_clamped_from"] = page["clamped_from"]
+    return metadata
 
 
-@legacy_tool()
+@tool()
 async def get_office_action_rejections(
-    application_number: str,
+    application_number: Optional[str] = None,
     mail_date: Optional[str] = None,
+    patent_number: Optional[str] = None,
+    document_id: Optional[str] = None,
+    statute: Optional[str] = None,
+    case_law: Optional[str] = None,
+    document_code: Optional[str] = None,
+    art_unit: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    query: Optional[str] = None,
+    offset: int = 0,
+    limit: int = OfficeActionDatasetDefaults.LIMIT,
 ) -> Dict[str, Any]:
-    """Get rejection data from office actions.
+    """Get claim-level rejection data from office actions.
 
-    USE THIS TOOL WHEN: You need structured data about claim rejections
-    including rejection type (102, 103, 112) and affected claims.
+    USE THIS TOOL WHEN: You need which claims an examiner rejected, objected
+    to or allowed in each office action, and under which statute (101, 102,
+    103, 112, double patenting); or claim-level 101 analytics across
+    applications, such as actions citing Alice or Mayo in an art unit
+    (case_law="alice", art_unit="3689"). For the action's text, search with
+    odp_search_office_actions and read it with odp_download_document.
 
-    IMPORTANT: Temporarily unavailable — legacy endpoints decommissioned.
-    odp_search_office_actions(app_num=...) gives each action's rejection
-    statutes, though not the claim-level detail.
+    Results come grouped by office action. statutes and case_law describe
+    the whole action; claims sums up the claim numbers by what happened to
+    them; claim_groups keeps the dataset's rows (each with action,
+    legal_section, form paragraph and claims). The rows are extracted by
+    machine from the action's text, so treat them as a guide and read the
+    action for anything that matters.
+
+    Coverage: actions mailed from 2012 on (93M rows), appearing about a
+    week after mailing. Pagination counts rows, not actions; an action can
+    straddle two pages.
 
     Args:
-        application_number: Application number
-        mail_date: Optional filter by mail date (YYYY-MM-DD)
+        application_number: Application number without slashes (e.g. "18402543")
+        mail_date: Mail date of one action, YYYY-MM-DD
+        patent_number: Patent number; resolved to its application first
+        document_id: File-wrapper documentIdentifier of one action
+        statute: Comma-separated statutes, all of which the action must
+            apply: 101, 102, 103, 112, DP (double patenting)
+        case_law: Comma-separated cases, all of which the action must cite:
+            alice, mayo, myriad, bilski
+        document_code: Comma-separated codes, e.g. CTNF (non-final), CTFR (final)
+        art_unit: Group art unit (e.g. "3689")
+        date_from: Earliest mail date, YYYY-MM-DD
+        date_to: Latest mail date, YYYY-MM-DD
+        query: Extra Solr clause, AND-ed with the filters
+            (e.g. nationalClass:"705")
+        offset: Row offset (default: 0)
+        limit: Rows to read (default: 50, at most 200)
 
     Returns:
-        Rejection data with claim-level details.
+        Office actions with document_id, app_num, document_code, mail_date,
+        art_unit, statutes, case_law, claims and claim_groups. total counts
+        rows; metadata.next_offset continues the scan.
     """
-    return {
-        "error": True,
-        "message": (
-            "Office Action rejections API is temporarily unavailable. The legacy "
-            "endpoints at developer.uspto.gov were decommissioned in early 2026 "
-            "and have not yet been migrated to the ODP (api.uspto.gov). "
-            "Use odp_search_office_actions(app_num=...) for each office "
-            "action's rejection statutes (101/102/103/112), then "
-            "odp_download_document(app_num, document_id) to read the claim-level "
-            "detail."
-        ),
-        "error_code": "API_UNAVAILABLE",
-        "workaround": "odp_search_office_actions(app_num=...), then odp_download_document(app_num, document_id).",
-    }
+    F = OfficeActionRejectionFields
+    clauses: List[str] = []
+    try:
+        app_clause = await _oa_app_clause(F.APPLICATION_NUMBER, application_number, patent_number)
+        if isinstance(app_clause, dict):
+            return app_clause
+        if app_clause:
+            clauses.append(app_clause)
+        if document_id:
+            clauses.append(f"{F.DOCUMENT_ID}:{lucene_quote(str(document_id).strip())}")
+        if mail_date:
+            clauses.append(_oa_dataset_date_clause(F.SUBMISSION_DATE, mail_date, mail_date))
+        date_clause = _oa_dataset_date_clause(F.SUBMISSION_DATE, date_from, date_to)
+        if date_clause:
+            clauses.append(date_clause)
+        for value in (v.strip() for v in (statute or "").split(",")):
+            if not value:
+                continue
+            flag = F.STATUTE_FLAGS.get(value.upper().removeprefix("§"))
+            if flag is None:
+                return ApiError.validation_error(
+                    f"Unknown statute {value!r}; use " + ", ".join(F.STATUTE_FLAGS),
+                    "statute",
+                )
+            clauses.append(f"{flag}:1")
+        for value in (v.strip() for v in (case_law or "").split(",")):
+            if not value:
+                continue
+            flag = F.CASE_LAW_FLAGS.get(value.lower())
+            if flag is None:
+                return ApiError.validation_error(
+                    f"Unknown case_law {value!r}; use " + ", ".join(F.CASE_LAW_FLAGS),
+                    "case_law",
+                )
+            clauses.append(f"{flag}:true")
+        if document_code:
+            clause = _any_of_clause(F.DOCUMENT_CODE, document_code.upper())
+            if clause:
+                clauses.append(clause)
+        if art_unit:
+            clauses.append(f"{F.ART_UNIT}:{lucene_quote(str(art_unit).strip())}")
+        if query:
+            clauses.append(f"({query})")
+    except ValueError as e:
+        return ApiError.validation_error(str(e))
+
+    if not clauses:
+        return ApiError.create(
+            message=(
+                "At least one filter is required. Provide application_number, "
+                "patent_number, document_id, a date, statute, case_law, "
+                "document_code, art_unit or query."
+            ),
+            error_code="MISSING_FILTER",
+        )
+
+    page = await _oa_dataset_page(REJECTIONS, clauses, offset, limit)
+    if is_error(page):
+        return page
+
+    actions = group_rejection_rows(page["docs"])
+    metadata = _oa_page_metadata(page, len(page["docs"]))
+    metadata["note"] = (
+        "total counts dataset rows (several per action). Read an action's "
+        "text with odp_download_document(app_num, document_id, format=\"text\")."
+    )
+    response = ResponseEnvelope.success(
+        results=actions,
+        source="odp",
+        total=page["total"],
+        offset=page["offset"],
+        limit=page["limit"],
+        metadata=metadata,
+    )
+    # count is actions but total is rows; paging follows the rows.
+    response["has_more"] = "next_offset" in metadata
+    return check_and_truncate(response)
+
+
+@tool()
+async def get_office_action_citations(
+    application_number: Optional[str] = None,
+    mail_date: Optional[str] = None,
+    patent_number: Optional[str] = None,
+    document_id: Optional[str] = None,
+    cited_reference: Optional[str] = None,
+    legal_section: Optional[str] = None,
+    examiner_cited: Optional[bool] = None,
+    art_unit: Optional[str] = None,
+    tech_center: Optional[str] = None,
+    query: Optional[str] = None,
+    offset: int = 0,
+    limit: int = OfficeActionDatasetDefaults.LIMIT,
+) -> Dict[str, Any]:
+    """Get the prior art examiners cited in office actions.
+
+    USE THIS TOOL WHEN: You need the references an examiner cited against
+    an application, and under which statute (102 or 103); or, in reverse,
+    which applications' office actions cited a given patent or publication
+    (cited_reference="US 2013/0120945 A1"). For citations on an issued
+    patent's front page, ppubs_get_patent_by_number(sections=["biblio"])
+    is cheaper; for later patents citing it, ppubs_get_citing_patents.
+
+    Coverage: office actions from about 2012 on; rows appear about a week
+    after mailing. Rows carry no mail date, so mail_date (with an
+    application or patent number) finds that day's actions in the
+    rejection dataset first.
+
+    Args:
+        application_number: Application number without slashes (e.g. "18402543")
+        mail_date: Mail date of one action, YYYY-MM-DD (needs
+            application_number or patent_number)
+        patent_number: Patent number; resolved to its application first
+        document_id: File-wrapper documentIdentifier of one action
+        cited_reference: A cited US patent or publication number, with or
+            without "US", separators or kind code
+        legal_section: Comma-separated sections the reference was applied
+            under: 102, 103
+        examiner_cited: True for references the examiner cited
+        art_unit: Group art unit (e.g. "1798")
+        tech_center: Technology center (e.g. "1700")
+        query: Extra Solr clause, AND-ed with the filters
+        offset: Row offset (default: 0)
+        limit: Rows to read (default: 50, at most 200)
+
+    Returns:
+        Citations with app_num, document_id, reference (as written),
+        reference_number (digits, when USPTO parsed them), legal_section,
+        action, examiner_cited, applicant_cited, relied_on_in_action,
+        art_unit and tech_center.
+    """
+    F = OfficeActionCitationFields
+    clauses: List[str] = []
+    try:
+        app_clause = await _oa_app_clause(F.APPLICATION_NUMBER, application_number, patent_number)
+        if isinstance(app_clause, dict):
+            return app_clause
+        if app_clause:
+            clauses.append(app_clause)
+        if mail_date:
+            if not app_clause:
+                return ApiError.validation_error(
+                    "mail_date needs application_number or patent_number", "mail_date",
+                )
+            R = OfficeActionRejectionFields
+            lookup = await _oa_dataset_page(
+                REJECTIONS,
+                [app_clause,
+                 _oa_dataset_date_clause(R.SUBMISSION_DATE, mail_date, mail_date)],
+                0, OfficeActionDatasetDefaults.LIMIT_MAX,
+            )
+            if is_error(lookup):
+                return lookup
+            ids = sorted({d.get(R.DOCUMENT_ID) for d in lookup["docs"] if d.get(R.DOCUMENT_ID)})
+            if not ids:
+                return ResponseEnvelope.success(
+                    results=[], source="odp", total=0, offset=0, limit=limit,
+                    metadata={"note": f"No office action mailed {mail_date} is in the rejection dataset for this application."},
+                )
+            clauses.append(_any_of_clause(F.DOCUMENT_ID, ",".join(ids)))
+        if document_id:
+            clauses.append(f"{F.DOCUMENT_ID}:{lucene_quote(str(document_id).strip())}")
+        if cited_reference:
+            clauses.append(_oa_reference_clause(str(cited_reference)))
+        if legal_section:
+            clause = _any_of_clause(F.LEGAL_SECTION, legal_section)
+            if clause:
+                clauses.append(clause)
+        if examiner_cited is not None:
+            clauses.append(f"{F.EXAMINER_CITED}:{'true' if examiner_cited else 'false'}")
+        if art_unit:
+            clauses.append(f"{F.ART_UNIT}:{lucene_quote(str(art_unit).strip())}")
+        if tech_center:
+            clauses.append(f"{F.TECH_CENTER}:{lucene_quote(str(tech_center).strip())}")
+        if query:
+            clauses.append(f"({query})")
+    except ValueError as e:
+        return ApiError.validation_error(str(e))
+
+    if not clauses:
+        return ApiError.create(
+            message=(
+                "At least one filter is required. Provide application_number, "
+                "patent_number, document_id, cited_reference, legal_section, "
+                "art_unit, tech_center or query."
+            ),
+            error_code="MISSING_FILTER",
+        )
+
+    page = await _oa_dataset_page(CITATIONS, clauses, offset, limit)
+    if is_error(page):
+        return page
+
+    return check_and_truncate(ResponseEnvelope.success(
+        results=[slim_oa_citation(d) for d in page["docs"]],
+        source="odp",
+        total=page["total"],
+        offset=page["offset"],
+        limit=page["limit"],
+        metadata=_oa_page_metadata(page, len(page["docs"])),
+    ))
 
 
 # =====================================================================

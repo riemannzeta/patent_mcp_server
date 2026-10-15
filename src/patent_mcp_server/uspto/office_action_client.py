@@ -1,22 +1,33 @@
 """
-USPTO Office Action API Client
+USPTO Office Action Citations and Rejections (ODP)
 
-This module provides access to USPTO Office Action APIs via the Open Data Portal
-(ODP) at api.uspto.gov for accessing full-text office actions, citations, and
-rejection data.
+The two claim-level office action datasets answer on the Open Data Portal
+(verified live 2026-10-15):
 
-APIs included:
-- Office Action Text Retrieval API
-- Office Action Citations API
-- Office Action Rejection API
+    POST {API_BASE_URL}/api/v1/patent/oa/oa_rejections/v2/records
+    POST {API_BASE_URL}/api/v1/patent/oa/oa_citations/v2/records
 
-Note: These APIs were decommissioned at developer.uspto.gov in early 2026.
-Pending migration to api.uspto.gov (ODP). The client is preserved for
-future reconnection once replacement endpoints are available.
+Both take a form-encoded Solr query (``criteria``, ``start``, ``rows``) and
+answer ``{"response": {"start", "numFound", "docs": [...]}}``. A query that
+matches nothing answers 200 with ``numFound`` 0; a query Solr cannot parse
+answers 200 with ``{}``. ``rows`` has no server-side cap, so callers clamp it.
+
+Rejections hold ~93M rows from 2012 on, several per office action: one per
+claim group and statute, extracted by machine from the action's text.
+Citations hold one row per reference an action cites. Rows appear about a
+week after the action is mailed.
+
+The developer.uspto.gov paths this client used to call
+(``/ds-api/oa-text/v1``, ``/ds-api/oa-citations/v2/search``,
+``/ds-api/oa-rejections/v2/search``) were decommissioned in early 2026.
+Office action text now comes from ``odp_search_office_actions`` and
+``odp_download_document``.
 """
 
+import asyncio
 import logging
-from typing import Any, Optional, Dict, List
+from typing import Any, Dict
+
 import httpx2
 from tenacity import (
     retry,
@@ -26,29 +37,22 @@ from tenacity import (
 )
 
 from patent_mcp_server.util.logging import LoggingTransport
-from patent_mcp_server.util.errors import ApiError
+from patent_mcp_server.util.errors import ApiError, retry_after_seconds
 from patent_mcp_server.config import config
-from patent_mcp_server.constants import HTTPMethods, Defaults
 
 logger = logging.getLogger('office_action_client')
 
+REJECTIONS = "oa_rejections"
+CITATIONS = "oa_citations"
+
 
 class OfficeActionClient:
-    """Client for USPTO Office Action APIs.
-
-    Provides access to:
-    - Office Action text retrieval (full-text of office actions)
-    - Office Action citations (references cited in office actions)
-    - Office Action rejections (rejection data with claim-level details)
-
-    Data available from June 1, 2018 to 180 days prior to current date.
-    """
+    """Client for the ODP office action rejection and citation datasets."""
 
     def __init__(self):
-        self.base_url = config.OFFICE_ACTION_BASE_URL
+        self.base_url = config.API_BASE_URL
         self.headers = {
             "User-Agent": config.USER_AGENT,
-            "X-API-KEY": config.USPTO_API_KEY if config.USPTO_API_KEY else "",
             "Accept": "application/json",
         }
 
@@ -69,6 +73,9 @@ class OfficeActionClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
+    def records_url(self, dataset: str) -> str:
+        return f"{self.base_url}/api/v1/patent/oa/{dataset}/v2/records"
+
     @retry(
         stop=stop_after_attempt(config.MAX_RETRIES),
         wait=wait_exponential(
@@ -79,51 +86,56 @@ class OfficeActionClient:
         retry=retry_if_exception_type((httpx2.TimeoutException, httpx2.NetworkError)),
         reraise=True
     )
-    async def _make_request(
+    async def search_records(
         self,
-        endpoint: str,
-        method: str = HTTPMethods.GET,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None
+        dataset: str,
+        criteria: str,
+        start: int = 0,
+        rows: int = 25,
     ) -> Dict[str, Any]:
-        """Make a request to the Office Action API.
+        """Run a Solr query against one dataset.
 
         Args:
-            endpoint: API endpoint path
-            method: HTTP method
-            params: Query parameters for GET requests
-            data: JSON body for POST requests
+            dataset: REJECTIONS or CITATIONS
+            criteria: Solr/Lucene query (e.g. patentApplicationNumber:"18402543")
+            start: Offset of the first row
+            rows: Number of rows to return
 
         Returns:
-            Response JSON dictionary or error dictionary
+            {"total": numFound, "docs": [...]} or an error dictionary
         """
-        url = f"{self.base_url}{endpoint}"
-        logger.info(f"Making {method} request to {url}")
+        url = self.records_url(dataset)
+        # The API key goes per request so a key set after import still works.
+        headers = {"X-API-KEY": config.USPTO_API_KEY or ""}
+        form = {"criteria": criteria, "start": str(start), "rows": str(rows)}
+        logger.info(f"POST {url} criteria={criteria!r} start={start} rows={rows}")
 
         try:
-            if method == HTTPMethods.GET:
-                response = await self.client.get(url, params=params)
-            else:
-                response = await self.client.post(url, json=data)
-
-            response.raise_for_status()
-            return response.json()
+            for attempt in range(config.MAX_RETRIES):
+                response = await self.client.post(url, headers=headers, data=form)
+                # api.uspto.gov rate-limits per key; wait and try again.
+                if response.status_code == 429 and attempt < config.MAX_RETRIES - 1:
+                    delay = retry_after_seconds(response, attempt)
+                    logger.warning(f"ODP API rate limit (429); retrying in {delay:.0f}s")
+                    await asyncio.sleep(delay)
+                    continue
+                response.raise_for_status()
+                break
+            payload = response.json()
 
         except httpx2.HTTPStatusError as e:
             status_code = e.response.status_code
             logger.error(f"HTTP error: {status_code} - {e.response.text}")
-
             try:
-                error_json = e.response.json()
                 return ApiError.from_http_error(
                     status_code=status_code,
                     response_text=e.response.text,
-                    response_json=error_json
+                    response_json=e.response.json(),
                 )
             except Exception:
                 return ApiError.from_http_error(
                     status_code=status_code,
-                    response_text=e.response.text
+                    response_text=e.response.text,
                 )
 
         except (httpx2.TimeoutException, httpx2.NetworkError) as e:
@@ -132,247 +144,17 @@ class OfficeActionClient:
 
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
-            return ApiError.from_exception(e, "Office Action API request failed")
+            return ApiError.from_exception(e, "Office action dataset request failed")
 
-    # =========================================================================
-    # Office Action Text Retrieval API
-    # =========================================================================
-
-    async def get_office_action_text(
-        self,
-        application_number: str,
-        mail_date: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """Get full-text of office actions for an application.
-
-        Args:
-            application_number: Patent application number (e.g., "12345678")
-            mail_date: Filter by mail date (YYYY-MM-DD format)
-
-        Returns:
-            Dictionary containing office action text
-        """
-        params = {"applicationNumber": application_number}
-        if mail_date:
-            params["mailDate"] = mail_date
-
-        return await self._make_request("/ds-api/oa-text/v1/search", params=params)
-
-    async def search_office_actions(
-        self,
-        query: Optional[str] = None,
-        application_number: Optional[str] = None,
-        examiner_name: Optional[str] = None,
-        art_unit: Optional[str] = None,
-        mail_date_from: Optional[str] = None,
-        mail_date_to: Optional[str] = None,
-        action_type: Optional[str] = None,
-        offset: int = Defaults.SEARCH_START,
-        limit: int = Defaults.API_LIMIT,
-    ) -> Dict[str, Any]:
-        """Search office actions.
-
-        Args:
-            query: Full-text search query
-            application_number: Patent application number
-            examiner_name: Examiner name
-            art_unit: Art unit number
-            mail_date_from: Mail date range start (YYYY-MM-DD)
-            mail_date_to: Mail date range end (YYYY-MM-DD)
-            action_type: Type of office action
-            offset: Starting position for pagination
-            limit: Maximum results to return
-
-        Returns:
-            Dictionary containing search results
-        """
-        params = {"offset": offset, "limit": limit}
-
-        if query:
-            params["q"] = query
-        if application_number:
-            params["applicationNumber"] = application_number
-        if examiner_name:
-            params["examinerName"] = examiner_name
-        if art_unit:
-            params["artUnit"] = art_unit
-        if mail_date_from:
-            params["mailDateFrom"] = mail_date_from
-        if mail_date_to:
-            params["mailDateTo"] = mail_date_to
-        if action_type:
-            params["actionType"] = action_type
-
-        return await self._make_request("/ds-api/oa-text/v1/search", params=params)
-
-    # =========================================================================
-    # Office Action Citations API
-    # =========================================================================
-
-    async def get_office_action_citations(
-        self,
-        application_number: str,
-        mail_date: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """Get citations from office actions for an application.
-
-        Citations include references from Form PTO-892, Form PTO-1449,
-        and text of office actions.
-
-        Args:
-            application_number: Patent application number
-            mail_date: Filter by mail date (YYYY-MM-DD format)
-
-        Returns:
-            Dictionary containing citation data
-        """
-        params = {"applicationNumber": application_number}
-        if mail_date:
-            params["mailDate"] = mail_date
-
-        return await self._make_request("/ds-api/oa-citations/v2/search", params=params)
-
-    async def search_citations(
-        self,
-        query: Optional[str] = None,
-        application_number: Optional[str] = None,
-        cited_patent_number: Optional[str] = None,
-        citation_type: Optional[str] = None,
-        mail_date_from: Optional[str] = None,
-        mail_date_to: Optional[str] = None,
-        offset: int = Defaults.SEARCH_START,
-        limit: int = Defaults.API_LIMIT,
-    ) -> Dict[str, Any]:
-        """Search office action citations.
-
-        Args:
-            query: Full-text search query
-            application_number: Patent application number
-            cited_patent_number: Patent number being cited
-            citation_type: Type of citation (US Patent, Foreign, NPL)
-            mail_date_from: Mail date range start (YYYY-MM-DD)
-            mail_date_to: Mail date range end (YYYY-MM-DD)
-            offset: Starting position for pagination
-            limit: Maximum results to return
-
-        Returns:
-            Dictionary containing citation search results
-        """
-        params = {"offset": offset, "limit": limit}
-
-        if query:
-            params["q"] = query
-        if application_number:
-            params["applicationNumber"] = application_number
-        if cited_patent_number:
-            params["citedPatentNumber"] = cited_patent_number
-        if citation_type:
-            params["citationType"] = citation_type
-        if mail_date_from:
-            params["mailDateFrom"] = mail_date_from
-        if mail_date_to:
-            params["mailDateTo"] = mail_date_to
-
-        return await self._make_request("/ds-api/oa-citations/v2/search", params=params)
-
-    # =========================================================================
-    # Office Action Rejection API
-    # =========================================================================
-
-    async def get_office_action_rejections(
-        self,
-        application_number: str,
-        mail_date: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """Get rejection data from office actions for an application.
-
-        Includes document level data with type of actions taken on claims.
-
-        Args:
-            application_number: Patent application number
-            mail_date: Filter by mail date (YYYY-MM-DD format)
-
-        Returns:
-            Dictionary containing rejection data
-        """
-        params = {"applicationNumber": application_number}
-        if mail_date:
-            params["mailDate"] = mail_date
-
-        return await self._make_request("/ds-api/oa-rejections/v2/search", params=params)
-
-    async def search_rejections(
-        self,
-        query: Optional[str] = None,
-        application_number: Optional[str] = None,
-        rejection_type: Optional[str] = None,
-        rejection_basis: Optional[str] = None,
-        claim_number: Optional[int] = None,
-        mail_date_from: Optional[str] = None,
-        mail_date_to: Optional[str] = None,
-        offset: int = Defaults.SEARCH_START,
-        limit: int = Defaults.API_LIMIT,
-    ) -> Dict[str, Any]:
-        """Search office action rejections.
-
-        Args:
-            query: Full-text search query
-            application_number: Patent application number
-            rejection_type: Type of rejection (102, 103, 112, etc.)
-            rejection_basis: Basis for rejection (anticipation, obviousness)
-            claim_number: Specific claim number
-            mail_date_from: Mail date range start (YYYY-MM-DD)
-            mail_date_to: Mail date range end (YYYY-MM-DD)
-            offset: Starting position for pagination
-            limit: Maximum results to return
-
-        Returns:
-            Dictionary containing rejection search results
-        """
-        params = {"offset": offset, "limit": limit}
-
-        if query:
-            params["q"] = query
-        if application_number:
-            params["applicationNumber"] = application_number
-        if rejection_type:
-            params["rejectionType"] = rejection_type
-        if rejection_basis:
-            params["rejectionBasis"] = rejection_basis
-        if claim_number is not None:
-            params["claimNumber"] = claim_number
-        if mail_date_from:
-            params["mailDateFrom"] = mail_date_from
-        if mail_date_to:
-            params["mailDateTo"] = mail_date_to
-
-        return await self._make_request("/ds-api/oa-rejections/v2/search", params=params)
-
-    # =========================================================================
-    # Bulk Download
-    # =========================================================================
-
-    async def get_weekly_zip_url(
-        self,
-        date: str,
-    ) -> Dict[str, Any]:
-        """Get URL for weekly bulk download zip file.
-
-        Args:
-            date: Date for the weekly zip (YYYY-MM-DD format, typically a Sunday)
-
-        Returns:
-            Dictionary containing the download URL
-        """
-        # Weekly zips are stored on S3
-        base_s3_url = "https://developer-hub.s3.amazonaws.com/bdr-oa-bulkdata/weekly"
-        zip_url = f"{base_s3_url}/bdr_oa_bulkdata_weekly_{date}.zip"
-
-        return {
-            "download_url": zip_url,
-            "date": date,
-            "note": "Weekly bulk download files are published each Sunday"
-        }
+        body = payload.get("response") if isinstance(payload, dict) else None
+        if not isinstance(body, dict):
+            # Solr answers an unparseable query with 200 and an empty object.
+            return ApiError.create(
+                message=f"The {dataset} dataset could not parse the query: {criteria}",
+                error_code="QUERY_ERROR",
+                status_code=400,
+            )
+        return {"total": body.get("numFound", 0), "docs": body.get("docs") or []}
 
     async def close(self):
         """Close the client connections."""

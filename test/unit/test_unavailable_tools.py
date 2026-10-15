@@ -5,8 +5,6 @@ import pytest
 from patent_mcp_server.patents import (
     get_office_action_text,
     search_office_actions,
-    get_office_action_citations,
-    get_office_action_rejections,
     get_enriched_citations,
     search_citations,
     get_citation_metrics,
@@ -46,20 +44,6 @@ class TestUnavailableOfficeActionTools:
     @pytest.mark.asyncio
     async def test_search_office_actions(self):
         result = await search_office_actions(query="test")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_get_office_action_citations(self):
-        result = await get_office_action_citations(application_number="16123456")
-        assert result["error"] is True
-        assert result["error_code"] == "API_UNAVAILABLE"
-        assert "workaround" in result
-
-    @pytest.mark.asyncio
-    async def test_get_office_action_rejections(self):
-        result = await get_office_action_rejections(application_number="16123456")
         assert result["error"] is True
         assert result["error_code"] == "API_UNAVAILABLE"
         assert "workaround" in result
@@ -232,14 +216,12 @@ class TestUnavailableLitigationTools:
 
 @pytest.mark.unit
 class TestUnavailableToolErrorStructure:
-    """Verify all 25 unavailable tools return a consistent error structure."""
+    """Verify all 23 unavailable tools return a consistent error structure."""
 
     TOOLS_WITH_ARGS = [
         # Office Action tools (decommissioned early 2026)
         (get_office_action_text, {"application_number": "16123456"}),
         (search_office_actions, {}),
-        (get_office_action_citations, {"application_number": "16123456"}),
-        (get_office_action_rejections, {"application_number": "16123456"}),
         # Enriched Citation tools (decommissioned early 2026)
         (get_enriched_citations, {"patent_number": "US11234567B2"}),
         (search_citations, {"citing_patent": "16123456"}),

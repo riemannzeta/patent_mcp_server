@@ -556,6 +556,119 @@ def slim_office_action(record: Dict[str, Any]) -> Dict[str, Any]:
     })
 
 
+_REJECTION_STATUTES = (
+    ("101", "hasRej101"), ("102", "hasRej102"), ("103", "hasRej103"),
+    ("112", "hasRej112"), ("DP", "hasRejDP"),
+)
+_REJECTION_CASE_LAW = (
+    ("Alice", "aliceIndicator"), ("Mayo", "mayoIndicator"),
+    ("Myriad", "myriadIndicator"), ("Bilski", "bilskiIndicator"),
+)
+
+
+def parse_claim_numbers(values: Any) -> List[Any]:
+    """Claim numbers from claimNumberArrayDocument (["1,10,2,3"]), sorted
+    numerically. Anything that is not a plain number is kept as text."""
+    if isinstance(values, str):
+        values = [values]
+    numbers: set = set()
+    others: List[str] = []
+    for value in values or []:
+        for part in str(value).split(","):
+            part = part.strip()
+            if not part:
+                continue
+            if part.isdigit():
+                numbers.add(int(part))
+            elif part not in others:
+                others.append(part)
+    return sorted(numbers) + others
+
+
+def _day(value: Optional[str]) -> Optional[str]:
+    return value[:10] if isinstance(value, str) and value else value
+
+
+def group_rejection_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """ODP rejection rows grouped into one entry per office action.
+
+    The statute and case-law flags describe the whole action and repeat on
+    each of its rows; legalSectionCode, actionTypeCategory and the claim
+    list describe one row. Each action keeps its rows, without exact
+    repeats, under ``claim_groups`` and sums them up in ``claims`` by
+    action type (rejected, objected, allowed, cancelled).
+    """
+    actions: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        key = row.get("obsoleteDocumentIdentifier") or row.get("id") or str(len(actions))
+        action = actions.get(key)
+        if action is None:
+            art_unit = row.get("groupArtUnitNumber")
+            action = actions[key] = {
+                "document_id": row.get("obsoleteDocumentIdentifier"),
+                "app_num": row.get("patentApplicationNumber"),
+                "document_code": row.get("legacyDocumentCodeIdentifier"),
+                "mail_date": _day(row.get("submissionDate")),
+                "art_unit": str(art_unit) if art_unit is not None else None,
+                "statutes": [],
+                "case_law": [],
+                "claims": {},
+                "claim_groups": [],
+            }
+        for name, flag in _REJECTION_STATUTES:
+            if row.get(flag) in (1, True, "1") and name not in action["statutes"]:
+                action["statutes"].append(name)
+        for name, flag in _REJECTION_CASE_LAW:
+            if row.get(flag) is True and name not in action["case_law"]:
+                action["case_law"].append(name)
+
+        claims = parse_claim_numbers(row.get("claimNumberArrayDocument"))
+        group = _drop_empty({
+            "action": row.get("actionTypeCategory"),
+            "legal_section": row.get("legalSectionCode"),
+            "paragraph": row.get("paragraphNumber"),
+            "claims": claims,
+        })
+        if group and group not in action["claim_groups"]:
+            action["claim_groups"].append(group)
+        if claims and row.get("actionTypeCategory"):
+            bucket = action["claims"].setdefault(row["actionTypeCategory"], [])
+            bucket.extend(c for c in claims if c not in bucket)
+
+    out = []
+    for action in actions.values():
+        for bucket in action["claims"].values():
+            bucket.sort(key=lambda c: (isinstance(c, str), c))
+        out.append(_drop_empty(action))
+    return out
+
+
+def slim_oa_citation(row: Dict[str, Any]) -> Dict[str, Any]:
+    """One ODP office action citation row under plain snake_case names.
+
+    The three indicators keep USPTO's flags under shorter names. Their
+    meaning is inferred from samples, not documented: rows with a 102/103
+    legal section carry relied_on_in_action true, and rows listed only on
+    a PTO-892 carry it false.
+    """
+    art_unit = row.get("groupArtUnitNumber")
+    reference = row.get("referenceIdentifier")
+    return _drop_empty({
+        "record_id": row.get("id"),
+        "app_num": row.get("patentApplicationNumber"),
+        "document_id": row.get("obsoleteDocumentIdentifier"),
+        "reference": reference.strip() if isinstance(reference, str) else reference,
+        "reference_number": row.get("parsedReferenceIdentifier"),
+        "legal_section": row.get("legalSectionCode"),
+        "action": row.get("actionTypeCategory"),
+        "examiner_cited": row.get("examinerCitedReferenceIndicator"),
+        "applicant_cited": row.get("applicantCitedExaminerReferenceIndicator"),
+        "relied_on_in_action": row.get("officeActionCitationReferenceIndicator"),
+        "art_unit": str(art_unit) if art_unit is not None else None,
+        "tech_center": row.get("techCenter"),
+    })
+
+
 # ODP wraps each query match in ocrSearchText as
 # <b><span style='background-color: yellow;'>term</span></b>.
 _HIGHLIGHT_RE = re.compile(r"<b>\s*<span[^>]*>(.*?)</span>\s*</b>", re.DOTALL)

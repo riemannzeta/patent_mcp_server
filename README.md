@@ -10,24 +10,25 @@ Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of 
 
 ## Features
 
-This server provides **40 tools** across six live USPTO data sources (25 more, for APIs USPTO has shut down, stay in the code behind `ENABLE_LEGACY_TOOLS`):
+This server provides **42 tools** across six live USPTO data sources (23 more, for APIs USPTO has shut down, stay in the code behind `ENABLE_LEGACY_TOOLS`):
 
 1. **Patent Search** - Full-text search of granted patents and published applications via PPUBS
 2. **Full Text Documents** - Get the text of a patent by number, or just its claims, abstract or front page to save context
 3. **PDF Downloads** - Download patents as PDF files (Claude Desktop doesn't support this as a client currently)
 4. **Prosecution History** - Transactions, file-wrapper document lists filtered by type (office actions, responses, notices of allowance), and the documents themselves as plain text or PDF via ODP
 5. **Office Action Search** - Search 19.9M office actions (2007 on) by examiner language, rejection statute, art unit and date, with counts by document code and statute
-6. **Petition Decisions** - Search 1.1M decisions on patent petitions (revival, reinstatement, make special, supervisory review) by text, type, outcome and office
-7. **Patent Family Data** - Continuity information, foreign priority, and related applications
-8. **Bulk Datasets** - Search and access USPTO bulk data products including PatentsView disambiguated data
-9. **Forward Citations** - Find the later patents that cite a patent
-10. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, goods/services, and class (clearance/knockout searches)
-11. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
-12. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
+6. **Claim-Level Rejections and Citations** - Which claims each office action rejected, objected to or allowed and under which statute, with Alice/Mayo/Myriad/Bilski flags (2012 on), and the references each action cited, searchable in reverse to find every application whose examiner cited a given patent
+7. **Petition Decisions** - Search 1.1M decisions on patent petitions (revival, reinstatement, make special, supervisory review) by text, type, outcome and office
+8. **Patent Family Data** - Continuity information, foreign priority, and related applications
+9. **Bulk Datasets** - Search and access USPTO bulk data products including PatentsView disambiguated data
+10. **Forward Citations** - Find the later patents that cite a patent
+11. **Trademark Search** - Full-text search of US federal trademarks by mark text, owner, goods/services, and class (clearance/knockout searches)
+12. **Trademark Status & Documents** - Authoritative live status, prosecution documents, and mark images via TSDR
+13. **Trademark Assignments** - Recorded ownership transfer records from 1955 to present (no API key needed)
 
 It runs locally over stdio for Claude Desktop and Claude Code, or over HTTP as a shared, stateless service — see [Remote hosting over HTTP](#remote-hosting-over-http).
 
-> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026; office action search has since returned on ODP as `odp_search_office_actions`, but the citation and rejection tools have no replacement yet. The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. The 25 affected tools stay in the code but are not registered by default, since their schemas cost every client about 6k tokens per session and they can only fail; set `ENABLE_LEGACY_TOOLS=true` to register them, and each returns workaround guidance pointing to a live tool.
+> **Note on unavailable APIs:** The PatentsView API (search.patentsview.org) was shut down on March 20, 2026, with its data migrated to ODP bulk datasets. The Office Action and Enriched Citation APIs (developer.uspto.gov) were decommissioned in early 2026; office action search, rejections and citations have since returned on ODP (`odp_search_office_actions`, `get_office_action_rejections`, `get_office_action_citations`). The Patent Litigation API is not offered on the USPTO Open Data Portal; litigation data is available as a bulk download. The 23 affected tools stay in the code but are not registered by default, since their schemas cost every client about 6k tokens per session and they can only fail; set `ENABLE_LEGACY_TOOLS=true` to register them, and each returns workaround guidance pointing to a live tool.
 
 ## API Sources
 
@@ -43,7 +44,8 @@ It runs locally over stdio for Claude Desktop and Claude Code, or over HTTP as a
 | **PatentsView API** | Disambiguated inventor/assignee data, advanced search | N/A | Shut down March 2026 |
 | **ODP Office Action Search** | Office actions 2007 on: text search, statutes, art units (text returned to 500 chars) | Yes (ODP API Key) | Active (2026-10) |
 | **ODP Petition Decisions** | Decisions on patent petitions, 1991 on | Yes (ODP API Key) | Active (2026-10) |
-| **Office Action APIs (developer.uspto.gov)** | Office action citations, claim-level rejections | N/A | Decommissioned early 2026 |
+| **ODP Office Action Rejections & Citations** | Claim-level rejections (2012 on) and cited references per office action | Yes (ODP API Key) | Active (2026-10) |
+| **Office Action APIs (developer.uspto.gov)** | Office action text and search | N/A | Decommissioned early 2026 |
 
 ## Prerequisites
 
@@ -305,6 +307,8 @@ the command line wins where both are set.
 | `odp_get_documents` | List file wrapper documents, filtered by document code (CTNF, CTFR, NOA, REM, CLM, 892…) and direction |
 | `odp_download_document` | Read one file wrapper document as plain text (`format="text"`: office actions, remarks, claims with amendment markup) or as PDF |
 | `odp_search_office_actions` | Search office actions across applications by text, document code, rejection statute, art unit and date; previews are cut at 500 characters, so read hits with `odp_download_document(format="text")` |
+| `get_office_action_rejections` | Claims rejected, objected to or allowed in each office action, by statute (101/102/103/112/DP), with Alice/Mayo/Myriad/Bilski flags; filter by application, patent, date, art unit or case law |
+| `get_office_action_citations` | References each office action cited, with the 102/103 section; `cited_reference` finds every application whose examiner cited a given patent or publication |
 | `odp_search_petition_decisions` | Search petition decisions by text, petition type, outcome, deciding office and date, with outcome counts |
 | `odp_search_datasets` | Search bulk data products |
 | `odp_get_dataset` | Get dataset product details |
@@ -375,14 +379,12 @@ All 14 PatentsView tools return `API_UNAVAILABLE` with workaround guidance. Pate
 
 #### Office Action APIs (Unavailable — decommissioned early 2026)
 
-All 4 Office Action tools return `API_UNAVAILABLE`. `odp_search_office_actions` replaces the text and search tools; the citation and rejection datasets answer on ODP under new paths and wait on a client rewrite.
+These 2 Office Action tools return `API_UNAVAILABLE`; `odp_search_office_actions` replaces them. `get_office_action_citations` and `get_office_action_rejections` are live again on ODP (v1.8.0).
 
 | Tool | Workaround |
 |------|------------|
 | `get_office_action_text` | `odp_search_office_actions(app_num=...)` then `odp_download_document` |
 | `search_office_actions` | `odp_search_office_actions` |
-| `get_office_action_citations` | `odp_get_documents(document_code="892,1449")` then `odp_download_document` |
-| `get_office_action_rejections` | `odp_search_office_actions(app_num=...)` for statutes, then `odp_download_document` |
 
 #### Enriched Citation APIs (Unavailable — decommissioned early 2026)
 
@@ -463,7 +465,14 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.7.0 (Current)
+### v1.8.0 (Current)
+- **`get_office_action_rejections` and `get_office_action_citations` are live again**, on ODP's claim-level datasets (`/api/v1/patent/oa/oa_{rejections,citations}/v2/records`) instead of the decommissioned developer.uspto.gov paths. Rejections come grouped by office action: the statutes it applies (101, 102, 103, 112, double patenting), the Alice, Mayo, Myriad and Bilski flags, and which claims were rejected, objected to or allowed. Filter by application or patent number, mail date, date range, statute, case law, document code and art unit, so `case_law="alice", art_unit="3689"` finds an art unit's Alice rejections. Citations list each reference an action cited and the section it was applied under; `cited_reference` runs the lookup in reverse
+- Both tools return each action's `document_id`, which `odp_download_document(format="text")` reads
+- Coverage: rejections from 2012 on (93M rows), about a week behind the mail date
+- Tool count: 42 registered by default (65 with `ENABLE_LEGACY_TOOLS`)
+- Verified live 2026-10-15
+
+### v1.7.0
 - **Full text of file-wrapper papers**: `odp_download_document` takes `format="text"` and returns a paper's body as plain text from the XML USPTO publishes beside the PDF, so an office action (typically 10–20k characters) no longer has to be read as a base64 PDF. It covers office actions, notices of allowance, petition decisions, and applicant papers such as remarks (REM), claims (CLM) and IDS forms; amended claims keep their markup as `~~deleted~~` and `++inserted++`. Long papers come in 24k-character pages split at paragraph breaks (`text_offset` / `next_offset`). A document without XML returns `NO_TEXT_AVAILABLE`, and the PDF remains the default format
 - Parsed with the standard library; XML that declares entities is refused
 - Verified live 2026-10-14 on CTNF, CTFR, NOA, REM, CLM, IDS, PET.PCT, PETDEC and SPEC papers from 2011 to 2026

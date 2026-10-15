@@ -429,14 +429,18 @@ DATA_SOURCES = {
             "from 2007 on by full text, document code, rejection statute, "
             "art unit and date. The API searches the full text but returns "
             "only its first 500 characters; read the action itself with "
-            "odp_download_document(app_num, document_id, format='text'). The legacy "
-            "developer.uspto.gov citation and rejection endpoints remain "
-            "decommissioned."
+            "odp_download_document(app_num, document_id, format='text'). "
+            "The claim-level rejection and citation datasets answer on ODP "
+            "too (verified 2026-10-15): get_office_action_rejections gives "
+            "per-claim rejections with Alice/Mayo/Myriad/Bilski flags (93M "
+            "rows from 2012 on), get_office_action_citations the references "
+            "each action cited, searchable in reverse by reference number."
         ),
         "coverage": {
             "applications": "Office actions mailed from 2007-07 on",
             "rejections": "rejectionTypeBag per action: 101, 102, 103, 112, DoublePatent, Other",
-            "citations": "892 (examiner) and 1449 (applicant) forms via odp_get_documents; forward citations via ppubs_get_citing_patents",
+            "claim_rejections": "get_office_action_rejections: claims rejected, objected to or allowed per action, from 2012 on",
+            "citations": "get_office_action_citations: references each action cited, with 102/103 section; 892/1449 forms via odp_get_documents",
         },
         "rate_limits": "Requires ODP API key (register at data.uspto.gov), standard rate limits apply",
         "auth_required": True,
@@ -444,7 +448,8 @@ DATA_SOURCES = {
             "Finding office actions across applications by examiner language",
             "Counting rejections by statute, art unit or date (metadata.facets)",
             "Office action full text (odp_download_document(format='text') with the hit's document_id)",
-            "Examiner citation analysis (892 forms via odp_get_documents)",
+            "Claim-level rejection analytics, including Alice/Mayo 101 rejections by art unit (get_office_action_rejections)",
+            "Examiner citation analysis and reverse lookup of a cited reference (get_office_action_citations)",
         ],
     },
     "petition_decisions": {

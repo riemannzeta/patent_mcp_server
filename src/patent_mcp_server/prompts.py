@@ -57,11 +57,13 @@ Use ppubs_search_patents with .in. and .as. qualifiers:
 Review what prior art examiners have cited:
 
 ```
-Use odp_get_documents(app_num, document_code="892,1449,CTNF,CTFR"):
-- 892 forms list the examiner's citations; 1449 forms the applicant's
-- Read a form or office action with odp_download_document(app_num, document_id, format="text")
+Use get_office_action_citations(application_number=...) for the references
+each office action cited, with the statute (102/103) each was applied under:
+- cited_reference="US 2013/0120945 A1" finds other applications whose
+  examiners cited the same reference
+- odp_get_documents(app_num, document_code="892,1449") holds the citation
+  forms themselves; read one with odp_download_document(format="text")
 - Follow citations forward with ppubs_get_citing_patents(patent_number)
-(Note: the dedicated citation APIs were decommissioned in early 2026.)
 ```
 
 ## Step 7: International Coverage
@@ -117,6 +119,9 @@ Use odp_get_documents(app_num, document_code="CTNF,CTFR,NOA,REM,CLM"):
 - Read each with odp_download_document(app_num, document_id, format="text");
   claim amendments come back marked ~~deleted~~ and ++inserted++
 - Understand rejection bases (102, 103, 112) and how claims were amended
+- get_office_action_rejections(patent_number=...) lists, per action, which
+  claims were rejected, objected to or allowed and under which statute;
+  get_office_action_citations gives the references applied
 - odp_get_transactions gives the dated event list alongside
 - odp_search_office_actions(patent_number=...) lists the same actions with
   their rejection statutes and a 500-character preview of each; its
@@ -358,7 +363,8 @@ Use odp_get_application_metadata and odp_get_transactions:
 Use odp_get_documents(app_num, document_code="CTNF,CTFR,REM,CLM"):
 - Read office actions and responses with odp_download_document(format="text")
 - odp_search_office_actions(patent_number=...) summarizes the rejection
-  statutes across every action
+  statutes across every action; get_office_action_rejections(patent_number=...)
+  breaks them down by claim
 - odp_search_petition_decisions(patent_number=...) shows revivals and
   reinstatements, which can matter for intervening rights
 - Note any estoppel from claim amendments

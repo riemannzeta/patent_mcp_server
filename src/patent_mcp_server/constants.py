@@ -283,6 +283,64 @@ class PetitionDecisionFields:
     }
 
 
+class OfficeActionRejectionFields:
+    """ODP office action rejection dataset `criteria` fields (verified live
+    2026-10-15).
+
+    Endpoint: POST /api/v1/patent/oa/oa_rejections/v2/records (93.4M rows
+    from 2012 on). One row per claim group and statute, machine-extracted;
+    an office action has several. obsoleteDocumentIdentifier is the
+    file-wrapper documentIdentifier.
+    """
+    APPLICATION_NUMBER = "patentApplicationNumber"
+    DOCUMENT_ID = "obsoleteDocumentIdentifier"
+    DOCUMENT_CODE = "legacyDocumentCodeIdentifier"
+    SUBMISSION_DATE = "submissionDate"
+    ART_UNIT = "groupArtUnitNumber"
+    # 0/1 flags, one per statute; legalSectionCode is often blank, so the
+    # flags are the reliable filter.
+    STATUTE_FLAGS = {
+        "101": "hasRej101",
+        "102": "hasRej102",
+        "103": "hasRej103",
+        "112": "hasRej112",
+        "DP": "hasRejDP",
+    }
+    # Boolean flags for the case law an action cites.
+    CASE_LAW_FLAGS = {
+        "alice": "aliceIndicator",
+        "mayo": "mayoIndicator",
+        "myriad": "myriadIndicator",
+        "bilski": "bilskiIndicator",
+    }
+
+
+class OfficeActionCitationFields:
+    """ODP office action citation dataset `criteria` fields (verified live
+    2026-10-15).
+
+    Endpoint: POST /api/v1/patent/oa/oa_citations/v2/records. One row per
+    reference an office action cites; rows carry no mail date.
+    parsedReferenceIdentifier holds the digits of a US patent or
+    publication number ("6750970", "20180292319") and is blank for foreign
+    and non-patent references.
+    """
+    APPLICATION_NUMBER = "patentApplicationNumber"
+    DOCUMENT_ID = "obsoleteDocumentIdentifier"
+    REFERENCE = "parsedReferenceIdentifier"
+    REFERENCE_TEXT = "referenceIdentifier"
+    LEGAL_SECTION = "legalSectionCode"
+    ART_UNIT = "groupArtUnitNumber"
+    TECH_CENTER = "techCenter"
+    EXAMINER_CITED = "examinerCitedReferenceIndicator"
+
+
+class OfficeActionDatasetDefaults:
+    """Paging for the rejection and citation datasets, which do not cap rows."""
+    LIMIT = 50
+    LIMIT_MAX = 200
+
+
 class TrademarkDefaults:
     """Default values for trademark operations."""
     SEARCH_LIMIT = 25
