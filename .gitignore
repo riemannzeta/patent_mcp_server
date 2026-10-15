@@ -8,6 +8,9 @@ wheels/
 
 # Test results
 .pytest_cache
+# Integration-test output, rewritten on every run (nothing reads it back);
+# recorded API responses that tests use belong in test/fixtures/
+test/test_results/
 
 # Jupyter-generated files
 .ipynb_checkpoints/

@@ -1,5 +1,0 @@
-{
-  "error": true,
-  "message": "Request to https://api.uspto.gov/api/v1/patent/applications/16123456/adjustment failed: Event loop is closed",
-  "error_code": "RuntimeError"
-}
