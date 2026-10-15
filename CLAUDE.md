@@ -54,10 +54,11 @@ If tests fail, fix them before committing. Do not skip or delete failing tests u
 When publishing a new version:
 
 1. Run full test suite: `uv run pytest`
-2. Bump version in `pyproject.toml` AND `config.py` (USER_AGENT string)
-3. Commit and push to `origin/main`
-4. Build: `rm -rf dist/ && uv run python -m build`
-5. Publish: `uv run twine upload dist/*`
+2. Bump version in `pyproject.toml` AND `config.py` (USER_AGENT string), and add the version history entry to README.md
+3. Merge to `main` through a PR
+4. Run the **Publish to PyPI** workflow (`.github/workflows/publish.yml`) on `main`: from the Actions tab, or with the GitHub MCP `actions_run_trigger` tool from a Claude Code session. It checks that the two version strings agree and that PyPI doesn't already have the version, runs the tests, builds, uploads through PyPI trusted publishing (OIDC; no token anywhere), then tags `vX.Y.Z` and creates the GitHub release with the built files. If the `pypi` environment has a required reviewer, the upload waits for their approval.
+
+Local `twine upload` still works as a fallback for whoever holds a PyPI token; never put a token in the repo or a session.
 
 ### Handling Decommissioned APIs
 
