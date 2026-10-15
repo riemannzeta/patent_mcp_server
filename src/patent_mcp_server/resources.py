@@ -429,7 +429,7 @@ DATA_SOURCES = {
             "from 2007 on by full text, document code, rejection statute, "
             "art unit and date. The API searches the full text but returns "
             "only its first 500 characters; read the action itself with "
-            "odp_download_document(app_num, document_id). The legacy "
+            "odp_download_document(app_num, document_id, format='text'). The legacy "
             "developer.uspto.gov citation and rejection endpoints remain "
             "decommissioned."
         ),
@@ -443,7 +443,7 @@ DATA_SOURCES = {
         "best_for": [
             "Finding office actions across applications by examiner language",
             "Counting rejections by statute, art unit or date (metadata.facets)",
-            "Office action full text (odp_download_document with the hit's document_id)",
+            "Office action full text (odp_download_document(format='text') with the hit's document_id)",
             "Examiner citation analysis (892 forms via odp_get_documents)",
         ],
     },

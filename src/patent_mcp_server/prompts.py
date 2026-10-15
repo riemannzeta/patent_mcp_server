@@ -59,7 +59,7 @@ Review what prior art examiners have cited:
 ```
 Use odp_get_documents(app_num, document_code="892,1449,CTNF,CTFR"):
 - 892 forms list the examiner's citations; 1449 forms the applicant's
-- Read a form or office action with odp_download_document(app_num, document_id)
+- Read a form or office action with odp_download_document(app_num, document_id, format="text")
 - Follow citations forward with ppubs_get_citing_patents(patent_number)
 (Note: the dedicated citation APIs were decommissioned in early 2026.)
 ```
@@ -114,7 +114,8 @@ Use odp_get_application (with application number) to get file wrapper data:
 Use odp_get_documents(app_num, document_code="CTNF,CTFR,NOA,REM,CLM"):
 - CTNF/CTFR are the non-final and final rejections, REM the applicant's
   arguments, CLM the claims as amended
-- Read each with odp_download_document(app_num, document_id)
+- Read each with odp_download_document(app_num, document_id, format="text");
+  claim amendments come back marked ~~deleted~~ and ++inserted++
 - Understand rejection bases (102, 103, 112) and how claims were amended
 - odp_get_transactions gives the dated event list alongside
 - odp_search_office_actions(patent_number=...) lists the same actions with
@@ -355,7 +356,7 @@ Use odp_get_application_metadata and odp_get_transactions:
 ## Step 6: Review Prosecution History
 ```
 Use odp_get_documents(app_num, document_code="CTNF,CTFR,REM,CLM"):
-- Read office actions and responses with odp_download_document
+- Read office actions and responses with odp_download_document(format="text")
 - odp_search_office_actions(patent_number=...) summarizes the rejection
   statutes across every action
 - odp_search_petition_decisions(patent_number=...) shows revivals and
