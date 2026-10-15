@@ -1,5 +1,0 @@
-{
-  "error": true,
-  "message": "Request to https://ppubs.uspto.gov/api/searches/counts failed: Event loop is closed",
-  "error_code": "RuntimeError"
-}

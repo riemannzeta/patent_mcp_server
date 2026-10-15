@@ -438,7 +438,7 @@ uv run pytest -m ""
 uv run pytest --cov=patent_mcp_server
 ```
 
-Test results are stored in `/test/test_results/`.
+Integration tests save each tool's output to `test/test_results/` for inspection. The directory is git-ignored: the files are rewritten on every run and nothing reads them back. Recorded responses that tests depend on belong in `test/fixtures/`.
 
 The unit suite also runs in CI on every push to `main` and every pull request, across Python 3.10–3.13 (`.github/workflows/tests.yml`). Integration tests stay deselected there, so CI needs no API keys.
 
