@@ -204,3 +204,14 @@ The spike answered "yes", so `odp_download_document` gained `format="text"` inst
 - **Size.** A final rejection was 16k characters and a specification 59k. Pages of 24k characters fit the default 8,000-token response budget.
 
 Phase 3 remains open.
+
+## Implementation notes (Phase 3, 2026-10-15)
+
+Phase 3 shipped as v1.8.0. `OfficeActionClient` now posts form-encoded Solr queries to the two ODP datasets, and both tools are active under their old names.
+
+- **Response contract.** A query with no match answers 200 with `numFound` 0, not 404. An unparseable query answers 200 with `{}`, which the client reports as `QUERY_ERROR`. `rows` has no server cap (1,001 rows came back), so the tools clamp at 200.
+- **Rejection rows describe two levels.** The statute and case-law flags repeat on every row of an action; `legalSectionCode`, `actionTypeCategory` and the claim list belong to one row, and `legalSectionCode` is often blank. The tool groups rows by `obsoleteDocumentIdentifier` into one entry per action, with claims summed by action type. Application 18402543's CTNF has 11 rows that fold into one action.
+- **Coverage.** 93.4M rejection rows from 2012 on. Rows appear about six days after mailing: the CTNF of 2026-06-24 was there, the CTFR of 2026-10-09 not yet.
+- **Citations carry no mail date.** `mail_date` on the citation tool looks up that day's document ids in the rejection dataset first.
+- **Reverse lookup needs three forms.** `parsedReferenceIdentifier` is blank on many rows, so a cited reference also matches `referenceIdentifier` with and without separators. For US 2013/0120945 the parsed field found 3 rows and the union 7.
+- **Not used.** The `sort` parameter had no visible effect, and the `/fields` endpoint reports update dates from 2019 and 2021 that the data contradicts.

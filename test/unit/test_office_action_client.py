@@ -1,239 +1,121 @@
-"""Unit tests for OfficeActionClient."""
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-import httpx2
+"""Unit tests for OfficeActionClient (ODP rejection and citation datasets)."""
+import copy
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from patent_mcp_server.uspto.office_action_client import OfficeActionClient
+import httpx2
+import pytest
+
+from patent_mcp_server.config import config
+from patent_mcp_server.uspto.office_action_client import (
+    CITATIONS, REJECTIONS, OfficeActionClient,
+)
+from test.fixtures.odp_oa_dataset_responses import REJECTION_RECORDS_RESPONSE
+
+SLEEP = "patent_mcp_server.uspto.office_action_client.asyncio.sleep"
 
 
 @pytest.fixture
 async def oa_client():
-    """Create an OfficeActionClient instance for testing."""
     client = OfficeActionClient()
     yield client
     await client.close()
 
 
-# ============================================================================
-# Initialization Tests
-# ============================================================================
+def _ok(payload):
+    response = MagicMock(status_code=200, headers={})
+    response.json.return_value = copy.deepcopy(payload)
+    return response
 
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_client_initialization():
-    """Test client initialization."""
-    client = OfficeActionClient()
 
-    assert "User-Agent" in client.headers
-    assert "X-API-KEY" in client.headers
-    assert client.client is not None
-
-    await client.close()
+def _status(code, text="error"):
+    response = MagicMock(status_code=code, headers={}, text=text)
+    response.json.side_effect = ValueError("not json")
+    response.raise_for_status.side_effect = httpx2.HTTPStatusError(
+        str(code), request=MagicMock(), response=response
+    )
+    return response
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_client_context_manager():
-    """Test client context manager protocol."""
+async def test_client_targets_odp():
     async with OfficeActionClient() as client:
-        assert client is not None
-        assert client.client is not None
-
-
-# ============================================================================
-# Office Action Text Tests
-# ============================================================================
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_get_office_action_text(oa_client):
-    """Test getting office action text."""
-    with patch.object(oa_client, '_make_request', new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"officeActions": [], "total": 0}
-
-        result = await oa_client.get_office_action_text("12345678")
-
-        mock_request.assert_called_once()
-        call_args = mock_request.call_args
-        assert "/ds-api/oa-text/v1/search" in call_args[0][0]
+        assert client.base_url == config.API_BASE_URL
+        assert client.records_url(REJECTIONS).endswith("/api/v1/patent/oa/oa_rejections/v2/records")
+        assert client.records_url(CITATIONS).endswith("/api/v1/patent/oa/oa_citations/v2/records")
+        assert "developer.uspto.gov" not in client.records_url(REJECTIONS)
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_get_office_action_text_with_date(oa_client):
-    """Test getting office action text with mail date filter."""
-    with patch.object(oa_client, '_make_request', new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"officeActions": [], "total": 0}
-
-        result = await oa_client.get_office_action_text("12345678", mail_date="2023-06-15")
-
-        mock_request.assert_called_once()
-
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_search_office_actions(oa_client):
-    """Test searching office actions."""
-    with patch.object(oa_client, '_make_request', new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"results": [], "total": 0}
-
-        result = await oa_client.search_office_actions(
-            query="obviousness",
-            examiner_name="Smith",
-            art_unit="3600"
+async def test_search_records_posts_form(oa_client, monkeypatch):
+    """criteria, start and rows go form-encoded, with the key per request."""
+    monkeypatch.setattr(config, "USPTO_API_KEY", "test-key")
+    with patch.object(oa_client.client, "post", new_callable=AsyncMock,
+                      return_value=_ok(REJECTION_RECORDS_RESPONSE)) as post:
+        result = await oa_client.search_records(
+            REJECTIONS, 'patentApplicationNumber:"18402543"', start=10, rows=5,
         )
 
-        mock_request.assert_called_once()
-
-
-# ============================================================================
-# Office Action Citations Tests
-# ============================================================================
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_get_office_action_citations(oa_client):
-    """Test getting office action citations."""
-    with patch.object(oa_client, '_make_request', new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"citations": [], "total": 0}
-
-        result = await oa_client.get_office_action_citations("12345678")
-
-        mock_request.assert_called_once()
-        assert "/ds-api/oa-citations/v2/search" in mock_request.call_args[0][0]
+    url = post.call_args.args[0]
+    assert url == oa_client.records_url(REJECTIONS)
+    assert post.call_args.kwargs["data"] == {
+        "criteria": 'patentApplicationNumber:"18402543"', "start": "10", "rows": "5",
+    }
+    assert "json" not in post.call_args.kwargs
+    assert post.call_args.kwargs["headers"]["X-API-KEY"] == "test-key"
+    assert result["total"] == 11
+    assert len(result["docs"]) == len(REJECTION_RECORDS_RESPONSE["response"]["docs"])
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_search_citations(oa_client):
-    """Test searching office action citations."""
-    with patch.object(oa_client, '_make_request', new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"results": [], "total": 0}
-
-        result = await oa_client.search_citations(
-            cited_patent_number="7654321",
-            citation_type="US Patent"
-        )
-
-        mock_request.assert_called_once()
-
-
-# ============================================================================
-# Office Action Rejections Tests
-# ============================================================================
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_get_office_action_rejections(oa_client):
-    """Test getting office action rejections."""
-    with patch.object(oa_client, '_make_request', new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"rejections": [], "total": 0}
-
-        result = await oa_client.get_office_action_rejections("12345678")
-
-        mock_request.assert_called_once()
-        assert "/ds-api/oa-rejections/v2/search" in mock_request.call_args[0][0]
+async def test_no_match_is_an_empty_page(oa_client):
+    empty = {"response": {"start": 0, "numFound": 0, "docs": []}}
+    with patch.object(oa_client.client, "post", new_callable=AsyncMock, return_value=_ok(empty)):
+        result = await oa_client.search_records(CITATIONS, "nosuchfield:1")
+    assert result == {"total": 0, "docs": []}
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_search_rejections(oa_client):
-    """Test searching office action rejections."""
-    with patch.object(oa_client, '_make_request', new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"results": [], "total": 0}
-
-        result = await oa_client.search_rejections(
-            rejection_type="103",
-            rejection_basis="obviousness",
-            claim_number=1
-        )
-
-        mock_request.assert_called_once()
+async def test_unparseable_query_is_an_error(oa_client):
+    """Solr answers a query it cannot parse with 200 and {}."""
+    with patch.object(oa_client.client, "post", new_callable=AsyncMock, return_value=_ok({})):
+        result = await oa_client.search_records(REJECTIONS, "foo:(")
+    assert result["error"] is True
+    assert result["error_code"] == "QUERY_ERROR"
+    assert "foo:(" in result["message"]
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_search_rejections_with_date_range(oa_client):
-    """Test searching rejections with date range."""
-    with patch.object(oa_client, '_make_request', new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"results": [], "total": 0}
-
-        result = await oa_client.search_rejections(
-            mail_date_from="2023-01-01",
-            mail_date_to="2023-12-31"
-        )
-
-        mock_request.assert_called_once()
-
-
-# ============================================================================
-# Bulk Download Tests
-# ============================================================================
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_get_weekly_zip_url(oa_client):
-    """Test getting weekly zip URL."""
-    result = await oa_client.get_weekly_zip_url("2023-11-19")
-
-    assert "download_url" in result
-    assert "2023-11-19" in result["download_url"]
-    assert "developer-hub.s3.amazonaws.com" in result["download_url"]
-
-
-# ============================================================================
-# Error Handling Tests
-# ============================================================================
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_http_error_handling(oa_client):
-    """Test handling of HTTP errors."""
-    with patch.object(oa_client.client, 'get', new_callable=AsyncMock) as mock_get:
-        mock_response = MagicMock()
-        mock_response.status_code = 404
-        mock_response.text = "Not Found"
-        mock_response.json.return_value = {"error": "Not found"}
-
-        error = httpx2.HTTPStatusError("Not Found", request=MagicMock(), response=mock_response)
-        mock_get.side_effect = error
-
-        result = await oa_client._make_request("/test")
-
-        assert result.get("error") is True
+async def test_http_error_is_returned(oa_client):
+    with patch.object(oa_client.client, "post", new_callable=AsyncMock,
+                      return_value=_status(403, "Forbidden")):
+        result = await oa_client.search_records(REJECTIONS, "x:1")
+    assert result["error"] is True
+    assert result["status_code"] == 403
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_network_error_retry(oa_client):
-    """Test network error retry logic."""
-    with patch.object(oa_client.client, 'get', new_callable=AsyncMock) as mock_get:
-        mock_success = MagicMock()
-        mock_success.status_code = 200
-        mock_success.json.return_value = {"result": "success"}
-        mock_success.raise_for_status = MagicMock()
+async def test_retries_after_429(oa_client):
+    limited = _status(429, "Too Many Requests")
+    limited.headers = {"retry-after": "2"}
+    with patch.object(oa_client.client, "post", new_callable=AsyncMock,
+                      side_effect=[limited, _ok(REJECTION_RECORDS_RESPONSE)]) as post, \
+         patch(SLEEP, new_callable=AsyncMock) as sleep:
+        result = await oa_client.search_records(REJECTIONS, "x:1")
 
-        mock_get.side_effect = [
-            httpx2.NetworkError("Connection failed"),
-            mock_success
-        ]
+    assert result["total"] == 11
+    assert post.await_count == 2
+    sleep.assert_awaited_once_with(2.0)
 
-        result = await oa_client._make_request("/test")
-
-        assert result == {"result": "success"}
-        assert mock_get.call_count == 2
-
-
-# ============================================================================
-# Cleanup Tests
-# ============================================================================
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_close():
-    """Test client cleanup."""
-    client = OfficeActionClient()
-
-    with patch.object(client.client, 'aclose', new_callable=AsyncMock) as mock_close:
-        await client.close()
-        mock_close.assert_called_once()
+async def test_close(oa_client):
+    with patch.object(oa_client.client, "aclose", new_callable=AsyncMock) as aclose:
+        await oa_client.close()
+        aclose.assert_called_once()
