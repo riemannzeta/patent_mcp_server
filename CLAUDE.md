@@ -11,7 +11,7 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 - **mcp 2.x (`MCPServer`)** since v1.3.0: transport settings (`host`, `port`, `streamable_http_path`, `stateless_http`, `json_response`) go to `run_streamable_http_async()` via `http_settings(args)`, not to the constructor. Tools register through `tool()` / `legacy_tool()`, which set read-only annotations and `structured_output=False` (mcp 2 would otherwise send every dict result twice — measured 2.0x wire size). Protocol tests connect with `mcp.client.Client(patents.mcp)` in memory. Type fields are snake_case in Python (`read_only_hint`, `input_schema`, `is_error`) and camelCase on the wire.
 - **`PpubsClient` holds an upstream USPTO session** (cookie jar, `case_id`, access token) shared by all concurrent calls. The clients use `httpx2` (v1.4.0); `httpx` and `httpcore` are out of the tree, so don't reintroduce `import httpx`. Session setup is serialized by `_session_lock`; the access token is passed per request rather than stored on the shared client's default headers. Keep it that way — see the concurrency tests in `test/unit/test_ppubs_client.py`.
 
-**Current state (v1.8.0):** 42 tools registered by default; 23 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
+**Current state (v1.8.1):** 42 tools registered by default; 23 legacy tools registered only with `ENABLE_LEGACY_TOOLS=true`:
 - **Active:** PPUBS (6), ODP (17), PTAB (7), TSDR (4), Trademark search/assignments (3), Utility (5)
 - **Legacy (API_UNAVAILABLE):** PatentsView (14, shut down March 2026), Office Action text and search (2, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16). Their functions stay in `patents.py` under `@legacy_tool()`, which registers them only when the flag is set; every active tool uses `@tool()`, which adds read-only annotations. Don't use a bare `@mcp.tool()`.
 
@@ -190,7 +190,7 @@ Environment variables are loaded from `.env` file:
 - `USPTO_API_KEY` - Required for ODP and PTAB tools
 - `TSDR_API_KEY` - Required for TSDR trademark tools (separate key from ODP — see account.uspto.gov/profile/api-manager)
 - `TMSEARCH_WAF_TOKEN` - Optional escape hatch if tmsearch.uspto.gov tightens its AWS WAF
-- `ENABLE_LEGACY_TOOLS` - Register the 25 tools for shut-down APIs (default: false)
+- `ENABLE_LEGACY_TOOLS` - Register the 23 tools for shut-down APIs (default: false)
 - `LOG_LEVEL` - Logging verbosity (default: INFO)
 
 See `config.py` for all options.

@@ -160,7 +160,7 @@ TSDR_API_KEY=your_tsdr_key_here  # TSDR trademark tools (separate key — see ab
 TMSEARCH_WAF_TOKEN=...           # Optional - only if trademark search hits the WAF
 
 # Tool registration
-ENABLE_LEGACY_TOOLS=false  # Also register the 25 tools for shut-down APIs (they return API_UNAVAILABLE)
+ENABLE_LEGACY_TOOLS=false  # Also register the 23 tools for shut-down APIs (they return API_UNAVAILABLE)
 
 # Logging
 LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -343,7 +343,7 @@ the command line wins where both are set.
 
 ### Legacy tools (hidden unless `ENABLE_LEGACY_TOOLS=true`)
 
-The 25 tools below are for APIs USPTO has shut down. They stay in the code and keep their names, but the server registers them only when `ENABLE_LEGACY_TOOLS=true`, because their schemas cost every client about 6k tokens per session and every call returns `API_UNAVAILABLE`. Each response carries a `workaround` naming the live tool that covers the need.
+The 23 tools below are for APIs USPTO has shut down. They stay in the code and keep their names, but the server registers them only when `ENABLE_LEGACY_TOOLS=true`, because their schemas cost every client about 6k tokens per session and every call returns `API_UNAVAILABLE`. Each response carries a `workaround` naming the live tool that covers the need.
 
 #### Patent Litigation API (Unavailable — not offered on ODP, issue #16)
 
@@ -465,7 +465,11 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.8.0 (Current)
+### v1.8.1 (Current)
+- **Releases publish from GitHub Actions**: the new Publish to PyPI workflow uploads through PyPI trusted publishing, so no API token is stored anywhere, and it tags each release and creates its GitHub release. This is the first version it published
+- Docs: the legacy tool count now reads 23 everywhere (it said 25 in a few places after the two office action dataset tools went live in v1.8.0)
+
+### v1.8.0
 - **`get_office_action_rejections` and `get_office_action_citations` are live again**, on ODP's claim-level datasets (`/api/v1/patent/oa/oa_{rejections,citations}/v2/records`) instead of the decommissioned developer.uspto.gov paths. Rejections come grouped by office action: the statutes it applies (101, 102, 103, 112, double patenting), the Alice, Mayo, Myriad and Bilski flags, and which claims were rejected, objected to or allowed. Filter by application or patent number, mail date, date range, statute, case law, document code and art unit, so `case_law="alice", art_unit="3689"` finds an art unit's Alice rejections. Citations list each reference an action cited and the section it was applied under; `cited_reference` runs the lookup in reverse
 - Both tools return each action's `document_id`, which `odp_download_document(format="text")` reads
 - Coverage: rejections from 2012 on (93M rows), about a week behind the mail date
