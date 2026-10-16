@@ -451,12 +451,12 @@ uv sync --dev
 
 ## Publishing to PyPI
 
-```bash
-# Build distribution packages
-rm -rf dist/ && uv run python -m build
+Releases go out through the **Publish to PyPI** GitHub Actions workflow (`.github/workflows/publish.yml`), which uploads with [PyPI trusted publishing](https://docs.pypi.org/trusted-publishers/), so no API token is stored anywhere. After the version bump (`pyproject.toml` and the `USER_AGENT` in `config.py`) is merged to `main`, run the workflow from the Actions tab. It refuses a version PyPI already has, runs the tests, builds, publishes, and creates the `vX.Y.Z` tag and GitHub release.
 
-# Upload to PyPI
-uv run twine upload dist/*
+To build locally:
+
+```bash
+rm -rf dist/ && uv run python -m build
 ```
 
 ## Contributing

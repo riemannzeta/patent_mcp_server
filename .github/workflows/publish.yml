@@ -1,0 +1,132 @@
+name: Publish to PyPI
+
+# Run by hand from the Actions tab (or through the GitHub API) after the
+# version bump is merged to main. PyPI trusts this workflow through OIDC
+# (trusted publisher: workflow publish.yml, environment pypi), so the repo
+# holds no PyPI token.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check version
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read and cross-check the version
+        id: version
+        run: |
+          version=$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          if ! grep -q "patent-mcp-server/${version}\"" src/patent_mcp_server/config.py; then
+            echo "::error::config.py USER_AGENT does not say patent-mcp-server/${version}; bump both files."
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Refuse a version PyPI already has
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' \
+            "https://pypi.org/pypi/patent-mcp-server/${{ steps.version.outputs.version }}/json")
+          if [ "$status" = "200" ]; then
+            echo "::error::patent-mcp-server ${{ steps.version.outputs.version }} is already on PyPI; bump the version first."
+            exit 1
+          fi
+
+  test:
+    name: pytest (Python ${{ matrix.python-version }})
+    needs: check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Run unit tests
+        run: uv run pytest
+
+  build:
+    name: Build distributions
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.13"
+
+      - name: Build and check
+        run: |
+          uv sync --dev
+          uv run python -m build
+          uv run twine check --strict dist/*
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Upload to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    # The environment PyPI's trusted publisher names. Add yourself as a
+    # required reviewer in Settings > Environments > pypi to approve each upload.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/patent-mcp-server/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@v1.14.2
+
+  release:
+    name: Tag and create GitHub release
+    needs: [check, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create release v${{ needs.check.outputs.version }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ needs.check.outputs.version }}" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "v${{ needs.check.outputs.version }}" \
+            --generate-notes
