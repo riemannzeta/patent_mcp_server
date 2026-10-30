@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from patent_mcp_server.config import config
 from patent_mcp_server.patents import (
     _oa_reference_clause,
     get_office_action_citations,
@@ -180,6 +181,88 @@ async def test_rejections_pages_by_rows():
     assert result["has_more"] is True
     assert result["metadata"]["next_offset"] == 25
     assert result["metadata"]["limit_clamped_from"] == 5000
+
+
+def _dataset_search(rows):
+    """A search_records stand-in that serves `rows` by offset and limit."""
+    async def search(dataset, criteria, offset, limit):
+        return {"total": len(rows), "docs": copy.deepcopy(rows[offset:offset + limit])}
+    return search
+
+
+def _rejection_rows(actions):
+    """Rows for `actions` office actions, one to four rows each, with
+    claim lists long enough that a page of them overruns the token budget."""
+    rows = []
+    for a in range(actions):
+        for r in range(a % 4 + 1):
+            rows.append(dict(
+                REJECTION_ROWS[0],
+                id=f"row-{a}-{r}",
+                obsoleteDocumentIdentifier=f"DOC{a:03d}",
+                legalSectionCode=str(100 + r),
+                claimNumberArrayDocument=[",".join(str(c) for c in range(r, 400, 4))],
+            ))
+    return rows
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_rejections_paging_skips_no_action_after_truncation(monkeypatch):
+    """Truncation drops actions; next_offset resumes at the first one dropped."""
+    monkeypatch.setattr(config, "TRUNCATE_LARGE_RESPONSES", True)
+    monkeypatch.setattr(config, "MAX_RESPONSE_TOKENS", 8_000)
+    rows = _rejection_rows(60)
+    seen, offset = [], 0
+    with patch(SEARCH, AsyncMock(side_effect=_dataset_search(rows))):
+        for _ in range(20):
+            result = await get_office_action_rejections(art_unit="1798", offset=offset, limit=200)
+            seen.extend(a["document_id"] for a in result["results"])
+            if not result["has_more"]:
+                break
+            assert result.get("_truncated"), "every page but the last is cut"
+            offset = result["metadata"]["next_offset"]
+        else:
+            pytest.fail("Pagination did not terminate")
+    assert seen == [f"DOC{a:03d}" for a in range(60)]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_rejections_truncated_page_reports_rows_it_covers(monkeypatch):
+    monkeypatch.setattr(config, "TRUNCATE_LARGE_RESPONSES", True)
+    monkeypatch.setattr(config, "MAX_RESPONSE_TOKENS", 8_000)
+    rows = _rejection_rows(40)
+    with patch(SEARCH, AsyncMock(side_effect=_dataset_search(rows))):
+        result = await get_office_action_rejections(art_unit="1798", offset=0, limit=200)
+    kept = result["count"]
+    assert kept < 40
+    first_dropped = next(i for i, r in enumerate(rows) if r["obsoleteDocumentIdentifier"] == f"DOC{kept:03d}")
+    assert result["metadata"]["next_offset"] == first_dropped
+    assert result["metadata"]["rows_returned"] == first_dropped
+    assert result["has_more"] is True
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_citations_paging_skips_no_row_after_truncation(monkeypatch):
+    monkeypatch.setattr(config, "TRUNCATE_LARGE_RESPONSES", True)
+    monkeypatch.setattr(config, "MAX_RESPONSE_TOKENS", 8_000)
+    rows = [
+        dict(CITATION_ROWS[1], id=f"cit-{i}", referenceIdentifier=f"Ref {i} " + "x" * 2_000)
+        for i in range(70)
+    ]
+    seen, offset = [], 0
+    with patch(SEARCH, AsyncMock(side_effect=_dataset_search(rows))):
+        for _ in range(20):
+            result = await get_office_action_citations(art_unit="1798", offset=offset, limit=50)
+            seen.extend(c["record_id"] for c in result["results"])
+            if not result["has_more"]:
+                break
+            offset = result["metadata"]["next_offset"]
+        else:
+            pytest.fail("Pagination did not terminate")
+    assert seen == [f"cit-{i}" for i in range(70)]
 
 
 @pytest.mark.unit

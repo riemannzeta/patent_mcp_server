@@ -465,7 +465,10 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.8.2 (Current)
+### v1.8.3 (Current)
+- **Office action paging skips nothing after truncation**: `get_office_action_rejections` pages by dataset rows but returns office actions, so when the token budget dropped actions, `metadata.next_offset` still pointed past their rows and the next page never showed them. It now points at the first row of the first dropped action, and `rows_returned` counts only the rows kept. `get_office_action_citations` had the same gap row for row and gets the same fix.
+
+### v1.8.2
 - **Keep truncated search results reachable**: when the token budget removes records from the final page, `has_more` remains true. Continue at `offset + count` to retrieve the omitted records. Pages shortened only by stripping heavy fields keep their original pagination state.
 
 ### v1.8.1
