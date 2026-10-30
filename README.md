@@ -465,7 +465,10 @@ Issues and PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribut
 
 ## Version History
 
-### v1.8.1 (Current)
+### v1.8.2 (Current)
+- **Keep truncated search results reachable**: when the token budget removes records from the final page, `has_more` remains true. Continue at `offset + count` to retrieve the omitted records. Pages shortened only by stripping heavy fields keep their original pagination state.
+
+### v1.8.1
 - **Releases publish from GitHub Actions**: the new Publish to PyPI workflow uploads through PyPI trusted publishing, so no API token is stored anywhere, and it tags each release and creates its GitHub release. This is the first version it published
 - Docs: the legacy tool count now reads 23 everywhere (it said 25 in a few places after the two office action dataset tools went live in v1.8.0)
 
