@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from patent_mcp_server.patents import odp_search_applications
+from patent_mcp_server.config import config
 
 
 def _fake_upstream_response(num_records: int) -> dict:
@@ -59,6 +60,47 @@ async def test_search_passes_through_when_upstream_under_limit():
 
     assert result["count"] == 2
     assert len(result["results"]) == 2
+
+
+@pytest.mark.unit
+async def test_search_paginates_past_truncated_final_page(monkeypatch):
+    """Following has_more retrieves records cut from a large final page."""
+    monkeypatch.setattr(config, "TRUNCATE_LARGE_RESPONSES", True)
+    monkeypatch.setattr(config, "MAX_RESPONSE_TOKENS", 8_000)
+    records = [
+        {"applicationNumberText": str(i), "eventDataBag": ["x" * 3_000]}
+        for i in range(25)
+    ]
+
+    async def search_page(url, *, method, data):
+        page = data["pagination"]
+        start = page["offset"]
+        return {
+            "count": len(records),
+            "patentFileWrapperDataBag": records[start:start + page["limit"]],
+        }
+
+    seen = []
+    offset = 0
+    mock_request = AsyncMock(side_effect=search_page)
+    with patch(
+        "patent_mcp_server.patents.api_client.make_request", new=mock_request,
+    ):
+        for _ in range(3):
+            result = await odp_search_applications(
+                query="synthetic pagination fixture", offset=offset, limit=25,
+            )
+            seen.extend(record["applicationNumberText"] for record in result["results"])
+            offset += result["count"]
+            if not result["has_more"]:
+                break
+        else:
+            pytest.fail("Pagination did not terminate")
+
+    assert seen == [str(i) for i in range(25)]
+    assert mock_request.await_count == 2
+    assert offset == 25
+    assert result["has_more"] is False
 
 
 @pytest.mark.unit

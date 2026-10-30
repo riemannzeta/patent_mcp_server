@@ -370,6 +370,7 @@ def truncate_response(
       1. Slice the results list down to ``min(max_results, envelope_limit)``.
          Honors the user's requested ``limit`` even when fewer than the global
          default — fixes the case where 20 fat records still bust the budget.
+         Set ``has_more`` when records are omitted, including on the last page.
       2. If still over budget, strip heavy nested fields (eventDataBag,
          foreignPriorityBag, assignmentBag, claims, descriptionBag) from each
          record. Records remain visible; stripped fields are replaced with a
@@ -411,6 +412,7 @@ def truncate_response(
                 f"through remaining results."
             )
             truncated["count"] = effective_max
+            truncated["has_more"] = True
 
             logger.info(
                 f"Truncated response from {original_count} to {effective_max} results "

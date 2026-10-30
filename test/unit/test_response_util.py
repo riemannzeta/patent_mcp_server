@@ -66,6 +66,25 @@ def test_truncate_uses_max_results_when_no_envelope_limit():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("offset,total", [(0, 3), (17, 20), (0, None)])
+def test_truncated_final_page_has_more(offset, total):
+    """Records omitted by truncation remain available through pagination."""
+    response = ResponseEnvelope.success(
+        results=[_fat_record(2_000) for _ in range(3)],
+        source="odp", total=total, offset=offset, limit=3,
+    )
+    assert response["has_more"] is False
+
+    out = truncate_response(response, max_tokens=500, max_results=2)
+
+    assert out["count"] == len(out["results"]) == 2
+    assert out["has_more"] is True
+    assert out["offset"] == offset
+    assert out["total"] == response["total"]
+    assert response["has_more"] is False
+
+
+@pytest.mark.unit
 def test_truncate_strips_heavy_fields_when_slice_insufficient():
     """If post-slice payload still exceeds budget, strip nested heavy fields."""
     # 3 fat records — slicing alone (limit=3) won't shrink count, so stripping
@@ -77,6 +96,7 @@ def test_truncate_strips_heavy_fields_when_slice_insufficient():
     out = truncate_response(response, max_tokens=500, max_results=20)
 
     assert len(out["results"]) == 3  # records preserved
+    assert out["has_more"] is False  # Stripping fields did not omit records.
     assert out["_lean_mode"] is True
     assert "eventDataBag" in out["_stripped_fields"]
     for record in out["results"]:

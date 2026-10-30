@@ -77,7 +77,7 @@ class Config:
     MCP_JSON_RESPONSE: bool = os.getenv("MCP_JSON_RESPONSE", "false").lower() == "true"
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.8.1")
+    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/1.8.2")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry
