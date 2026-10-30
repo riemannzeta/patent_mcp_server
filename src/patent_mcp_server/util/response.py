@@ -10,7 +10,7 @@ This module provides utilities for:
 import json
 import logging
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from patent_mcp_server.config import config
 from patent_mcp_server.constants import DocumentSections
@@ -600,11 +600,24 @@ def group_rejection_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     repeats, under ``claim_groups`` and sums them up in ``claims`` by
     action type (rejected, objected, allowed, cancelled).
     """
+    return group_rejection_rows_with_starts(rows)[0]
+
+
+def group_rejection_rows_with_starts(
+    rows: List[Dict[str, Any]],
+) -> Tuple[List[Dict[str, Any]], List[int]]:
+    """``group_rejection_rows`` plus the index of each action's first row.
+
+    Paging counts rows, so a caller that drops actions from the end of a
+    page resumes at the first row of the first action it dropped.
+    """
     actions: Dict[str, Dict[str, Any]] = {}
-    for row in rows:
+    starts: List[int] = []
+    for index, row in enumerate(rows):
         key = row.get("obsoleteDocumentIdentifier") or row.get("id") or str(len(actions))
         action = actions.get(key)
         if action is None:
+            starts.append(index)
             art_unit = row.get("groupArtUnitNumber")
             action = actions[key] = {
                 "document_id": row.get("obsoleteDocumentIdentifier"),
@@ -642,7 +655,7 @@ def group_rejection_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         for bucket in action["claims"].values():
             bucket.sort(key=lambda c: (isinstance(c, str), c))
         out.append(_drop_empty(action))
-    return out
+    return out, starts
 
 
 def slim_oa_citation(row: Dict[str, Any]) -> Dict[str, Any]:

@@ -54,7 +54,7 @@ from patent_mcp_server.util.validation import (
 from patent_mcp_server.util.response import (
     ResponseEnvelope, check_and_truncate, estimate_tokens, slim_document,
     slim_office_action, slim_petition_decision, facet_counts,
-    group_rejection_rows, slim_oa_citation,
+    group_rejection_rows_with_starts, slim_oa_citation,
 )
 from patent_mcp_server.resources import (
     get_cpc_section_info, get_cpc_subsection_info,
@@ -3042,6 +3042,27 @@ def _oa_page_metadata(page: Dict[str, Any], rows_returned: int) -> Dict[str, Any
     return metadata
 
 
+def _oa_truncated_page(
+    response: Dict[str, Any], page: Dict[str, Any], starts: List[int]
+) -> Dict[str, Any]:
+    """Truncate an office action dataset page and keep its row paging right.
+
+    ``starts[i]`` is the page row on which result i begins. When truncation
+    drops results, the next page starts at the first row of the first one
+    dropped, so no result is skipped.
+    """
+    response = check_and_truncate(response)
+    kept = len(response.get("results") or [])
+    if response.get("_truncated") and kept < len(starts):
+        rows = starts[kept]
+        metadata = dict(response.get("metadata") or {})
+        metadata["rows_returned"] = rows
+        metadata["next_offset"] = page["offset"] + rows
+        response["metadata"] = metadata
+        response["has_more"] = True
+    return response
+
+
 @tool()
 async def get_office_action_rejections(
     application_number: Optional[str] = None,
@@ -3076,7 +3097,9 @@ async def get_office_action_rejections(
 
     Coverage: actions mailed from 2012 on (93M rows), appearing about a
     week after mailing. Pagination counts rows, not actions; an action can
-    straddle two pages.
+    straddle two pages. Continue from metadata.next_offset, not offset +
+    count: when the token budget drops actions, next_offset points at the
+    first row of the first one dropped.
 
     Args:
         application_number: Application number without slashes (e.g. "18402543")
@@ -3161,7 +3184,7 @@ async def get_office_action_rejections(
     if is_error(page):
         return page
 
-    actions = group_rejection_rows(page["docs"])
+    actions, starts = group_rejection_rows_with_starts(page["docs"])
     metadata = _oa_page_metadata(page, len(page["docs"]))
     metadata["note"] = (
         "total counts dataset rows (several per action). Read an action's "
@@ -3177,7 +3200,7 @@ async def get_office_action_rejections(
     )
     # count is actions but total is rows; paging follows the rows.
     response["has_more"] = "next_offset" in metadata
-    return check_and_truncate(response)
+    return _oa_truncated_page(response, page, starts)
 
 
 @tool()
@@ -3294,14 +3317,15 @@ async def get_office_action_citations(
     if is_error(page):
         return page
 
-    return check_and_truncate(ResponseEnvelope.success(
+    response = ResponseEnvelope.success(
         results=[slim_oa_citation(d) for d in page["docs"]],
         source="odp",
         total=page["total"],
         offset=page["offset"],
         limit=page["limit"],
         metadata=_oa_page_metadata(page, len(page["docs"])),
-    ))
+    )
+    return _oa_truncated_page(response, page, list(range(len(page["docs"]))))
 
 
 # =====================================================================
